@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: buchungsmanagement
+  namespace: booking-app
+spec:
+  #replicas: 2
+  selector:
+    matchLabels:
+      app: buchungsmanagement
+  template:
+    metadata:
+      labels:
+        app: buchungsmanagement
+    spec:
+      containers:
+      - name: buchungsmanagement
+        image: mseyer91/buchungsmanagement_v4:latest      
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5002
