@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: booking-app
+data:
+  default.conf: |
+    server {
+        listen 80;
+
+        location /zimmerverwaltung {
+            proxy_pass http://zimmerverwaltung:80;
+        }
+
+        location /kundenverwaltung {
+            proxy_pass http://kundenverwaltung:80;
+        }
+
+        location /buchungsmanagement {
+            proxy_pass http://buchungsmanagement:80;
+        }
+    }

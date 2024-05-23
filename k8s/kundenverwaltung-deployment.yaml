@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kundenverwaltung
+  namespace: booking-app
+spec:
+  #replicas: 2
+  selector:
+    matchLabels:
+      app: kundenverwaltung
+  template:
+    metadata:
+      labels:
+        app: kundenverwaltung
+    spec:
+      containers:
+      - name: kundenverwaltung  
+        image: mseyer91/kundenverwaltung_v4:latest
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5001
