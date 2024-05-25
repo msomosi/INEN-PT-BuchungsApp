@@ -1,61 +1,50 @@
-from flask import Flask, redirect, url_for, session, request, jsonify
-from flask_oauthlib.client import OAuth
+from authlib.integrations.flask_client import OAuth
+from flask import Flask, redirect, url_for, session, make_response
+from flask_jwt_extended import JWTManager, create_access_token
+import os
 
 app = Flask(__name__)
-app.secret_key = 'random_secret_key'
-app.config['SESSION_TYPE'] = 'filesystem'
+app.secret_key = '12345678910111213141516' # Replace with a strong random value
+app.config['JWT_SECRET_KEY'] = '161514131211109876543210'  # Ensure this is secure in production
+
+jwt = JWTManager(app)
 
 oauth = OAuth(app)
-keycloak = oauth.remote_app(
-    'keycloak',
-    consumer_key='booking-app',  # Client ID
-    consumer_secret='client-secret',  # Client Secret
-    request_token_params={
-        'scope': 'openid email profile'
-    },
-    base_url='http://keycloak:8080/auth/realms/studentenwohnheim/protocol/openid-connect',
-    request_token_url=None,
-    access_token_method='POST',
-    access_token_url='/token',
-    authorize_url='/auth'
+google = oauth.register(
+    name='google',
+    client_id='159476032740-lq70m9cthh0iogpcgdcinn0r9ml3o4eg.apps.googleusercontent.com',  # Replace with your Google client ID
+    client_secret='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',  # Replace with your Google client secret
+    jwks_uri='https://www.googleapis.com/oauth2/v3/certs',
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    client_kwargs={'scope': 'openid email profile'}
 )
 
 @app.route('/')
 def index():
-    if 'keycloak_token' in session:
-        return redirect(url_for('protected'))
-    return redirect(url_for('login'))
+    return 'Hallo und Willkommen auf unserer Buchungsmanagementplattform! Bitte <a href="/login">loggen Sie sich ein</a>.'
 
 @app.route('/login')
 def login():
-    return keycloak.authorize(callback=url_for('authorized', _external=True))
+    redirect_uri = url_for('authorize', _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
 
-@app.route('/logout')
-def logout():
-    session.pop('keycloak_token')
-    return redirect(url_for('index'))
+@app.route('/authorize')
+def authorize():
+    try:
+        token = oauth.google.authorize_access_token()
+        resp = oauth.google.get('userinfo')
+        user_info = resp.json()
+        session['email'] = user_info['email']
+        access_token = create_access_token(identity=user_info['email'])
 
-@app.route('/login/authorized')
-def authorized():
-    response = keycloak.authorized_response()
-    if response is None or response.get('access_token') is None:
-        return 'Access denied: reason={} error={}'.format(
-            request.args['error'], request.args['error_description']
-        )
-
-    session['keycloak_token'] = (response['access_token'], '')
-    return redirect(url_for('protected'))
-
-@app.route('/protected')
-def protected():
-    if 'keycloak_token' in session:
-        # Successful login, redirect to the booking management service
-        return redirect("http://buchungsmanagement-service/buchungen")
-    return redirect(url_for('login'))
-
-@keycloak.tokengetter
-def get_keycloak_oauth_token():
-    return session.get('keycloak_token')
+        response = make_response(redirect("http://localhost:5002/home"))
+        response.set_cookie('access_token_cookie', access_token, httponly=True, secure=False, path='/')
+        return response
+    except Exception as e:
+        print(f'Fehler bei der Autorisierung: {e}')
+        return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5003)
+    app.run(debug=True, port=5001)
