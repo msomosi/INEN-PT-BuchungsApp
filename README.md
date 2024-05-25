@@ -3,7 +3,7 @@
 
 
 
-Zur Installation der Authentifizierung:
-pip install -r requirements.txt aus dem login-service ordner
-python app.py aus dem login-service ordner
+Zur Installation der Authentifizierung:  
+pip install -r requirements.txt aus dem login-service ordner  
+python app.py aus dem login-service ordner  
 python app.py aus dem buchungsmanagment ordner
