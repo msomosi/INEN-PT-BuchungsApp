@@ -23,7 +23,7 @@ def home():
         verify_jwt_in_request()
         current_user = get_jwt_identity()
         if current_user:
-            return render_template('home.html', user=current_user)
+            return render_template('homev2.html', user=current_user)
     except Exception as e:
         return render_template('error.html', message='Kein gültiges Token gefunden.', error=str(e)), 401
 
@@ -46,12 +46,24 @@ def rent():
         }
         buchungen.append(buchung)
         return redirect(url_for('home'))
-    return render_template('rent.html')
+    return render_template('rentv2.html')
 
 @app.route('/buchungen', methods=['GET'])
 @jwt_required()
 def handle_buchungen():
     return jsonify(buchungen)
+
+@app.route('/kundenverwaltung')
+def kundenverwaltung():
+    email = session.get('email')
+    buchungen = [
+        {"room": "101", "start_time": "10:00", "end_time": "12:00"},
+        {"room": "102", "start_time": "12:00", "end_time": "14:00"},
+        {"room": "103", "start_time": "14:00", "end_time": "16:00"}
+    ]
+    return render_template('kundenverwaltung.html', user=email, buchungen=buchungen)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)

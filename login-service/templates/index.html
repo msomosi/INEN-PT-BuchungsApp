@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: white;
+        }
+
+        .titel-box {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            margin: 0;
+            background-color: white;
+            border-radius: 5px;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .logo {
+            position: absolute;
+            left: 50px;
+            top: 55%;
+            transform: translateY(-50%);
+            width: 450px;
+            height: 450px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 40%;
+            transform: translateY(-50%);
+        }
+
+        .login-container-mitarbeiter {
+            background: white;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 70%;
+            transform: translateY(-50%);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .google-login {
+            margin-top: 20px;
+        }
+
+        .google-login-button {
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            background-color: #4285f4;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="titel-box">
+        <h1>Herzlich Wilkommen in der Buchungsmanagement App</h1>
+    </div>
+    <div class="logo">
+        <div id="root"></div>
+    </div>
+    <div class="login-container">
+        <h2>Studenten Login</h2>
+        <div class="google-login">
+            <a href="{{ url_for('login', user_type='student') }}" class="google-login-button">Login with Google</a>
+        </div>
+    </div>
+    <div class="login-container-mitarbeiter">
+        <h2>Mitarbeiter Login</h2>
+        <div class="google-login">
+            <a href="{{ url_for('login', user_type='employee') }}" class="google-login-button">Login with Google</a>
+        </div>
+    </div>
+    <script>
+        function Logo() {
+            const img = document.createElement('img');
+            img.src = '/static/logo.png'; // Path to the logo image
+            img.className = 'logo';
+            return img;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const root = document.getElementById('root');
+            const header = Logo();
+            root.appendChild(header);
+        });
+
+        function handleCredentialResponse(response) {
+            console.log('Encoded JWT ID token: ' + response.credential);
+        }
+
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            document.head.appendChild(script);
+        })();
+    </script>
+</body>
+</html>

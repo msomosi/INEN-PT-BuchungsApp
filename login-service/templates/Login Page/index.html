@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="titel-box">
+        <h1>Herzlich Wilkommen in der Buchungsmanagement App</h1>
+    </div>
+    <div class="logo">
+        <div id="root"></div>
+        <script src="logo.js"></script>
+    </div>
+    <div class="login-container">
+        <h2>Google Login</h2>
+        <div class="google-login">
+            <a href="{{ url_for('login') }}" class="google-login-button">Login with Google</a>
+        </div>
+    </div>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="script.js"></script>
+</body>
+</html>

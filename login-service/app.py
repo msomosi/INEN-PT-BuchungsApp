@@ -1,10 +1,10 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, redirect, url_for, session, make_response
+from flask import Flask, redirect, url_for, render_template, session, make_response, request
 from flask_jwt_extended import JWTManager, create_access_token
 import os
 
 app = Flask(__name__)
-app.secret_key = '12345678910111213141516' # Replace with a strong random value
+app.secret_key = '12345678910111213141516'  # Replace with a strong random value
 app.config['JWT_SECRET_KEY'] = '161514131211109876543210'  # Ensure this is secure in production
 
 jwt = JWTManager(app)
@@ -23,10 +23,12 @@ google = oauth.register(
 
 @app.route('/')
 def index():
-    return 'Hallo und Willkommen auf unserer Buchungsmanagementplattform! Bitte <a href="/login">loggen Sie sich ein</a>.'
+    return render_template('index.html')
 
 @app.route('/login')
 def login():
+    user_type = request.args.get('user_type', 'student')
+    session['user_type'] = user_type
     redirect_uri = url_for('authorize', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
@@ -39,7 +41,13 @@ def authorize():
         session['email'] = user_info['email']
         access_token = create_access_token(identity=user_info['email'])
 
-        response = make_response(redirect("http://localhost:5002/home"))
+        user_type = session.get('user_type', 'student')
+        if user_type == 'employee':
+            redirect_url = "http://localhost:5002/kundenverwaltung"
+        else:
+            redirect_url = "http://localhost:5002/home"
+
+        response = make_response(redirect(redirect_url))
         response.set_cookie('access_token_cookie', access_token, httponly=True, secure=False, path='/')
         return response
     except Exception as e:

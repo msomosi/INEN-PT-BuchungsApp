@@ -1,0 +1,64 @@
+/* Grundstil für die gesamte Seite */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    background-color: white;
+}
+
+/* Stile für die Titelbox */
+.titel-box {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+    margin: 0; /* Entfernung des oberen und unteren Abstands */
+    background-color: white;
+    border-radius: 5px;
+    width: 100%;
+    position: fixed; /* Fixiert die Titelbox oben */
+    top: 0;
+    left: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Schatten für etwas Tiefe */
+    z-index: 1000; /* Sicherstellen, dass die Titelbox immer oben ist */
+}
+
+/* Stile für das Logo */
+.logo {
+    position: absolute; /* Absolut positioniert innerhalb der Titelbox */
+    left: 50px; /* Abstand von der linken Seite */
+    top: 50%; /* Vertikal zentrieren */
+    transform: translateY(-50%); /* Vertikale Zentrierung */
+    width: 400px;
+    height: 400px;
+}
+
+/* Stile für den Login-Container */
+.login-container {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: absolute; /* Absolut positioniert innerhalb der Titelbox */
+    top: 50%; /* Vertikal zentrieren */
+    transform: translateY(-50%); /* Vertikale Zentrierung */
+}
+
+/* Stile für h1 */
+h1 {
+    text-align: center;
+    margin-top: 80px; /* Platz für die fixierte Titelbox */
+}
+
+/* Stile für h2 */
+h2 {
+    margin-bottom: 20px;
+}
+
+/* Stile für Google Login */
+.google-login {
+    margin-top: 20px;
+}
