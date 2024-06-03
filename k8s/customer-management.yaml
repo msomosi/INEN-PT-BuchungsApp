@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer-management
+  template:
+    metadata:
+      labels:
+        app: customer-management
+    spec:
+      containers:
+      - name: customer-management
+        image: localhost:5000/customer-management:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5003
+        env:
+        - name: MYSQL_HOST
+          value: "mysql-customer"
+        - name: MYSQL_USER
+          value: "customer_user"
+        - name: MYSQL_PASSWORD
+          value: "Customer1"
+        - name: MYSQL_DATABASE
+          value: "customer_db"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-management
+spec:
+  selector:
+    app: customer-management
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5003
