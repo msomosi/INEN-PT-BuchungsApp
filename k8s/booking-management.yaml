@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-management
+  template:
+    metadata:
+      labels:
+        app: booking-management
+    spec:
+      containers:
+      - name: booking-management
+        image: 192.168.0.116:5000/booking-management:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5002
+        env:
+        - name: MYSQL_HOST
+          value: "mysql-room"
+        - name: MYSQL_USER
+          value: "room_user"
+        - name: MYSQL_PASSWORD
+          value: "Room1"
+        - name: MYSQL_DATABASE
+          value: "room_db"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-management
+spec:
+  selector:
+    app: booking-management
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5002

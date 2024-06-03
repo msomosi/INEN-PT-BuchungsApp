@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: login-management
+  template:
+    metadata:
+      labels:
+        app: login-management
+    spec:
+      containers:
+      - name: login-management
+        image: localhost:5000/login-management:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5001
+        env:
+        - name: MYSQL_HOST
+          value: "mysql-customer"
+        - name: MYSQL_USER
+          value: "customer_user"
+        - name: MYSQL_PASSWORD
+          value: "Customer1"
+        - name: MYSQL_DATABASE
+          value: "customer_db"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: login-management
+spec:
+  selector:
+    app: login-management
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5001

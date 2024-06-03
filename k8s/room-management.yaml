@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: room-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: room-management
+  template:
+    metadata:
+      labels:
+        app: room-management
+    spec:
+      containers:
+      - name: room-management
+        image: localhost:5000/room-management:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5004
+        env:
+        - name: MYSQL_HOST
+          value: "mysql-room"
+        - name: MYSQL_USER
+          value: "room_user"
+        - name: MYSQL_PASSWORD
+          value: "Room1"
+        - name: MYSQL_DATABASE
+          value: "room_db"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: room-management
+spec:
+  selector:
+    app: room-management
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5004
