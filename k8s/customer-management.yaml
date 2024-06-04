@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: customer-management
-        image: localhost:5000/customer-management:latest
+        image: phoolandevi/customer-management:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5003
