@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: room-management
-        image: localhost:5000/room-management:latest
+        image: phoolandevi/room-management:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5004
