@@ -26,4 +26,4 @@ def kunden_details(kunden_id):
         return '', 204
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
+    app.run(host='0.0.0.0', port=5003)
