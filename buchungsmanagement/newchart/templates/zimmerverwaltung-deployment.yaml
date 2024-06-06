@@ -1,21 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: buchungsmanagement
+  name: kunden-deployment
   namespace: booking-app
 spec:
-  #replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: buchungsmanagement
+      app: zimmerverwaltung
   template:
     metadata:
       labels:
-        app: buchungsmanagement
+        app: zimmerverwaltung
     spec:
       containers:
-      - name: buchungsmanagement
-        image: mseyer91/buchungsmanagement_v4:latest      
+      - name: zimmerverwaltung
+        image: zimmerverwaltung:latest
+        imagePullPolicy: IfNotPresent
         resources:
           requests:
             memory: "64Mi"
@@ -24,4 +25,4 @@ spec:
             memory: "128Mi"
             cpu: "500m"
         ports:
-        - containerPort: 5002
+        - containerPort: 5003

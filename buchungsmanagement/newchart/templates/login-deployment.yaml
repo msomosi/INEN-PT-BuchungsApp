@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login-deployment
+  namespace: booking-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: login
+  template:
+    metadata:
+      labels:
+        app: login
+    spec:
+      containers:
+      - name: login
+        image: login:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5001
+        env:
+        - name: JWT_SECRET_KEY
+          value: "161514131211109876543210"
+        - name: GOOGLE_CLIENT_ID
+          value: "159476032740-lq70m9cthh0iogpcgdcinn0r9ml3o4eg.apps.googleusercontent.com"
+        - name: GOOGLE_CLIENT_SECRET
+          value: "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"
+        - name: ROOM_MANAGEMENT_URL
+          value: "http://<ROOM_MANAGEMENT_PUBLIC_IP>:5003/room_management"
+        - name: BOOKINGS_MANAGEMENT_URL
+          value: "localhost:5002/home"

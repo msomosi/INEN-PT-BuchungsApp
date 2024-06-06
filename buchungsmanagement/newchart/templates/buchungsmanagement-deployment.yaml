@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: buchungsmanagment-deployment
+  namespace: booking-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: buchungsmanagment
+  template:
+    metadata:
+      labels:
+        app: buchungsmanagment
+    spec:
+      containers:
+      - name: buchungsmanagment
+        image: buchungsmanagment:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5002
+        env:
+        - name: JWT_SECRET_KEY
+          value: "161514131211109876543210"
+        - name: AWS_ACCESS_KEY_ID
+          value: "EXO5f27ae1ba3685a0d89d9ae58"
+        - name: AWS_SECRET_ACCESS_KEY
+          value: "ll1mYK9P5O3xx52P6ftg3vnrFRyNPkdW4PV3oB_NLo8"
+        - name: BUCKET_NAME
+          value: "zimmer"
+        - name: S3_ENDPOINT
+          value: "https://sos-de-fra-1.exo.io"
+        - name: BOOKINGS_MANAGEMENT_URL
+          value: "http://localhost:5002/room_management"

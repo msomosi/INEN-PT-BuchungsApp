@@ -1,0 +1,36 @@
+# Values for buchungsmanagement service and deployment
+buchungsmanagement:
+  namespace: buchungsmanagement-ns
+  name: buchungsmanagement
+  replicaCount: 1
+  image:
+    repository: myrepo/buchungsmanagement
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 80
+
+# Values for login service and deployment
+login:
+  namespace: login-ns
+  name: login
+  replicaCount: 2
+  image:
+    repository: myrepo/login
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8080
+
+# Values for zimmerverwaltung service and deployment
+zimmerverwaltung:
+  namespace: zimmerverwaltung-ns
+  name: zimmerverwaltung
+  replicaCount: 1
+  image:
+    repository: myrepo/zimmerverwaltung
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8081
+
