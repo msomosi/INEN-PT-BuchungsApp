@@ -82,7 +82,7 @@ def handle_buchungen():
     return jsonify(buchungen)
 
 @app.route('/room_management')
-def kundenverwaltung():
+def room_management():
     # Redirect to the room management page on port 5003
     return redirect('http://localhost:5003/room_management')
  

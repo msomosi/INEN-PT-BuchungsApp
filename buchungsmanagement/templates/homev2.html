@@ -67,12 +67,6 @@
         <h1>Willkommen, {{ user }}!</h1>
         <p>Das ist das Buchungsmanagement-System.</p>
         <p><a href="{{ url_for('rent') }}">Raum buchen</a></p>
-        <h2>Ihre Buchungen:</h2>
-        <ul>
-        {% for buchung in buchungen %}
-            <li>Raum: {{ buchung.room }} | Zeitraum: {{ buchung.start_time }} bis {{ buchung.end_time }}</li>
-        {% endfor %}
-        </ul>
     </div>
 </body>
 </html>

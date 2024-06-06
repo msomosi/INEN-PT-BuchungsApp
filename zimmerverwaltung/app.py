@@ -22,19 +22,22 @@ s3 = boto3.client(
 @app.route('/room_management')
 def room_management():
     try:
-        # Fetch data from S3
-        response = s3.list_objects_v2(Bucket=bucket_name)
+        response = s3.list_objects_v2(Bucket='zimmer')
         bookings = []
         for obj in response.get('Contents', []):
-            booking_data = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
-            booking_content = booking_data['Body'].read().decode('utf-8')
-            bookings.append(json.loads(booking_content))
-
-        return render_template('room_management.html', buchungen=bookings)
-    except NoCredentialsError:
-        return "Credentials not available", 500
+            data = s3.get_object(Bucket='zimmer', Key=obj['Key'])
+            content = data['Body'].read().decode('utf-8')
+            try:
+                booking = json.loads(content)
+                print("Loaded booking:", booking)  # Log each loaded booking
+                bookings.append(booking)
+            except json.JSONDecodeError as e:
+                print(f"JSON decoding error for {obj['Key']}: {e}")
+                continue  # Skip this booking if there's a JSON error
     except Exception as e:
+        print(f"Error accessing S3: {e}")
         return str(e), 500
+    return render_template('room_management.html', buchungen=bookings)
 
 
 if __name__ == '__main__':

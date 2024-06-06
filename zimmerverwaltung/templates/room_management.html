@@ -69,7 +69,7 @@
         <h2>Alle Buchungen im Heim:</h2>
         <ul>
         {% for buchung in buchungen %}
-            <li>Raum: {{ buchung.room }} | Zeitraum: {{ buchung.start_time }} bis {{ buchung.end_time }}</li>
+            <li>Raum: {{ buchung.room }} | Zeitraum: {{ buchung.start_date }} bis {{ buchung.end_date }} | Gebucht von: {{ buchung.user }}</li>
         {% endfor %}
         </ul>
     </div>
