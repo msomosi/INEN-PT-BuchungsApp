@@ -4,6 +4,7 @@ import datetime
 import boto3
 from botocore.exceptions import NoCredentialsError
 import json
+import os
  
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = '161514131211109876543210'  # Same key as in Login-Service
@@ -82,9 +83,9 @@ def handle_buchungen():
     return jsonify(buchungen)
 
 @app.route('/room_management')
-def kundenverwaltung():
+def room_management():
     # Redirect to the room management page on port 5003
-    return redirect('http://localhost:5003/room_management')
+    return redirect(os.getenv('ROOM_MANAGEMENT_URL'))
  
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+    app.run(debug=True,host='0.0.0.0', port=5002)

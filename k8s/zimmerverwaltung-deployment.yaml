@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zimmerverwaltung
+  name: kunden-deployment
   namespace: booking-app
 spec:
-  #replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: zimmerverwaltung
@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: zimmerverwaltung
-        image: mseyer91/zimmerverwaltung_v4:latest
+        image: zimmerverwaltung:latest
+        imagePullPolicy: IfNotPresent
         resources:
           requests:
             memory: "64Mi"
@@ -24,4 +25,4 @@ spec:
             memory: "128Mi"
             cpu: "500m"
         ports:
-        - containerPort: 5000
+        - containerPort: 5003
