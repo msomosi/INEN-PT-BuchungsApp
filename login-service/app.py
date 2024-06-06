@@ -43,7 +43,7 @@ def authorize():
 
         user_type = session.get('user_type', 'student')
         if user_type == 'employee':
-            redirect_url = "http://localhost:5002/kundenverwaltung"
+            redirect_url = "http://localhost:5003/room_management"
         else:
             redirect_url = "http://localhost:5002/home"
 

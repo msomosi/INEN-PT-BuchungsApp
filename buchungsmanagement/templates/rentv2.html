@@ -105,7 +105,7 @@
             const endDate = new Date(document.getElementById('end_date').value);
             const warningElement = document.getElementById('warning');
             const button = document.getElementById('submit_button');
-
+ 
             if (endDate <= startDate) {
                 warningElement.textContent = "Enddatum muss nach dem Startdatum liegen!";
                 document.getElementById('days').value = '';
@@ -118,59 +118,28 @@
                 button.disabled = false;
             }
         }
-
-        function RentRoom(event) {
-            event.preventDefault(); // Prevent the default form submission
-
-            const room = document.getElementById("room").value;
-            const startDate = document.getElementById("start_date").value;
-            const endDate = document.getElementById("end_date").value;
-
-            fetch('/rent', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    room: room,
-                    start_date: startDate,
-                    end_date: endDate
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Raum wurde erfolgreich gebucht!");
-                } else {
-                    alert("Fehler bei der Buchung: " + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
     </script>
 </head>
 <body>
     <div class="container">
         <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/FHBurgenland-logo.png" alt="FH Burgenland Logo" class="logo">
         <h1>Raum buchen</h1>
-        <form action="/buchung" method="post" action="../app.py">
+        <form action="/rent" method="post">
             <label for="room">Raum:</label>
             <input type="text" id="room" name="room" required>
-
+         
             <label for="start_date">Startdatum:</label>
             <input type="date" id="start_date" name="start_date" required onchange="calculateDays()">
-
+         
             <label for="end_date">Enddatum:</label>
             <input type="date" id="end_date" name="end_date" required onchange="calculateDays()">
-
+         
             <label for="days">Anzahl der Nächte:</label>
             <input type="number" id="days" name="days" readonly>
-
+         
             <div id="warning" class="warning"></div>
-
-            <button type="submit" id="submit_button" onclick="RentRoom(event)">Buchen</button>
+         
+            <button type="submit" id="submit_button">Buchen</button>
         </form>
     </div>
 </body>
