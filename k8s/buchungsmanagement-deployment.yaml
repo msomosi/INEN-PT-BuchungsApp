@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: buchungsmanagment
-        image: buchungsmanagment:latest
+        image: buchungsmanagement:latest
         imagePullPolicy: IfNotPresent
         resources:
           requests:
@@ -38,4 +38,4 @@ spec:
         - name: S3_ENDPOINT
           value: "https://sos-de-fra-1.exo.io"
         - name: BOOKINGS_MANAGEMENT_URL
-          value: "http://localhost:5002/room_management"
+          value: "http://localhost:5003/room_management"

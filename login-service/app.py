@@ -43,9 +43,9 @@ def authorize():
 
         user_type = session.get('user_type', 'student')
         if user_type == 'employee':
-            redirect_url = os.getenv('ROOM_MANAGEMENT_URL')
+            redirect_url = "http://localhost:5003/room_management"
         else:
-            redirect_url = os.getenv('BOOKINGS_MANAGEMENT_URL')
+           redirect_url = "http://localhost:5002/home"
 
         response = make_response(redirect(redirect_url))
         response.set_cookie('access_token_cookie', access_token, httponly=True, secure=False, path='/')

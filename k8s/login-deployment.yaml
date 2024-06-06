@@ -34,6 +34,6 @@ spec:
         - name: GOOGLE_CLIENT_SECRET
           value: "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"
         - name: ROOM_MANAGEMENT_URL
-          value: "http://<ROOM_MANAGEMENT_PUBLIC_IP>:5003/room_management"
+          value: "http://localhost:5003/room_management"
         - name: BOOKINGS_MANAGEMENT_URL
-          value: "localhost:5002/home"
+          value: "http://localhost:5002/home"
