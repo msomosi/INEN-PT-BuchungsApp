@@ -5,7 +5,9 @@ import os
 
 app = Flask(__name__)
 app.secret_key = '12345678910111213141516'  # Replace with a strong random value
-app.config['JWT_SECRET_KEY'] = '161514131211109876543210'  # Ensure this is secure in production
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', '')  # Same key as in Login-Service
+app.config['GOOGLE_CLIENT_ID'] = os.environ.get('OAUTH_CLIENT_ID', '')
+app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('OAUTH_CLIENT_SECRET', '')
 
 jwt = JWTManager(app)
 

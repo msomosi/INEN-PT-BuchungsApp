@@ -1,15 +1,16 @@
 from flask import Flask, request, jsonify, render_template
 import boto3
 from botocore.exceptions import NoCredentialsError
-import json
+import json,os
 
 app = Flask(__name__)
 
 # Configuration for Exoscale S3 access
 bucket_name = 'zimmer'  # Replace with your Exoscale bucket name
-s3_endpoint = 'https://sos-de-fra-1.exo.io'
-aws_access_key_id = 'EXO5f27ae1ba3685a0d89d9ae58'
-aws_secret_access_key = 'll1mYK9P5O3xx52P6ftg3vnrFRyNPkdW4PV3oB_NLo8'
+s3_endpoint=os.environ.get('S3_ENDPOINT', '')
+aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID', '')
+aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY', '')
+
 
 # Create an S3 client
 s3 = boto3.client(

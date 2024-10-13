@@ -1,24 +1,25 @@
 from flask import Flask, jsonify, request, redirect, url_for, render_template, session
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, verify_jwt_in_request, create_access_token, set_access_cookies
+
 import datetime
 import boto3
 from botocore.exceptions import NoCredentialsError
-import json
- 
+import json,os
+
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = '161514131211109876543210'  # Same key as in Login-Service
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', '')  # Same key as in Login-Service
 app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 app.config['JWT_COOKIE_SECURE'] = False  # False for development, True for production
 app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection for development
- 
+
 jwt = JWTManager(app)
- 
+
 # S3 Configuration
 bucket_name = 'zimmer'  # Replace with your Exoscale bucket name
-s3_endpoint = 'https://sos-de-fra-1.exo.io'
-aws_access_key_id = 'EXO5f27ae1ba3685a0d89d9ae58'  # Replace with your Exoscale access key
-aws_secret_access_key = 'll1mYK9P5O3xx52P6ftg3vnrFRyNPkdW4PV3oB_NLo8'  # Replace with your Exoscale secret key
- 
+s3_endpoint=os.environ.get('S3_ENDPOINT', '')
+aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID', '')
+aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY', '')
+
 # Create an S3 client
 s3 = boto3.client(
     's3',
