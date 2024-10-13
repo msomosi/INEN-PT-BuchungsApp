@@ -1,0 +1,36 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: localstack
+  labels:
+    helm.sh/chart: localstack-0.6.16
+    app.kubernetes.io/name: localstack
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["get", "create"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: localstack
+  labels:
+    helm.sh/chart: localstack-0.6.16
+    app.kubernetes.io/name: localstack
+subjects:
+- kind: ServiceAccount
+  name: localstack
+roleRef:
+  kind: Role
+  name: localstack
+  apiGroup: rbac.authorization.k8s.io

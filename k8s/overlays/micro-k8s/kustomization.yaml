@@ -10,6 +10,7 @@ labels:
 
 resources:
   - ../../base
+  - localstack/
   - nip-io-cert.yaml
   - nip-io-gateway.yaml
 
