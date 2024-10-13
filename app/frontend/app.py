@@ -61,8 +61,7 @@ def get_rooms():
     try:
         response = requests.get(request.url_root + 'room')
         app.logger.debug(response)
-        # Raises an HTTPError if the HTTP request returned an unsuccessful status code
-        response.raise_for_status()
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
         data = response.json()
     except Exception as err:
         app.logger.error("Fehler beim Laden der Buchungen: " + str(err))

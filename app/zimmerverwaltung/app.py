@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 import boto3
 from botocore.exceptions import NoCredentialsError
-import json,os
+import json
+import os
 import logging
 
 app = Flask(__name__)
