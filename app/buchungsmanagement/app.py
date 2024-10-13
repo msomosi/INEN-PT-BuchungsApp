@@ -4,8 +4,11 @@ import datetime
 import boto3
 from botocore.exceptions import NoCredentialsError
 import json,os
+import logging
 
 app = Flask(__name__)
+app.logger.setLevel(logging.DEBUG)
+app.logger.debug("Start buchungsmanagement")
 
 # S3 Configuration
 bucket_name = 'zimmer'  # Replace with your Exoscale bucket name
@@ -26,22 +29,29 @@ buchungen = []
 
 @app.route('/booking')
 def get_bookings():
+    app.logger.debug("Route: " + request.path)
+
     return jsonify(buchungen)
 
 @app.route('/booking', methods=['POST'])
 def add_booking():
+    app.logger.debug("Route: " + request.path)
     try:
         buchung = request.get_json()
+        app.logger.debug(request)
+        app.logger.debug(buchung)
 
         # Bestimmung des Objektnamens für S3
         object_name = f"booking_{buchung['room']}_{buchung['start_date']}.json"
         test_data = json.dumps(buchung)
 
+        app.logger.info("Speichere Buchung: " + object_name)
         # Upload der Buchungsinformationen in S3
         s3.put_object(Bucket=bucket_name, Key=object_name, Body=test_data, ContentType='application/json')
         return render_template('bestaetigung.html', buchung=buchung)
-    except Exception as e:
-        return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(e)), 500
+    except Exception as err:
+        app.logger.error("Fehler beim Speichern der Buchung: " + str(err))
+        return jsonify({'error': f'Fehler beim Speichern der Buchung: {str(err)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)

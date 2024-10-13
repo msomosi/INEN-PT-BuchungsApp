@@ -2,8 +2,11 @@ from flask import Flask, request, jsonify
 import boto3
 from botocore.exceptions import NoCredentialsError
 import json,os
+import logging
 
 app = Flask(__name__)
+app.logger.setLevel(logging.DEBUG)
+app.logger.debug("Start zimmerverwaltung")
 
 # S3 Configuration
 bucket_name = 'zimmer'  # Replace with your Exoscale bucket name
@@ -21,22 +24,30 @@ s3 = boto3.client(
 
 @app.route('/room')
 def get_room():
+    app.logger.debug("Route: " + request.path)
     try:
         response = s3.list_objects_v2(Bucket=bucket_name)
+        app.logger.debug(response)
+
         bookings = []
+
+        objects = s3.list_objects_v2(Bucket=bucket_name)
+        for obj in objects['Contents']:
+            app.logger.info(obj['Key'])
+
         for obj in response.get('Contents', []):
             data = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
             content = data['Body'].read().decode('utf-8')
             try:
                 booking = json.loads(content)
-                print("Loaded booking:", booking)  # Log each loaded booking
+                app.logger.info("Loaded booking: " + content)  # Log each loaded booking
                 bookings.append(booking)
-            except json.JSONDecodeError as e:
-                print(f"JSON decoding error for {obj['Key']}: {e}")
+            except json.JSONDecodeError as err:
+                app.logger.error(f"JSON decoding error for {obj['Key']}: {err}")
                 continue  # Skip this booking if there's a JSON error
-    except Exception as e:
-        print(f"Error accessing S3: {e}")
-        return str(e), 500
+    except Exception as err:
+        app.logger.error(f"Error accessing S3: " + str(err))
+        return str(err), 500
     return jsonify(bookings)
 
 

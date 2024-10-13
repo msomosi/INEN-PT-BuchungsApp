@@ -1,8 +1,12 @@
 from authlib.integrations.flask_client import OAuth
 from flask import Flask, redirect, url_for, session, request
 import os
+import logging
 
 app = Flask(__name__)
+app.logger.setLevel(logging.DEBUG)
+app.logger.debug("Start login")
+
 app.secret_key = '12345678910111213141516'  # Replace with a strong random value
 app.config['GOOGLE_CLIENT_ID'] = os.environ.get('OAUTH_CLIENT_ID', '')
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('OAUTH_CLIENT_SECRET', '')
@@ -19,6 +23,9 @@ oauth.register(
     }
 )
 
+app.logger.debug("Register oauth")
+
+
 @app.route('/')
 def index():
     if 'google_token' in session:
@@ -29,6 +36,10 @@ def index():
 
 @app.route('/login/<user_type>')
 def login(user_type):
+    app.logger.debug("Route: " + request.path)
+    app.logger.debug("user_type: " + user_type)
+    app.logger.debug(session)
+
     session['user_type'] = user_type
     redirect_uri = url_for('authorize', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
