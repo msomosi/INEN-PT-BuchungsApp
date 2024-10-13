@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request, redirect, url_for, render_template, session
-from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, verify_jwt_in_request, create_access_token, set_access_cookies
 
 import datetime
 import boto3
@@ -7,12 +6,6 @@ from botocore.exceptions import NoCredentialsError
 import json,os
 
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', '')  # Same key as in Login-Service
-app.config['JWT_TOKEN_LOCATION'] = ['cookies']
-app.config['JWT_COOKIE_SECURE'] = False  # False for development, True for production
-app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection for development
-
-jwt = JWTManager(app)
 
 # S3 Configuration
 bucket_name = 'zimmer'  # Replace with your Exoscale bucket name
@@ -32,12 +25,10 @@ buchungen = []
 
 
 @app.route('/booking')
-@jwt_required()
 def get_bookings():
     return jsonify(buchungen)
 
 @app.route('/booking', methods=['POST'])
-@jwt_required()
 def add_booking():
     try:
         buchung = request.get_json()

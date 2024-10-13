@@ -14,18 +14,15 @@ def home():
 
 
 @app.route('/rent')
-@jwt_required()
 def new_booking():
     return render_template('rentv2.html')
 
 @app.route('/rent', methods=['POST'])
-@jwt_required()
 def create_booking():
     room = request.form['room']
     start_date = request.form['start_date']
     end_date = request.form['end_date']
     days = request.form['days']
-    current_user = get_jwt_identity()  # Nutzeridentifikation aus dem JWT
 
     # Erstellen des Buchungsobjekts
     buchung = {

@@ -1,7 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: jwt-config
-data:
-  JWT_SECRET_KEY: '161514131211109876543210'

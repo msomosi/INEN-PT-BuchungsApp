@@ -32,8 +32,3 @@ spec:
             secretKeyRef:
               name: s3-secret
               key: AWS_SECRET_ACCESS_KEY
-        - name: JWT_SECRET_KEY
-          valueFrom:
-            configMapKeyRef:
-              name: jwt-config
-              key: JWT_SECRET_KEY

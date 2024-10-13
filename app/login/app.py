@@ -1,15 +1,13 @@
 from authlib.integrations.flask_client import OAuth
 from flask import Flask, redirect, url_for, session, request
-from flask_jwt_extended import JWTManager, create_access_token
 import os
 
 app = Flask(__name__)
 app.secret_key = '12345678910111213141516'  # Replace with a strong random value
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', '')  # Same key as in Login-Service
 app.config['GOOGLE_CLIENT_ID'] = os.environ.get('OAUTH_CLIENT_ID', '')
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('OAUTH_CLIENT_SECRET', '')
 
-jwt = JWTManager(app)
+
 
 CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
 oauth = OAuth(app)
