@@ -106,7 +106,7 @@
     <script>
         function Logo() {
             const img = document.createElement('img');
-            img.src = '/static/logo.png'; // Path to the logo image
+            img.src = '{{ url_for('static', filename='logo.png') }}'; // Path to the logo image
             img.className = 'logo';
             return img;
         }
