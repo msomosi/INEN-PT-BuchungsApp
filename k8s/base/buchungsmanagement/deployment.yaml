@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: buchungsmanagement
+spec:
+  selector:
+    matchLabels:
+      app: buchungsmanagement
+  template:
+    metadata:
+      labels:
+        app: buchungsmanagement
+    spec:
+      containers:
+      - name: buchungsmanagement
+        image: buchungsmanagement
+        ports:
+        - containerPort: 5002
+        env:
+        - name: S3_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: s3-config
+              key: S3_ENDPOINT
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-secret
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-secret
+              key: AWS_SECRET_ACCESS_KEY
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: jwt-config
+              key: JWT_SECRET_KEY

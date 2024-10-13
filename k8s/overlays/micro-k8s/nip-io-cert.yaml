@@ -1,0 +1,17 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nip-io-wildcart-cert
+spec:
+  commonName: "*.nip.io"
+  secretName: xip-io-cert
+  issuerRef:
+    name: selfsigned

@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth-config
+data:
+  OAUTH_CLIENT_ID: "159476032740-lq70m9cthh0iogpcgdcinn0r9ml3o4eg.apps.googleusercontent.com"
+  OAUTH_CLIENT_SECRET: "Q3f8HvqdeY4O6vq4FPFxl9b2mmil"

@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login
+spec:
+  selector:
+    matchLabels:
+      app: login
+  template:
+    metadata:
+      labels:
+        app: login
+    spec:
+      containers:
+      - name: login
+        image: login-service
+        env:
+        - name: OAUTH_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: oauth-config
+              key: OAUTH_CLIENT_ID
+        - name: OAUTH_CLIENT_SECRET
+          valueFrom:
+            configMapKeyRef:
+              name: oauth-config
+              key: OAUTH_CLIENT_SECRET
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: jwt-config
+              key: JWT_SECRET_KEY
+        ports:
+        - containerPort: 5001

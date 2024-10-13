@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s3-config
+data:
+  S3_ENDPOINT: 'https://sos-de-fra-1.exo.io'

@@ -1,0 +1,24 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: nip-io-gateway
+  annotations:
+    cert-manager.io/cluster-issuer: selfsigned
+    cert-manager.io/common-name: "Hello World!"
+spec:
+  gatewayClassName: booking-gateway-class
+  listeners:
+    - name: http
+      protocol: HTTP
+      hostname: "*.nip.io"
+      port: 80
+    - name: https
+      protocol: HTTPS
+      hostname: "*.nip.io"
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+        - kind: Secret
+          name: xip-io-cert

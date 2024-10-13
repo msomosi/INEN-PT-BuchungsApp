@@ -1,13 +1,13 @@
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
-  namespace: booking-app
+  name: buchungsmanagement
 spec:
   selector:
-    app: nginx
+    app: buchungsmanagement
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
-  type: LoadBalancer
+      targetPort: 5002
+  type: ClusterIP

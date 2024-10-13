@@ -1,0 +1,16 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: login-loginpage-route
+spec:
+  parentRefs:
+    - name: booking-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /loginpage
+      backendRefs:
+        - name: login
+          port: 80

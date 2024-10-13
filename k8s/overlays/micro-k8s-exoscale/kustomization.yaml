@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+#namePrefix: test-
+namespace: booking-app
+
+labels:
+  - includeSelectors: true
+    pairs:
+      environment: test
+
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: oauth-config
+    behavior: replace
+    envs:
+      - config/oauth-config.properties
+  - name: s3-config
+    behavior: replace
+    envs:
+      - config/s3-config.properties
+
+
+#patches:
+#- patch: |-#
+#    - op: replace
+#      path: /spec/type
+#      value: ClusterIP
+#  target:
+#    kind: Service
+#    name: nginx
+
+images:
+  - name: buchungsmanagement
+    newName: localhost:32000/apeni-buchungsmanagement
+    newTag: latest
+  - name: kundenverwaltung
+    newName: localhost:32000/apeni-kundenverwaltung
+    newTag: latest
+  - name: login-service
+    newName: localhost:32000/apeni-login-service
+    newTag: latest
+  - name: zimmerverwaltung
+    newName: localhost:32000/apeni-zimmerverwaltung
+    newTag: latest
