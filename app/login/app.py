@@ -25,6 +25,36 @@ oauth.register(
 
 app.logger.debug("Register oauth")
 
+@app.route('/authorize')
+def authorize():
+    app.logger.debug("Route: " + request.path)
+
+    try:
+        token = oauth.google.authorize_access_token()
+    except Exception as e:
+        app.logger.error(f'Fehler bei der Autorisierung: {e}')
+        return redirect('/home')
+
+    app.logger.debug(token)
+
+    session['google_token'] = token
+    session['user'] = token.get('userinfo').get('name')
+    app.logger.debug(session['user'])
+
+    session['email'] = token.get('userinfo').get('email')
+    app.logger.debug(session['email'])
+
+
+    app.logger.info("Login: " + session.get('user') + " " + session.get('email'))
+
+
+    if session['user_type'] == 'employee':
+        redirect_url = "/room-management"
+    else:
+        redirect_url = "/home"
+
+    return redirect(redirect_url)
+
 @app.route('/login/<user_type>')
 def login(user_type):
     app.logger.debug("Route: " + request.path)
@@ -45,43 +75,8 @@ def logout():
         session.pop('user_type', None)
         app.logger.info("Logout: " + session.pop('user') + " " + session.pop('email'))
         app.logger.debug(session)
+
     return redirect("/home")
-
-@app.route('/authorize')
-def authorize():
-    token = oauth.google.authorize_access_token()
-    session['user'] = token['userinfo']
-
-    user_type = session.get('user_type', 'student')
-    if user_type == 'employee':
-        redirect_url = "/room_management"
-    else:
-        redirect_url = "/home"
-
-    session['google_token'] = oauth.google.authorize_access_token()
-    me = google.get('userinfo')
-
-    return redirect(redirect_url)
-
-@app.route('/authorize1')
-def authorize1():
-    try:
-        token = oauth.google.authorize_access_token()
-        resp = oauth.google.get('userinfo')
-        user_info = resp.json()
-        session['email'] = user_info['email']
-        access_token = create_access_token(identity=user_info['email'])
-
-        user_type = session.get('user_type', 'student')
-        if user_type == 'employee':
-            redirect_url = "/room-management"
-        else:
-            redirect_url = "/home"
-
-        return response
-    except Exception as e:
-        print(f'Fehler bei der Autorisierung: {e}')
-        return redirect('/login')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
