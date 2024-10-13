@@ -5,7 +5,7 @@ metadata:
   name: zimmerverwaltung
 spec:
   selector:
-    app: zimmerverwaltung
+    app.kubernetes.io/name: zimmerverwaltung
   ports:
     - protocol: TCP
       port: 80

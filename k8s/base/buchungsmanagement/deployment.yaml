@@ -5,11 +5,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: buchungsmanagement
+        app.kubernetes.io/name : buchungsmanagement
   template:
     metadata:
       labels:
-        app: buchungsmanagement
+        app.kubernetes.io/name : buchungsmanagement
     spec:
       containers:
       - name: buchungsmanagement

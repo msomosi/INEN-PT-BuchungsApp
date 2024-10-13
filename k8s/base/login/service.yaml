@@ -5,7 +5,7 @@ metadata:
   name: login
 spec:
   selector:
-    app: login
+    app.kubernetes.io/name : login
   ports:
     - protocol: TCP
       port: 80

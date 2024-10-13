@@ -5,11 +5,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: zimmerverwaltung
+        app.kubernetes.io/name : zimmerverwaltung
   template:
     metadata:
       labels:
-        app: zimmerverwaltung
+        app.kubernetes.io/name : zimmerverwaltung
     spec:
       containers:
       - name: zimmerverwaltung

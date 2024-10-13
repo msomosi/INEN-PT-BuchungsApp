@@ -5,7 +5,7 @@ metadata:
   name: buchungsmanagement
 spec:
   selector:
-    app: buchungsmanagement
+    app.kubernetes.io/name: buchungsmanagement
   ports:
     - protocol: TCP
       port: 80

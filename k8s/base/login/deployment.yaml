@@ -6,11 +6,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: login
+      app.kubernetes.io/name : login
   template:
     metadata:
       labels:
-        app: login
+        app.kubernetes.io/name : login
     spec:
       containers:
       - name: login
