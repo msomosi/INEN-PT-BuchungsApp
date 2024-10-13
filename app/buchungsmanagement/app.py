@@ -27,13 +27,13 @@ s3 = boto3.client(
     aws_access_key_id=aws_access_key_id,
     aws_secret_access_key=aws_secret_access_key
 )
- 
+
 buchungen = []
- 
+
 @app.route('/')
 def index():
     return redirect(url_for('home'))
- 
+
 @app.route('/home')
 @jwt_required(optional=True)
 def home():
@@ -44,39 +44,41 @@ def home():
             return render_template('homev2.html', user=current_user)
     except Exception as e:
         return render_template('error.html', message='Kein gültiges Token gefunden.', error=str(e)), 401
- 
-@app.route('/rent', methods=['GET', 'POST'])
+
+@app.route('/rent')
 @jwt_required()
 def rent():
-    if request.method == 'GET':
-        return render_template('rentv2.html')  # Beispiel für ein Template
-    elif request.method == 'POST':
-        try:
-            room = request.form['room']
-            start_date = request.form['start_date']
-            end_date = request.form['end_date']
-            days = request.form['days']
-            current_user = get_jwt_identity()  # Nutzeridentifikation aus dem JWT
+    return render_template('rentv2.html')  # Beispiel für ein Template
 
-            # Erstellen des Buchungsobjekts
-            buchung = {
-                'user': current_user,
-                'room': room,
-                'start_date': start_date,
-                'end_date': end_date,
-                'days': days
-            }
+@app.route('/rent', methods=[POST'])
+@jwt_required()
+def add_rent():
+    try:
+        room = request.form['room']
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        days = request.form['days']
+        current_user = get_jwt_identity()  # Nutzeridentifikation aus dem JWT
 
-            # Bestimmung des Objektnamens für S3
-            object_name = f"booking_{room}_{start_date}.json"
-            test_data = json.dumps(buchung)
+        # Erstellen des Buchungsobjekts
+        buchung = {
+            'user': current_user,
+            'room': room,
+            'start_date': start_date,
+            'end_date': end_date,
+            'days': days
+        }
 
-            # Upload der Buchungsinformationen in S3
-            s3.put_object(Bucket=bucket_name, Key=object_name, Body=test_data, ContentType='application/json')
-            return render_template('bestaetigung.html', buchung=buchung)
-        except Exception as e:
-            return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(e)), 500
- 
+        # Bestimmung des Objektnamens für S3
+        object_name = f"booking_{room}_{start_date}.json"
+        test_data = json.dumps(buchung)
+
+        # Upload der Buchungsinformationen in S3
+        s3.put_object(Bucket=bucket_name, Key=object_name, Body=test_data, ContentType='application/json')
+        return render_template('bestaetigung.html', buchung=buchung)
+    except Exception as e:
+        return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(e)), 500
+
 @app.route('/buchungen', methods=['GET'])
 @jwt_required()
 def handle_buchungen():
@@ -86,6 +88,6 @@ def handle_buchungen():
 def room_management():
     # Redirect to the room management page on port 5003
     return redirect('http://localhost:5003/room_management')
- 
+
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
