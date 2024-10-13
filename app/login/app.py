@@ -35,6 +35,18 @@ def login(user_type):
     redirect_uri = url_for('authorize', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
+@app.route('/logout')
+def logout():
+    app.logger.debug("Route: " + request.path)
+    app.logger.debug(session)
+
+    if 'google_token' in session:
+        session.pop('google_token', None)
+        session.pop('user_type', None)
+        app.logger.info("Logout: " + session.pop('user') + " " + session.pop('email'))
+        app.logger.debug(session)
+    return redirect("/home")
+
 @app.route('/authorize')
 def authorize():
     token = oauth.google.authorize_access_token()
