@@ -15,7 +15,7 @@ spec:
       - name: buchungsmanagement
         image: buchungsmanagement
         ports:
-        - containerPort: 5002
+        - containerPort: 80
         env:
         - name: S3_ENDPOINT
           valueFrom:

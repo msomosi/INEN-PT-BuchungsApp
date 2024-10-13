@@ -38,4 +38,4 @@ spec:
               name: s3-secret
               key: AWS_SECRET_ACCESS_KEY
         ports:
-          - containerPort: 5003
+          - containerPort: 80

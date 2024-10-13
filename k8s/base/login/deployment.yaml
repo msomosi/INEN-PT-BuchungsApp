@@ -27,4 +27,4 @@ spec:
               name: oauth-config
               key: OAUTH_CLIENT_SECRET
         ports:
-        - containerPort: 5001
+        - containerPort: 80

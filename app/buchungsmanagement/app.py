@@ -56,4 +56,4 @@ def add_booking():
         return jsonify({'error': f'Fehler beim Speichern der Buchung: {str(err)}'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=80)
