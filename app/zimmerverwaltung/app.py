@@ -9,17 +9,12 @@ app.logger.setLevel(logging.DEBUG)
 app.logger.debug("Start zimmerverwaltung")
 
 # S3 Configuration
-bucket_name = 'zimmer'  # Replace with your Exoscale bucket name
-s3_endpoint=os.environ.get('S3_ENDPOINT', '')
-aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID', '')
-aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY', '')
-
-# Create an S3 client
+bucket_name = 'zimmer'
 s3 = boto3.client(
     's3',
-    endpoint_url=s3_endpoint,
-    aws_access_key_id=aws_access_key_id,
-    aws_secret_access_key=aws_secret_access_key
+    endpoint_url = os.environ.get('S3_ENDPOINT', ''),
+    aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID', ''),
+    aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
 )
 
 @app.route('/room')

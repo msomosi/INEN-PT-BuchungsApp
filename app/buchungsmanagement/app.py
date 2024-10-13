@@ -46,9 +46,11 @@ def add_booking():
         test_data = json.dumps(buchung)
 
         app.logger.info("Speichere Buchung: " + object_name)
-        # Upload der Buchungsinformationen in S3
-        s3.put_object(Bucket=bucket_name, Key=object_name, Body=test_data, ContentType='application/json')
-        return render_template('bestaetigung.html', buchung=buchung)
+        bucket = s3.create_bucket(Bucket=bucket_name);
+        app.logger.debug(bucket)
+        s3response = s3.put_object(Bucket=bucket_name, Key=object_name, Body=test_data, ContentType='application/json')
+        app.logger.debug(s3response)
+        return 'OK', 204
     except Exception as err:
         app.logger.error("Fehler beim Speichern der Buchung: " + str(err))
         return jsonify({'error': f'Fehler beim Speichern der Buchung: {str(err)}'}), 500
