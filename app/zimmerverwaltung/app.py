@@ -5,12 +5,11 @@ import json,os
 
 app = Flask(__name__)
 
-# Configuration for Exoscale S3 access
+# S3 Configuration
 bucket_name = 'zimmer'  # Replace with your Exoscale bucket name
 s3_endpoint=os.environ.get('S3_ENDPOINT', '')
 aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID', '')
 aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY', '')
-
 
 # Create an S3 client
 s3 = boto3.client(
@@ -23,10 +22,10 @@ s3 = boto3.client(
 @app.route('/room')
 def get_room():
     try:
-        response = s3.list_objects_v2(Bucket='zimmer')
+        response = s3.list_objects_v2(Bucket=bucket_name)
         bookings = []
         for obj in response.get('Contents', []):
-            data = s3.get_object(Bucket='zimmer', Key=obj['Key'])
+            data = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
             content = data['Body'].read().decode('utf-8')
             try:
                 booking = json.loads(content)
