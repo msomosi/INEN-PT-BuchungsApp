@@ -47,8 +47,8 @@ images:
   - name: kundenverwaltung
     newName: localhost:32000/apeni-kundenverwaltung
     newTag: latest
-  - name: login-service
-    newName: localhost:32000/apeni-login-service
+  - name: login
+    newName: localhost:32000/apeni-login
     newTag: latest
   - name: zimmerverwaltung
     newName: localhost:32000/apeni-zimmerverwaltung

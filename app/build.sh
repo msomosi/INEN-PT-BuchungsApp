@@ -2,7 +2,7 @@
 
 registry="mrangger/"
 
-declare -a modules=("buchungsmanagement" "frontend" "login-service" "zimmerverwaltung")
+declare -a modules=("buchungsmanagement" "frontend" "login" "zimmerverwaltung")
 
 if [[ $1 == "-local" ]]; then
   if [[ ! $(docker buildx ls | grep host-builder) ]]; then

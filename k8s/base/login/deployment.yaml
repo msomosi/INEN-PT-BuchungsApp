@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: login
-        image: login-service
+        image: login
         env:
         - name: OAUTH_CLIENT_ID
           valueFrom:
