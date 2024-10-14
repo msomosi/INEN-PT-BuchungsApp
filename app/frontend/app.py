@@ -46,7 +46,7 @@ def create_booking():
     app.logger.debug(buchung)
 
     try:
-        response = requests.post(url_for('booking', _external=True), json=buchung)
+        response = requests.post(request.url_root + 'booking', json=buchung)
         app.logger.debug(response)
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
     except Exception as err:
@@ -59,7 +59,7 @@ def create_booking():
 def get_rooms():
     app.logger.debug("Route: " + request.path)
     try:
-        response = requests.get(url_for('room', _external=True))
+        response = requests.get(request.url_root + 'room')
         app.logger.debug(response)
         # Raises an HTTPError if the HTTP request returned an unsuccessful status code
         response.raise_for_status()
