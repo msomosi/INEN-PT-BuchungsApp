@@ -1,5 +1,5 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, redirect, url_for, render_template, session, make_response, request
+from flask import Flask, redirect, url_for, session, request
 from flask_jwt_extended import JWTManager, create_access_token
 import os
 
@@ -25,7 +25,6 @@ google = oauth.register(
 
 @app.route('/')
 def index():
-    return render_template('index.html')
 
 @app.route('/login')
 def login():
@@ -45,16 +44,15 @@ def authorize():
 
         user_type = session.get('user_type', 'student')
         if user_type == 'employee':
-            redirect_url = "http://localhost:5003/room_management"
+            redirect_url = "/room-management"
         else:
-            redirect_url = "http://localhost:5002/home"
+            redirect_url = "/home"
 
-        response = make_response(redirect(redirect_url))
-        response.set_cookie('access_token_cookie', access_token, httponly=True, secure=False, path='/')
         return response
     except Exception as e:
         print(f'Fehler bei der Autorisierung: {e}')
-        return redirect(url_for('index'))
+        return redirect('/login')
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

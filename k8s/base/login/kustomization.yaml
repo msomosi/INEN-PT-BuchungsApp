@@ -6,5 +6,4 @@ resources:
   - deployment.yaml
   - http-route-authorize.yaml
   - http-route-login.yaml
-  - http-route-loginpage.yaml
   - service.yaml
