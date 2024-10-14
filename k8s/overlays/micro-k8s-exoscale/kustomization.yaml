@@ -35,6 +35,9 @@ images:
   - name: buchungsmanagement
     newName: localhost:32000/apeni-buchungsmanagement
     newTag: latest
+  - name: frontend
+    newName: localhost:32000/apeni-frontend
+    newTag: latest
   - name: kundenverwaltung
     newName: localhost:32000/apeni-kundenverwaltung
     newTag: latest
