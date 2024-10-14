@@ -1,9 +1,11 @@
-from authlib.integrations.flask_client import OAuth
 from flask import Flask, redirect, url_for, session, request
+from werkzeug.middleware.proxy_fix import ProxyFix
+from authlib.integrations.flask_client import OAuth
 import os
 import logging
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.logger.setLevel(logging.DEBUG)
 app.logger.debug("Start login")
 

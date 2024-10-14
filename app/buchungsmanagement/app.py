@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, redirect, url_for, render_template, session
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import datetime
 import boto3
@@ -7,6 +8,7 @@ import json,os
 import logging
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.logger.setLevel(logging.DEBUG)
 app.logger.debug("Start buchungsmanagement")
 
