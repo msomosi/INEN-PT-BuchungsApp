@@ -7,4 +7,5 @@ resources:
   - http-route-home.yaml
   - http-route-rent.yaml
   - http-route-room-management.yaml
+  - http-route-static.yaml
   - service.yaml
