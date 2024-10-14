@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 import boto3
 from botocore.exceptions import NoCredentialsError
 import json,os
@@ -20,8 +20,8 @@ s3 = boto3.client(
     aws_secret_access_key=aws_secret_access_key
 )
 
-@app.route('/room_management')
-def room_management():
+@app.route('/room')
+def get_room():
     try:
         response = s3.list_objects_v2(Bucket='zimmer')
         bookings = []
@@ -38,7 +38,7 @@ def room_management():
     except Exception as e:
         print(f"Error accessing S3: {e}")
         return str(e), 500
-    return render_template('room_management.html', buchungen=bookings)
+    return jsonify(bookings)
 
 
 if __name__ == '__main__':
