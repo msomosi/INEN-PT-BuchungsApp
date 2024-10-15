@@ -11,30 +11,43 @@ app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('OAUTH_CLIENT_SECRET', '')
 
 jwt = JWTManager(app)
 
+CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
 oauth = OAuth(app)
-google = oauth.register(
+oauth.register(
     name='google',
-    client_id='159476032740-lq70m9cthh0iogpcgdcinn0r9ml3o4eg.apps.googleusercontent.com',  # Replace with your Google client ID
-    client_secret='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',  # Replace with your Google client secret
-    jwks_uri='https://www.googleapis.com/oauth2/v3/certs',
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-    api_base_url='https://www.googleapis.com/oauth2/v1/',
-    client_kwargs={'scope': 'openid email profile'}
+    server_metadata_url=CONF_URL,
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
 )
 
 @app.route('/')
 def index():
 
-@app.route('/login')
-def login():
-    user_type = request.args.get('user_type', 'student')
+@app.route('/login/<user_type>')
+def login(user_type):
     session['user_type'] = user_type
     redirect_uri = url_for('authorize', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
 @app.route('/authorize')
 def authorize():
+    token = oauth.google.authorize_access_token()
+    session['user'] = token['userinfo']
+
+    user_type = session.get('user_type', 'student')
+    if user_type == 'employee':
+        redirect_url = "/room_management"
+    else:
+        redirect_url = "/home"
+
+    session['google_token'] = oauth.google.authorize_access_token()
+    me = google.get('userinfo')
+
+    return redirect(redirect_url)
+
+@app.route('/authorize1')
+def authorize1():
     try:
         token = oauth.google.authorize_access_token()
         resp = oauth.google.get('userinfo')
@@ -52,7 +65,6 @@ def authorize():
     except Exception as e:
         print(f'Fehler bei der Autorisierung: {e}')
         return redirect('/login')
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
