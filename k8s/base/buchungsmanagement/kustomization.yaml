@@ -4,7 +4,6 @@ kind: Kustomization
 
 resources:
   - deployment.yaml
-  - http-route-buchungen.yaml
+  - http-route-booking.yaml
   - http-route-home.yaml
-  - http-route-rent.yaml
   - service.yaml

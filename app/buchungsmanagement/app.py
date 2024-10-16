@@ -34,43 +34,23 @@ buchungen = []
 def index():
     return redirect(url_for('home'))
 
+@app.route('/booking')
+@jwt_required()
+def get_bookings():
+    return jsonify(buchungen)
+
 @app.route('/home')
 @jwt_required(optional=True)
 def home():
-    try:
-        verify_jwt_in_request()
-        current_user = get_jwt_identity()
-        if current_user:
-            return render_template('homev2.html', user=current_user)
-    except Exception as e:
-        return render_template('error.html', message='Kein gültiges Token gefunden.', error=str(e)), 401
 
-@app.route('/rent')
+@app.route('/booking', methods=['POST'])
 @jwt_required()
-def rent():
-    return render_template('rentv2.html')  # Beispiel für ein Template
-
-@app.route('/rent', methods=[POST'])
-@jwt_required()
-def add_rent():
+def add_booking():
     try:
-        room = request.form['room']
-        start_date = request.form['start_date']
-        end_date = request.form['end_date']
-        days = request.form['days']
-        current_user = get_jwt_identity()  # Nutzeridentifikation aus dem JWT
-
-        # Erstellen des Buchungsobjekts
-        buchung = {
-            'user': current_user,
-            'room': room,
-            'start_date': start_date,
-            'end_date': end_date,
-            'days': days
-        }
+        buchung = request.get_json()
 
         # Bestimmung des Objektnamens für S3
-        object_name = f"booking_{room}_{start_date}.json"
+        object_name = f"booking_{buchung['room']}_{buchung['start_date']}.json"
         test_data = json.dumps(buchung)
 
         # Upload der Buchungsinformationen in S3
@@ -78,11 +58,6 @@ def add_rent():
         return render_template('bestaetigung.html', buchung=buchung)
     except Exception as e:
         return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(e)), 500
-
-@app.route('/buchungen', methods=['GET'])
-@jwt_required()
-def handle_buchungen():
-    return jsonify(buchungen)
 
 @app.route('/room_management')
 def room_management():

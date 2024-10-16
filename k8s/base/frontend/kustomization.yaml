@@ -5,4 +5,5 @@ kind: Kustomization
 resources:
   - deployment.yaml
   - http-route-home.yaml
+  - http-route-rent.yaml
   - service.yaml
