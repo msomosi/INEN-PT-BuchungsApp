@@ -21,6 +21,11 @@ def home():
     else:
         return render_template('login.html')
 
+@app.route('/login/<user_type>')
+def login():
+    app.logger.debug("Route: " + request.path)
+    return
+
 @app.route('/rent')
 def new_booking():
     app.logger.debug("Route: " + request.path)
