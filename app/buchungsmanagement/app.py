@@ -39,10 +39,6 @@ def index():
 def get_bookings():
     return jsonify(buchungen)
 
-@app.route('/home')
-@jwt_required(optional=True)
-def home():
-
 @app.route('/booking', methods=['POST'])
 @jwt_required()
 def add_booking():
