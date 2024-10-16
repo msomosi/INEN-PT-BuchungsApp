@@ -30,9 +30,6 @@ s3 = boto3.client(
 
 buchungen = []
 
-@app.route('/')
-def index():
-    return redirect(url_for('home'))
 
 @app.route('/booking')
 @jwt_required()
