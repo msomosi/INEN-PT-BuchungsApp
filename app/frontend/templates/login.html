@@ -60,6 +60,17 @@
             transform: translateY(-50%);
         }
 
+        .login-container-dummy {
+            background: white;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 70%;
+            left: 70%;
+            transform: translateY(-50%);
+        }
+
         h1 {
             text-align: center;
             margin-top: 80px;
@@ -101,6 +112,12 @@
         <h2>Mitarbeiter Login</h2>
         <div class="google-login">
             <a href="{{ url_for('login', user_type='employee') }}" class="google-login-button">Login with Google</a>
+        </div>
+    </div>
+    <div class="login-container-dummy">
+        <h2>Demo Login</h2>
+        <div class="google-login">
+            <a href="{{ url_for('login', user_type='dummy') }}" class="google-login-button">Demo Login</a>
         </div>
     </div>
     <script>

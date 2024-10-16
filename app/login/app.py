@@ -63,6 +63,13 @@ def login(user_type):
     app.logger.debug("user_type: " + user_type)
     app.logger.debug(session)
 
+    if user_type == 'dummy':
+        session['user_type'] = 'employee'
+        session['user'] = 'John Doe'
+        session['email'] = 'john@doe.com'
+        session['google_token'] = 'john@doe.com'
+        return redirect("/home")
+
     session['user_type'] = user_type
     redirect_uri = url_for('authorize', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
