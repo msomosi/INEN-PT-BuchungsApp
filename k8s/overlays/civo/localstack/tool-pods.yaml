@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "localstack-test-connection"
+spec:
+  containers:
+    - name: wget-edge
+      image: busybox
+      command: ['wget']
+      args: ['-q', '--server-response', '--output-document', '-', 'localstack:4566/_localstack/health']
+  restartPolicy: Never
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "localstack-test-s3"
+spec:
+  containers:
+    - name: awscli-s3
+      image: amazon/aws-cli
+      args: ['--debug', '--endpoint-url', 'http://localstack:4566', 's3', 'ls']
+      env:
+      - name: AWS_ACCESS_KEY_ID
+        value: test
+      - name: AWS_SECRET_ACCESS_KEY
+        value: test
+      - name: AWS_DEFAULT_REGION
+        value: us-east-1
+  restartPolicy: Never
