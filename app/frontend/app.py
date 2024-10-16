@@ -24,7 +24,7 @@ def home():
 @app.route('/rent')
 def new_booking():
     app.logger.debug("Route: " + request.path)
-    return render_template('rentv2.html')
+    return render_template('rent.html')
 
 @app.route('/rent', methods=['POST'])
 def create_booking():
