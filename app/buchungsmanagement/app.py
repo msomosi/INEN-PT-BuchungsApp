@@ -43,10 +43,5 @@ def add_booking():
     except Exception as e:
         return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(e)), 500
 
-@app.route('/room_management')
-def room_management():
-    # Redirect to the room management page on port 5003
-    return redirect('http://localhost:5003/room_management')
-
 if __name__ == '__main__':
     app.run(debug=True, port=5002)

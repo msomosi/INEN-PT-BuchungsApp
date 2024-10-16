@@ -42,5 +42,17 @@ def create_booking():
 
     return render_template('bestaetigung.html', buchung=buchung)
 
+@app.route('/room-management')
+def get_rooms():
+    try:
+        response = requests.get(url_for('room', _external=True))
+        # Raises an HTTPError if the HTTP request returned an unsuccessful status code
+        response.raise_for_status()
+        data = response.json()
+    except Exception as err:
+        data=[]
+
+    return render_template('room-management.html', buchungen=data)
+
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

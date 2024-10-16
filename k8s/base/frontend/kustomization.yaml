@@ -6,4 +6,5 @@ resources:
   - deployment.yaml
   - http-route-home.yaml
   - http-route-rent.yaml
+  - http-route-room-management.yaml
   - service.yaml
