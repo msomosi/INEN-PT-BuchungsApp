@@ -25,15 +25,6 @@ oauth.register(
 
 app.logger.debug("Register oauth")
 
-
-@app.route('/')
-def index():
-    if 'google_token' in session:
-        me = oauth.google.get('userinfo')
-        print(me)
-        return jsonify({'data': me.data})
-    return 'Hello! Log in with your Google account: <a href="/login">Log in</a>'
-
 @app.route('/login/<user_type>')
 def login(user_type):
     app.logger.debug("Route: " + request.path)
