@@ -17,7 +17,7 @@ def home():
     app.logger.info(session)
 
     if 'google_token' in session:
-        return render_template('homev2.html', user=session['user'])
+        return render_template('home.html', user=session['user'])
     else:
         return render_template('login.html')
 
