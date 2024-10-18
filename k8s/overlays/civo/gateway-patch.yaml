@@ -1,9 +1,10 @@
+---
 - op: replace
   path: /spec/listeners/0
   value:
     name: http
     protocol: HTTP
-    hostname: "mcce-apeni.mathiasrangger.at"
+    #    hostname: "mcce-apeni.mathiasrangger.at"
     port: 80
 
 - op: add
@@ -11,10 +12,10 @@
   value:
     name: https
     protocol: HTTPS
-    hostname: "mcce-apeni.mathiasrangger.at"
+    #    hostname: "mcce-apeni.mathiasrangger.at"
     port: 443
     tls:
       mode: Terminate
       certificateRefs:
-      - kind: Secret
-        name: mcce-apeni-tls
+        - kind: Secret
+          name: mcce-apeni-tls
