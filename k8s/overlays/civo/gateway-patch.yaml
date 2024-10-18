@@ -6,16 +6,3 @@
     protocol: HTTP
     #    hostname: "mcce-apeni.mathiasrangger.at"
     port: 80
-
-- op: add
-  path: /spec/listeners/-
-  value:
-    name: https
-    protocol: HTTPS
-    #    hostname: "mcce-apeni.mathiasrangger.at"
-    port: 443
-    tls:
-      mode: Terminate
-      certificateRefs:
-        - kind: Secret
-          name: mcce-apeni-tls
