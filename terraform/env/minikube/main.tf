@@ -21,7 +21,11 @@ module "argocd" {
 
 data "utils_deep_merge_yaml" "argocd_apps" {
   input = [
-    file("files/argocd-booking-app.yaml"),
+    templatefile("files/argocd-booking-app.yaml", {
+      repository = var.argocd_repository,
+      revision   = var.argocd_revision,
+      path       = var.argocd_path
+    }),
     file("files/argocd-envoy.yaml"),
   ]
 }
