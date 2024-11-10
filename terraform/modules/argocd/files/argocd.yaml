@@ -1,0 +1,12 @@
+---
+applicationSet:
+  enabled: false
+crds:
+  keep: false
+dex:
+  enabled: false
+notifications:
+  enabled: false
+server:
+  ingress:
+    enabled: true
