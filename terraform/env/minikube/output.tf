@@ -1,5 +1,10 @@
 output "argocd" {
-  value     = module.argocd.argocd
+  value     = module.argocd.helm
+  sensitive = true
+}
+
+output "argocd_apps" {
+  value     = module.argocd_apps.helm
   sensitive = true
 }
 
