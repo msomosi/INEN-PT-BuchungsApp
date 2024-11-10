@@ -5,7 +5,7 @@
 https://mcce-apeni.mathiasrangger.at/home
 
 ## Build images
-cd app
+cd app\
 ./build.sh
 
 
@@ -23,7 +23,7 @@ https://kubernetes.io/docs/tasks/tools/
 
 
 ### Start app
-cd terraform/env/minikube
-terraform init
-terraform plan
+cd terraform/env/minikube\
+terraform init\
+terraform plan\
 terraform apply -auto-approve
