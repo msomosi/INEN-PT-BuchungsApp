@@ -6,7 +6,6 @@ provider "kubernetes" {
   cluster_ca_certificate = module.cluster_minikube.cluster_ca_certificate
 }
 
-
 provider "helm" {
   kubernetes {
     host = module.cluster_minikube.cluster_host
