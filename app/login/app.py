@@ -64,6 +64,7 @@ def login(user_type):
     app.logger.debug(session)
 
     if user_type == 'dummy':
+        session.clear()
         session['user_type'] = 'employee'
         session['user'] = 'John Doe'
         session['email'] = 'john@doe.com'
@@ -83,6 +84,7 @@ def logout():
         session.pop('google_token', None)
         session.pop('user_type', None)
         app.logger.info("Logout: " + session.pop('user') + " " + session.pop('email'))
+        session.clear()
         app.logger.debug(session)
 
     return redirect("/home")
