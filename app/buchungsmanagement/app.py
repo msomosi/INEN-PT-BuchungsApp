@@ -28,7 +28,6 @@ s3 = boto3.client(
 
 buchungen = []
 
-
 @app.route('/booking')
 def get_bookings():
     app.logger.debug("Route: " + request.path)

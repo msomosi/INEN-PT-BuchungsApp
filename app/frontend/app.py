@@ -11,9 +11,15 @@ app.logger.debug("Start frontend")
 
 app.secret_key = '12345678910111213141516'  # Replace with a strong random value
 
+def debug_request(request):
+    app.logger.debug("Route: " + request.path)
+    app.logger.debug("Host: " + request.host)
+    app.logger.debug("Url_root: " + request.url_root)
+
+
 @app.route('/home')
 def home():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     app.logger.info(session)
 
     if 'google_token' in session:
@@ -23,17 +29,18 @@ def home():
 
 @app.route('/login/<user_type>')
 def login():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     return
+
 
 @app.route('/rent')
 def new_booking():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     return render_template('rent.html')
 
 @app.route('/rent', methods=['POST'])
 def create_booking():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
 
     room = request.form['room']
     start_date = request.form['start_date']
@@ -64,7 +71,7 @@ def create_booking():
 
 @app.route('/room-management')
 def get_rooms():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     try:
         response = requests.get(request.url_root + 'room')
         app.logger.debug(response)
