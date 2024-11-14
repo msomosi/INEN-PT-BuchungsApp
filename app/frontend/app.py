@@ -60,7 +60,9 @@ def create_booking():
     app.logger.debug(buchung)
 
     try:
-        response = requests.post(request.url_root + 'booking', json=buchung)
+        response_host = 'http://buchungsmanagement/' if request.host == 'localhost' else request.url_root
+        app.logger.debug(response_host + 'booking')
+        response = requests.post(response_host + 'booking', json=buchung)
         app.logger.debug(response)
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
     except Exception as err:
@@ -73,7 +75,9 @@ def create_booking():
 def get_rooms():
     debug_request(request)
     try:
-        response = requests.get(request.url_root + 'room')
+        response_host = 'http://zimmerverwaltung/' if request.host == 'localhost' else request.url_root
+        app.logger.debug(response_host + 'room')
+        response = requests.get(response_host + 'room')
         app.logger.debug(response)
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
         data = response.json()
