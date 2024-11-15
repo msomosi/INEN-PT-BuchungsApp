@@ -5,8 +5,17 @@
 https://mcce-apeni.mathiasrangger.at/home
 
 ## Build images
-cd app\
-./build.sh
+./bin/build_local.sh
+
+
+## Run app in docker-compose
+
+### Install docker
+https://docs.docker.com/engine/install/ubuntu/
+
+### Start app
+./bin/run_local.sh
+
 
 
 ## Run app in minikube
