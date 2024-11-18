@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-import datetime
+from datetime import datetime
 import boto3
 from botocore.exceptions import NoCredentialsError
 import json,os
@@ -49,6 +49,13 @@ def add_booking():
     try:
         buchung = request.get_json()
         app.logger.debug(buchung)
+
+        buchung['user'] = session['email'];
+        buchung['room'] = buchung['hotel_id'];
+        date_format = "%Y-%m-%d"
+        buchung['days'] = (datetime.strptime(buchung['start_date'], date_format) - datetime.strptime(buchung['end_date'], date_format)).days
+
+
 
         # Bestimmung des Objektnamens für S3
         object_name = f"booking_{buchung['room']}_{buchung['start_date']}.json"

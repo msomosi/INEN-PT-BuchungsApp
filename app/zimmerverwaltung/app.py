@@ -29,6 +29,20 @@ def debug_request(request):
     app.logger.info(request)
     app.logger.debug(session)
 
+@app.route('/hotels')
+def get_hotels():
+    debug_request(request)
+
+    try:
+        with open('mock-hotels.json', 'r') as json_file:
+            hotels = json.load(json_file)
+            app.logger.info("Loaded hotels data")
+            app.logger.debug(hotels)
+    except Exception as err:
+        app.logger.error(f"Error reading mock-hotels.json: " + str(err))
+        return str(err), 500
+    return jsonify({'data': hotels})
+
 
 @app.route('/room')
 def get_room():

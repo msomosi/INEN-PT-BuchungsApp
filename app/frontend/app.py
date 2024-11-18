@@ -25,6 +25,16 @@ def home():
     else:
         return render_template('login.html')
 
+@app.route('/hotel-list')
+def hotel_list():
+    debug_request(request)
+    return render_template('hotel.html')
+
+@app.route('/hotel-map')
+def hotel_map():
+    debug_request(request)
+    return render_template('map.html')
+
 @app.route('/login/<user_type>')
 def login():
     debug_request(request)

@@ -1,0 +1,50 @@
+[
+    {
+        "hotelID": "hotel_001",
+        "name": "Hotel Burgenland",
+        "address": "Franz-Schubert-Platz 1, 7000 Eisenstadt",
+        "lat": null,
+        "lng": null,
+        "freeRooms": 5
+    },
+    {
+        "hotelID": "hotel_002",
+        "name": "Parkhotel Eisenstadt",
+        "address": "Ruster Str. 4, 7000 Eisenstadt",
+        "lat": null,
+        "lng": null,
+        "freeRooms": 8
+    },
+    {
+        "hotelID": "hotel_003",
+        "name": "Hotel Vicedom",
+        "address": "Vicedomgasse 5, 7000 Eisenstadt",
+        "lat": null,
+        "lng": null,
+        "freeRooms": 3
+    },
+    {
+        "hotelID": "hotel_004",
+        "name": "Hotel Ohr",
+        "address": "Ruster Str. 51, 7000 Eisenstadt",
+        "lat": null,
+        "lng": null,
+        "freeRooms": 10
+    },
+    {
+        "hotelID": "hotel_005",
+        "name": "OJAB Studentenwohnheim",
+        "address": "Wiener Str. 13, 7000 Eisenstadt",
+        "lat": null,
+        "lng": null,
+        "freeRooms": 12
+    },
+    {
+        "hotelID": "hotel_006",
+        "name": "Hotel Steinfeld",
+        "address": "Neunkirchner Str. 17, 2700 Wiener Neustadt",
+        "lat": null,
+        "lng": null,
+        "freeRooms": 6
+    }
+]

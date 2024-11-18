@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Buchungsmanagement-System</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/FHBurgenland-logo.png" alt="FH Burgenland Logo" class="logo">
+        <h1>Hotel Buchungsmanagement-System</h1>
+
+        <!-- Datumsauswahl -->
+        <div class="date-selection">
+            <label for="fromDate">Von: </label>
+            <input type="date" id="fromDate" required>
+            <label for="toDate">Bis: </label>
+            <input type="date" id="toDate" required>
+        </div>
+
+        <!-- Karte in einem iframe -->
+        <iframe id="mapIframe" src="/hotel-map"></iframe>
+
+        <!-- Zieladresse -->
+        <h2>Hotels in der Nähe der Hochschule Burgenland</h2>
+
+        <!-- Hotel-Liste -->
+        <table class="hotel-list">
+            <thead>
+                <tr>
+                    <th>Hotelname</th>
+                    <th>Adresse</th>
+                    <th>Freie Zimmer</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody id="hotelList"></tbody>
+        </table>
+    </div>
+
+    <script src="static/hotel.js"></script>
+</body>
+</html>
