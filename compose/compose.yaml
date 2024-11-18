@@ -26,7 +26,7 @@ services:
     ports:
       - "8082:80"
     environment:
-      - S3_ENDPOINT=http://fake-s3:4567
+      - S3_ENDPOINT=http://localstack:4566
       - AWS_ACCESS_KEY_ID=dummy_access_key
       - AWS_SECRET_ACCESS_KEY=dummy_secret_key
       - SESSION_KEY=12345678910111213141516
@@ -36,7 +36,7 @@ services:
     ports:
       - "8083:80"
     environment:
-      - S3_ENDPOINT=http://fake-s3:4567
+      - S3_ENDPOINT=http://localstack:4566
       - AWS_ACCESS_KEY_ID=dummy_access_key
       - AWS_SECRET_ACCESS_KEY=dummy_secret_key
       - SESSION_KEY=12345678910111213141516
@@ -44,8 +44,14 @@ services:
       watch:
         - path: ./zimmerverwaltung
           action: rebuild
-  fake-s3:
-    image: jrlangford/fake-s3
+
+  localstack:
+    image: gresau/localstack-persist
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./localstack:/persisted-data
+
   postgres:
     image: postgres:14-alpine
     ports:
