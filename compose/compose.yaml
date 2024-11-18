@@ -11,11 +11,15 @@ services:
     build: ../app/frontend
     ports:
       - "8080:80"
+    environment:
+      - SESSION_KEY=12345678910111213141516
   login:
     image: apeni/login
     build: ../app/login
     ports:
       - "8081:80"
+    environment:
+      - SESSION_KEY=12345678910111213141516
   buchungsmanagement:
     image: apeni/buchungsmanagement
     build: ../app/buchungsmanagement
@@ -25,6 +29,7 @@ services:
       - S3_ENDPOINT=http://fake-s3:4567
       - AWS_ACCESS_KEY_ID=dummy_access_key
       - AWS_SECRET_ACCESS_KEY=dummy_secret_key
+      - SESSION_KEY=12345678910111213141516
   zimmerverwaltung:
     image: apeni/zimmerverwaltung
     build: ../app/zimmerverwaltung
@@ -34,6 +39,7 @@ services:
       - S3_ENDPOINT=http://fake-s3:4567
       - AWS_ACCESS_KEY_ID=dummy_access_key
       - AWS_SECRET_ACCESS_KEY=dummy_secret_key
+      - SESSION_KEY=12345678910111213141516
     develop:
       watch:
         - path: ./zimmerverwaltung

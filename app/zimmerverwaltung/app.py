@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request, session
+from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import boto3
@@ -9,6 +10,8 @@ import logging
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+app.secret_key = os.getenv('SESSION_KEY', default='BAD_SECRET_KEY')
+CORS(app)
 
 app.logger.setLevel(logging.DEBUG)
 app.logger.debug("Start zimmerverwaltung")
@@ -22,9 +25,14 @@ s3 = boto3.client(
     aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
 )
 
+def debug_request(request):
+    app.logger.info(request)
+    app.logger.debug(session)
+
+
 @app.route('/room')
 def get_room():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     try:
         response = s3.list_objects_v2(Bucket=bucket_name)
         app.logger.debug(response)

@@ -6,10 +6,11 @@ import logging
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+app.secret_key = os.getenv('SESSION_KEY', default='BAD_SECRET_KEY')
+
 app.logger.setLevel(logging.DEBUG)
 app.logger.debug("Start login")
 
-app.secret_key = '12345678910111213141516'  # Replace with a strong random value
 app.config['GOOGLE_CLIENT_ID'] = os.environ.get('OAUTH_CLIENT_ID', '')
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('OAUTH_CLIENT_SECRET', '')
 
@@ -27,9 +28,13 @@ oauth.register(
 
 app.logger.debug("Register oauth")
 
+def debug_request(request):
+    app.logger.info(request)
+    app.logger.debug(session)
+
 @app.route('/authorize')
 def authorize():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
 
     try:
         token = oauth.google.authorize_access_token()
@@ -59,9 +64,8 @@ def authorize():
 
 @app.route('/login/<user_type>')
 def login(user_type):
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     app.logger.debug("user_type: " + user_type)
-    app.logger.debug(session)
 
     if user_type == 'dummy':
         session.clear()
@@ -77,8 +81,7 @@ def login(user_type):
 
 @app.route('/logout')
 def logout():
-    app.logger.debug("Route: " + request.path)
-    app.logger.debug(session)
+    debug_request(request)
 
     if 'google_token' in session:
         session.pop('google_token', None)

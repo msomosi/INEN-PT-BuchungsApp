@@ -6,21 +6,19 @@ import requests
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+app.secret_key = os.getenv('SESSION_KEY', default='BAD_SECRET_KEY')
+
 app.logger.setLevel(logging.DEBUG)
 app.logger.debug("Start frontend")
 
-app.secret_key = '12345678910111213141516'  # Replace with a strong random value
 
 def debug_request(request):
-    app.logger.debug("Route: " + request.path)
-    app.logger.debug("Host: " + request.host)
-    app.logger.debug("Url_root: " + request.url_root)
-
+    app.logger.info(request)
+    app.logger.debug(session)
 
 @app.route('/home')
 def home():
     debug_request(request)
-    app.logger.info(session)
 
     if 'google_token' in session:
         return render_template('home.html', user=session['user'])

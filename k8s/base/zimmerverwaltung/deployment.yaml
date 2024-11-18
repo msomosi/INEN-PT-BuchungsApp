@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,6 +23,11 @@ spec:
 #            memory: "128Mi"
 #            cpu: "500m"
         env:
+        - name: SESSION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: session-secret
+              key: SESSION_KEY
         - name: S3_ENDPOINT
           valueFrom:
             configMapKeyRef:
