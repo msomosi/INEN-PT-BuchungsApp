@@ -14,3 +14,16 @@ spec:
       backendRefs:
         - name: frontend
           port: 80
+    - matches:
+        - path:
+            type: Exact
+            value: /
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /home
+      backendRefs:
+        - name: frontend
+          port: 80
