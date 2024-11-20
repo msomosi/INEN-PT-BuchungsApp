@@ -153,7 +153,6 @@ def show_table():
     try:
         with conn_room.cursor() as cur:
             query = """
-
                 SELECT z.zimmer_id, z.user_id, z.date, z.state_id, s.state_name, u."Firstname", u."Lastname"
                 FROM tbl_zimmer z
                 JOIN tbl_booking_state s ON z.state_id = s.state_id
