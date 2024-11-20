@@ -30,20 +30,3 @@ patches:
   - target:
       kind: HTTPRoute
     path: http-route-patch.yaml
-
-images:
-  - name: buchungsmanagement
-    newName: mrangger/apeni-buchungsmanagement
-    newTag: latest
-  - name: frontend
-    newName: mrangger/apeni-frontend
-    newTag: latest
-  - name: kundenverwaltung
-    newName: mrangger/apeni-kundenverwaltung
-    newTag: latest
-  - name: login
-    newName: mrangger/apeni-login
-    newTag: latest
-  - name: zimmerverwaltung
-    newName: mrangger/apeni-zimmerverwaltung
-    newTag: latest
