@@ -7,13 +7,16 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
+
 @app.route('/', methods=['GET', 'POST'])
 def filter_rooms():
     filters = {
         "parking": None,
         "parking_pay": None,
-        "location": None,
-        "plz": None,
+        "location": "",
+        "plz": "",
+        "date_from": "",
+        "date_to": ""
     }
     filtered_data = []
 
@@ -22,9 +25,8 @@ def filter_rooms():
         return "<h1>Fehler: Verbindung zur Zimmer-Datenbank fehlgeschlagen</h1>", 500
 
     try:
-        # Standard-Query ohne Filter
         query = """
-            SELECT z.zimmer_id, z.date, z.state_id, s.state_name, u."CompanyName", u.email, u.phone, u."Location", u."Plz"
+            SELECT z.zimmer_id, z.date, z.state_id, s.state_name, u."CompanyName", u.email, u.phone, u."Location", u."Plz", u."Parking", u.parking_pay
             FROM tbl_zimmer z
             JOIN tbl_booking_state s ON z.state_id = s.state_id
             LEFT JOIN tbl_user_details u ON z.user_id = u.user_id
@@ -40,23 +42,41 @@ def filter_rooms():
             filters["parking_pay"] = request.form.get("parking_pay")
             filters["location"] = request.form.get("location")
             filters["plz"] = request.form.get("plz")
+            filters["date_from"] = request.form.get("date_from")
+            filters["date_to"] = request.form.get("date_to")
 
-            # Dynamische Bedingungen hinzufügen
+            # Parking Filter
             if filters["parking"] is not None and filters["parking"] != "":
-                conditions.append("u.parking = %s")
+                filters["parking"] = True if filters["parking"] == "1" else False
+                conditions.append('u."Parking" = %s')
                 params.append(filters["parking"])
 
+            # Parking Pay Filter
             if filters["parking_pay"] is not None and filters["parking_pay"] != "":
-                conditions.append("u.parking_pay = %s")
+                filters["parking_pay"] = True if filters["parking_pay"] == "1" else False
+                conditions.append('u."Parking_Pay" = %s')
                 params.append(filters["parking_pay"])
 
-            if filters["location"]:
+            # Location Filter
+            if filters["location"].strip() != "":
                 conditions.append('u."Location" ILIKE %s')
                 params.append(f"%{filters['location']}%")
 
-            if filters["plz"]:
+            # PLZ Filter
+            if filters["plz"].strip() != "":
                 conditions.append('u."Plz" = %s')
                 params.append(filters["plz"])
+
+            # Datum from
+            if filters["date_from"].strip() != "":
+                conditions.append('z.date >= %s')
+                params.append(filters["date_from"])
+
+            # Datum bis
+            if filters["date_to"].strip() != "":
+               conditions.append('z.date <= %s')
+               params.append(filters["date_to"])
+
 
             # Bedingungen an die Abfrage anhängen
             if conditions:
@@ -64,7 +84,6 @@ def filter_rooms():
 
         query += " ORDER BY z.date ASC;"
 
-        # Daten abrufen
         with conn_room.cursor() as cur:
             cur.execute(query, tuple(params))
             filtered_data = cur.fetchall()
@@ -74,14 +93,12 @@ def filter_rooms():
     finally:
         conn_room.close()
 
-    # HTML-Template
     html_template = """
     <!DOCTYPE html>
     <html lang="de">
     <head>
         <meta charset="UTF-8">
         <title>Zimmerfilter</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
         <h1>Zimmerfilter</h1>
@@ -89,16 +106,16 @@ def filter_rooms():
             <label for="parking">Parkplatz:</label>
             <select name="parking" id="parking">
                 <option value="">-- Alle --</option>
-                <option value="1" {% if filters.parking == '1' %}selected{% endif %}>Ja</option>
-                <option value="0" {% if filters.parking == '0' %}selected{% endif %}>Nein</option>
+                <option value="1" {% if filters.parking == True %}selected{% endif %}>Ja</option>
+                <option value="0" {% if filters.parking == False %}selected{% endif %}>Nein</option>
             </select>
             <br><br>
 
             <label for="parking_pay">Parkplatz kostenpflichtig:</label>
             <select name="parking_pay" id="parking_pay">
                 <option value="">-- Alle --</option>
-                <option value="1" {% if filters.parking_pay == '1' %}selected{% endif %}>Ja</option>
-                <option value="0" {% if filters.parking_pay == '0' %}selected{% endif %}>Nein</option>
+                <option value="1" {% if filters.parking_pay == True %}selected{% endif %}>Ja</option>
+                <option value="0" {% if filters.parking_pay == False %}selected{% endif %}>Nein</option>
             </select>
             <br><br>
 
@@ -110,21 +127,31 @@ def filter_rooms():
             <input type="text" name="plz" id="plz" value="{{ filters.plz }}">
             <br><br>
 
+            <label for="date_from">Datum von:</label>
+            <input type="date" name="date_from" id="date_from" value="{{ filters.date_from }}">
+            <br><br>
+
+            <label for="date_to">Datum bis:</label>
+            <input type="date" name="date_to" id="date_to" value="{{ filters.date_to }}">
+            <br><br>
+
             <button type="submit">Filtern</button>
+            <button type="button" onclick="window.location.href=''">Zurücksetzen</button>
         </form>
         <br>
-        <h2>Gefilterte Zimmer</h2>
+        <h2>Verfügbare Zimmer:</h2>
         <table border="1">
             <thead>
                 <tr>
                     <th>Zimmer-ID</th>
                     <th>Datum</th>
-                    <th>Status</th>
                     <th>CompanyName</th>
                     <th>E-Mail</th>
                     <th>Phone</th>
                     <th>Ort</th>
                     <th>PLZ</th>
+                    <th>Parkplatz</th>
+                    <th>Kostenlos parken</th>
                 </tr>
             </thead>
             <tbody>
@@ -132,12 +159,13 @@ def filter_rooms():
                 <tr>
                     <td>{{ row[0] }}</td>
                     <td>{{ row[1] }}</td>
-                    <td>{{ row[3] }}</td>
                     <td>{{ row[4] }}</td>
                     <td>{{ row[5] }}</td>
                     <td>{{ row[6] }}</td>
                     <td>{{ row[7] }}</td>
                     <td>{{ row[8] }}</td>
+                    <td>{{ 'Ja' if row[9] else 'Nein' }}</td>
+                    <td>{{ 'Ja' if row[10] else 'Nein' }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -146,6 +174,9 @@ def filter_rooms():
     </html>
     """
     return render_template_string(html_template, filters=filters, filtered_data=filtered_data)
+
+
+
 
 
 # Flask unter CGI ausführen
