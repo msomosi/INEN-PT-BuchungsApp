@@ -51,7 +51,15 @@ def authorize():
     session['email'] = token.get('userinfo').get('email')
     app.logger.debug(session['email'])
 
-    app.logger.info("Login: " + session.get('user') + " " + session.get('email'))
+    if user:
+        app.logger.info("Login: " + session.get('user') + " " + session.get('email'))
+    else:
+        user = User(email=email, name=name, oauth_provider='google', is_verified=True)
+        db.session.add(user)
+        db.session.commit()
+        app.logger.info(f"Neuer Benutzer hinzugefügt: {user.name} ({user.email})")
+
+    session['user_id'] = user.id
 
     # Weiterleitung basierend auf dem user_type
     if session['user_type'] == 'employee' or session['user_type'] == 'anbieter':
