@@ -61,10 +61,7 @@ ALTER SEQUENCE public.tbl_booking_state_state_id_seq OWNED BY public.tbl_booking
 CREATE TABLE public.tbl_buchung (
     buchung_id integer NOT NULL,
     user_id bigint NOT NULL,
-    zimmer_id bigint NOT NULL,
-    date_from date NOT NULL,
-    date_to date NOT NULL,
-    state_id integer NOT NULL
+    zimmer_id bigint NOT NULL
 );
 
 
@@ -90,28 +87,6 @@ ALTER SEQUENCE public.tbl_buchung_buchung_id_seq OWNER TO ubuntu;
 --
 
 ALTER SEQUENCE public.tbl_buchung_buchung_id_seq OWNED BY public.tbl_buchung.buchung_id;
-
-
---
--- Name: tbl_buchung_state_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
---
-
-CREATE SEQUENCE public.tbl_buchung_state_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.tbl_buchung_state_id_seq OWNER TO ubuntu;
-
---
--- Name: tbl_buchung_state_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
---
-
-ALTER SEQUENCE public.tbl_buchung_state_id_seq OWNED BY public.tbl_buchung.state_id;
 
 
 --
@@ -162,7 +137,7 @@ ALTER SEQUENCE public.tbl_buchung_zimmer_id_seq OWNED BY public.tbl_buchung.zimm
 
 CREATE TABLE public.tbl_rolle (
     role_id integer NOT NULL,
-    role_name character(1)
+    role_name character(10)
 );
 
 
@@ -223,7 +198,10 @@ CREATE TABLE public.tbl_user_details (
     "Location" character(50),
     notice character(800),
     email character(100),
-    phone character(25)
+    phone character(25),
+    "Koordinaten" character(200),
+    "Parking" boolean DEFAULT false,
+    parking_pay boolean DEFAULT false
 );
 
 
@@ -367,12 +345,34 @@ ALTER SEQUENCE public.tbl_user_user_id_seq OWNED BY public.tbl_user.user_id;
 CREATE TABLE public.tbl_zimmer (
     zimmer_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    date_from date,
-    date_to date
+    date date,
+    state_id integer DEFAULT 1 NOT NULL
 );
 
 
 ALTER TABLE public.tbl_zimmer OWNER TO ubuntu;
+
+--
+-- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+--
+
+CREATE SEQUENCE public.tbl_zimmer_state_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.tbl_zimmer_state_id_seq OWNER TO ubuntu;
+
+--
+-- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+--
+
+ALTER SEQUENCE public.tbl_zimmer_state_id_seq OWNED BY public.tbl_zimmer.state_id;
+
 
 --
 -- Name: tbl_zimmer_user_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
@@ -445,13 +445,6 @@ ALTER TABLE ONLY public.tbl_buchung ALTER COLUMN zimmer_id SET DEFAULT nextval('
 
 
 --
--- Name: tbl_buchung state_id; Type: DEFAULT; Schema: public; Owner: ubuntu
---
-
-ALTER TABLE ONLY public.tbl_buchung ALTER COLUMN state_id SET DEFAULT nextval('public.tbl_buchung_state_id_seq'::regclass);
-
-
---
 -- Name: tbl_rolle role_id; Type: DEFAULT; Schema: public; Owner: ubuntu
 --
 
@@ -519,6 +512,11 @@ ALTER TABLE ONLY public.tbl_zimmer ALTER COLUMN user_id SET DEFAULT nextval('pub
 --
 
 COPY public.tbl_booking_state (state_id, state_name) FROM stdin;
+2	pending                  
+3	confirmed                
+1	available                
+4	completed                
+5	failed                   
 \.
 
 
@@ -526,7 +524,13 @@ COPY public.tbl_booking_state (state_id, state_name) FROM stdin;
 -- Data for Name: tbl_buchung; Type: TABLE DATA; Schema: public; Owner: ubuntu
 --
 
-COPY public.tbl_buchung (buchung_id, user_id, zimmer_id, date_from, date_to, state_id) FROM stdin;
+COPY public.tbl_buchung (buchung_id, user_id, zimmer_id) FROM stdin;
+1	3	6
+3	3	1
+4	3	3
+5	3	12
+6	3	26
+7	3	22
 \.
 
 
@@ -535,6 +539,9 @@ COPY public.tbl_buchung (buchung_id, user_id, zimmer_id, date_from, date_to, sta
 --
 
 COPY public.tbl_rolle (role_id, role_name) FROM stdin;
+1	admin     
+2	anbieter  
+3	student   
 \.
 
 
@@ -543,6 +550,9 @@ COPY public.tbl_rolle (role_id, role_name) FROM stdin;
 --
 
 COPY public.tbl_user (user_id, role_id, verification, verification_date, username, password) FROM stdin;
+1	2	t	2024-11-20	oejab_eisenstadt    	oejab_eisenstadt                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+2	2	t	2024-11-20	hotela              	hotela                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+3	3	t	2024-11-20	tbaier              	tbaier                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 \.
 
 
@@ -550,7 +560,10 @@ COPY public.tbl_user (user_id, role_id, verification, verification_date, usernam
 -- Data for Name: tbl_user_details; Type: TABLE DATA; Schema: public; Owner: ubuntu
 --
 
-COPY public.tbl_user_details (user_id, "CompanyName", "Firstname", "Lastname", "Matrikelnummer", "University", "Inskription_end", "Adresse", "Plz", "Location", notice, email, phone) FROM stdin;
+COPY public.tbl_user_details (user_id, "CompanyName", "Firstname", "Lastname", "Matrikelnummer", "University", "Inskription_end", "Adresse", "Plz", "Location", notice, email, phone, "Koordinaten", "Parking", parking_pay) FROM stdin;
+1	OEJAB Eisenstadt                                  	Franz               	Hilber              	1	                                                  	1	Campus 2                                                                                            	7000	Eisenstadt                                        	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	oejab@user1.at                                                                                      	0126485682               	\N	t	t
+2	Hotel A                                           	Igraine             	OhneZahn            	2	                                                  	2	Rechbauerstraße 12                                                                                  	8010	Graz                                              	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	test@test.at                                                                                        	06642158713365           	\N	f	f
+3	                                                  	Tatjana             	Baier               	153003	FH Burgenland                                     	1986	Kalvarienbergstraße 16a                                                                             	8020	Graz                                              	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	                                                                                                    	                         	                                                                                                                                                                                                        	t	f
 \.
 
 
@@ -558,7 +571,36 @@ COPY public.tbl_user_details (user_id, "CompanyName", "Firstname", "Lastname", "
 -- Data for Name: tbl_zimmer; Type: TABLE DATA; Schema: public; Owner: ubuntu
 --
 
-COPY public.tbl_zimmer (zimmer_id, user_id, date_from, date_to) FROM stdin;
+COPY public.tbl_zimmer (zimmer_id, user_id, date, state_id) FROM stdin;
+2	1	2024-11-25	1
+4	1	2024-11-26	1
+5	1	2024-11-27	1
+7	1	2024-11-29	1
+8	1	2024-11-30	1
+6	1	2024-11-27	2
+9	1	2024-12-23	1
+10	1	2025-01-06	1
+11	1	2025-01-06	1
+13	1	2025-01-07	1
+14	1	2025-01-20	1
+15	1	2025-01-21	1
+16	1	2025-01-22	1
+17	1	2025-01-23	1
+18	1	2025-01-24	1
+19	2	2025-02-03	1
+20	2	2025-02-04	1
+21	2	2025-02-05	1
+1	1	2024-11-25	2
+3	1	2024-11-26	2
+12	1	2025-01-07	2
+23	1	2024-11-21	1
+24	1	2024-11-22	1
+25	1	2024-11-22	1
+26	1	2025-02-03	2
+27	1	2024-11-29	1
+28	1	2024-11-30	1
+22	1	2024-11-21	2
+29	2	2024-11-25	1
 \.
 
 
@@ -573,14 +615,7 @@ SELECT pg_catalog.setval('public.tbl_booking_state_state_id_seq', 1, false);
 -- Name: tbl_buchung_buchung_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
 --
 
-SELECT pg_catalog.setval('public.tbl_buchung_buchung_id_seq', 1, false);
-
-
---
--- Name: tbl_buchung_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
---
-
-SELECT pg_catalog.setval('public.tbl_buchung_state_id_seq', 1, false);
+SELECT pg_catalog.setval('public.tbl_buchung_buchung_id_seq', 7, true);
 
 
 --
@@ -608,14 +643,14 @@ SELECT pg_catalog.setval('public.tbl_rolle_role_id_seq', 1, false);
 -- Name: tbl_user_details_Inskription_end_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
 --
 
-SELECT pg_catalog.setval('public."tbl_user_details_Inskription_end_seq"', 1, false);
+SELECT pg_catalog.setval('public."tbl_user_details_Inskription_end_seq"', 2, true);
 
 
 --
 -- Name: tbl_user_details_Matrikelnummer_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
 --
 
-SELECT pg_catalog.setval('public."tbl_user_details_Matrikelnummer_seq"', 1, false);
+SELECT pg_catalog.setval('public."tbl_user_details_Matrikelnummer_seq"', 2, true);
 
 
 --
@@ -629,7 +664,7 @@ SELECT pg_catalog.setval('public."tbl_user_details_Plz_seq"', 1, false);
 -- Name: tbl_user_details_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
 --
 
-SELECT pg_catalog.setval('public.tbl_user_details_user_id_seq', 1, false);
+SELECT pg_catalog.setval('public.tbl_user_details_user_id_seq', 3, true);
 
 
 --
@@ -643,7 +678,14 @@ SELECT pg_catalog.setval('public.tbl_user_role_id_seq', 1, false);
 -- Name: tbl_user_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
 --
 
-SELECT pg_catalog.setval('public.tbl_user_user_id_seq', 1, false);
+SELECT pg_catalog.setval('public.tbl_user_user_id_seq', 2, true);
+
+
+--
+-- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+--
+
+SELECT pg_catalog.setval('public.tbl_zimmer_state_id_seq', 8, true);
 
 
 --
@@ -657,7 +699,7 @@ SELECT pg_catalog.setval('public.tbl_zimmer_user_id_seq', 1, false);
 -- Name: tbl_zimmer_zimmer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
 --
 
-SELECT pg_catalog.setval('public.tbl_zimmer_zimmer_id_seq', 1, false);
+SELECT pg_catalog.setval('public.tbl_zimmer_zimmer_id_seq', 29, true);
 
 
 --
@@ -701,22 +743,6 @@ ALTER TABLE ONLY public.tbl_zimmer
 
 
 --
--- Name: tbl_zimmer tbl_zimmer_user_id_key; Type: CONSTRAINT; Schema: public; Owner: ubuntu
---
-
-ALTER TABLE ONLY public.tbl_zimmer
-    ADD CONSTRAINT tbl_zimmer_user_id_key UNIQUE (user_id);
-
-
---
--- Name: tbl_buchung fk_buchung_stateid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
---
-
-ALTER TABLE ONLY public.tbl_buchung
-    ADD CONSTRAINT fk_buchung_stateid FOREIGN KEY (state_id) REFERENCES public.tbl_booking_state(state_id);
-
-
---
 -- Name: tbl_buchung fk_buchung_userid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
 --
 
@@ -746,6 +772,14 @@ ALTER TABLE ONLY public.tbl_user
 
 ALTER TABLE ONLY public.tbl_user
     ADD CONSTRAINT fk_user_userid FOREIGN KEY (user_id) REFERENCES public.tbl_user_details(user_id);
+
+
+--
+-- Name: tbl_zimmer fk_zimmer_stateid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
+--
+
+ALTER TABLE ONLY public.tbl_zimmer
+    ADD CONSTRAINT fk_zimmer_stateid FOREIGN KEY (state_id) REFERENCES public.tbl_booking_state(state_id);
 
 
 --
