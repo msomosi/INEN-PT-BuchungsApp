@@ -29,8 +29,7 @@ secretGenerator:
 patches:
   - target:
       kind: HTTPRoute
-      name: booking-gateway
-    path: gateway-patch.yaml
+    path: http-route-patch.yaml
 
 images:
   - name: buchungsmanagement
