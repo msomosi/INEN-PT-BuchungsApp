@@ -27,10 +27,10 @@ secretGenerator:
       - config/s3-secret.properties
 
 patches:
-- target:
-    kind: Gateway
-    name: booking-gateway
-  path: gateway-patch.yaml
+  - target:
+      kind: HTTPRoute
+      name: booking-gateway
+    path: gateway-patch.yaml
 
 images:
   - name: buchungsmanagement
