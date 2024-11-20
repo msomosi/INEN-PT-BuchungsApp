@@ -1,0 +1,7 @@
+---
+- op: add
+  path: /metadata/annotations/keel.sh~1policy
+  value: all
+- op: add
+  path: /metadata/annotations/keel.sh~1trigger
+  value: poll

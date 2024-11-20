@@ -28,5 +28,9 @@ secretGenerator:
 
 patches:
   - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/component in (frontend, backend)
+    path: keel-patch.yaml
+  - target:
       kind: HTTPRoute
     path: http-route-patch.yaml
