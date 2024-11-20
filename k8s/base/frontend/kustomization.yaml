@@ -5,12 +5,14 @@ kind: Kustomization
 labels:
   - includeSelectors: true
     pairs:
-      app.kubernetes.io/name : frontend
+      app.kubernetes.io/name: frontend
       app.kubernetes.io/component: frontend
 
 resources:
   - deployment.yaml
   - http-route-home.yaml
+  - http-route-hotel-list.yaml
+  - http-route-hotel-map.yaml
   - http-route-rent.yaml
   - http-route-room-management.yaml
   - http-route-static.yaml
