@@ -17,11 +17,11 @@ app.logger.debug("Start frontend")
 
 # PostgreSQL-Datenbankverbindung
 DATABASE_CONFIG = {
-    'dbname': 'citizix_db',
-    'user': 'citizix_user',
-    'password': 'S3cret',
-    'host': 'compose-postgres-1',
-    'port': 5432
+    'dbname':   os.environ.get('DB_SID', ''),
+    'user':     os.environ.get('DB_USERNAME', ''),
+    'password': os.environ.get('DB_PASSWORD', ''),
+    'host':     os.environ.get('DB_HOSTNAME', ''),
+    'port':     os.environ.get('DB_PORT', '5432')
 }
 
 def get_db_connection():

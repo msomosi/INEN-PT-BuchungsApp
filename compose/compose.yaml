@@ -12,7 +12,12 @@ services:
     ports:
       - "8080:80"
     environment:
+      - DB_HOSTNAME=compose-postgres-1
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
       - SESSION_KEY=12345678910111213141516
+
   login:
     image: apeni/login
     build: ../app/login
