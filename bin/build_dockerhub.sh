@@ -7,8 +7,12 @@ registry="mrangger/"
 
 docker login --username mrangger --password "$DOCKERHUB_PASSWORD"
 
+git_branch_name="$(git symbolic-ref HEAD 2>/dev/null)" ||
+git_branch_name="(unnamed branch)"     # detached HEAD
+git_branch_name=${git_branch_name##refs/heads/}
+
 for module in "${modules[@]}"; do
-  imagename="apeni-${module}:latest"
+  imagename="apeni-${module}:${git_branch_name}"
   echo "$imagename"
   docker buildx build \
     --platform "$platform" \
