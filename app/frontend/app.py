@@ -13,6 +13,19 @@ app.logger.setLevel(logging.DEBUG)
 app.logger.debug("Start frontend")
 
 
+# PostgreSQL-Datenbankverbindung
+DATABASE_CONFIG = {
+    'dbname': 'citizix_db',
+    'user': 'citizix_user',
+    'password': 'S3cret',
+    'host': 'compose-postgres-1',
+    'port': 5432
+}
+
+def get_db_connection():
+    """Erstellt eine Verbindung zur PostgreSQL-Datenbank."""
+    return psycopg2.connect(**DATABASE_CONFIG)
+
 def debug_request(request):
     app.logger.info(request)
     app.logger.debug(session)
