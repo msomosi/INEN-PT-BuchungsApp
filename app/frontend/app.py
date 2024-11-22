@@ -54,7 +54,7 @@ def create_booking():
         'days': days
     }
 
-    app.logger.info("Buchung erstellt: " + buchung['user'] + ", Zimmer: " + buchung['room'])
+    app.logger.info(f"Buchung erstellt: {buchung['user']}, Zimmer: {buchung['room']}")
     app.logger.debug(buchung)
 
     try:
@@ -64,7 +64,7 @@ def create_booking():
         app.logger.debug(response)
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
     except Exception as err:
-        app.logger.error("Fehler beim Speichern der Buchung: " + str(err))
+        app.logger.error(f"Fehler beim Speichern der Buchung: {err}")
         return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(err)), 500
 
     return render_template('bestaetigung.html', buchung=buchung)
@@ -80,8 +80,8 @@ def get_rooms():
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
         data = response.json()
     except Exception as err:
-        app.logger.error("Fehler beim Laden der Buchungen: " + str(err))
-        data=[]
+        app.logger.error(f"Fehler beim Laden der Buchungen: {err}")
+        data = []
 
     return render_template('room-management.html', buchungen=data)
 
