@@ -128,7 +128,7 @@ def create_booking():
 
     # Erstellen des Buchungsobjekts
     buchung = {
-        'user': session['email'],
+        'user': session.get('email', 'guest'),
         'room': room,
         'start_date': start_date,
         'end_date': end_date,
