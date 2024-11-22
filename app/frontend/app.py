@@ -1,6 +1,8 @@
 from flask import Flask, redirect, url_for, render_template, session, request, jsonify
 from geopy.distance import geodesic  # Für Radius-Berechnung
 from werkzeug.middleware.proxy_fix import ProxyFix
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import logging
 import os
 import requests
@@ -194,18 +196,56 @@ def search_providers():
     # Fallback auf FH Burgenland, falls keine valide Stadt angegeben ist
     center_location = cities.get(user_location, university_location)
 
+    # Verbinden mit der Datenbank
     results = []
-    for provider in providers:
-        if "always_booked_in" in provider and provider["always_booked_in"] == start_year:
-            continue  # Hotel ist in diesem Jahr ausgebucht
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-        # Distanz berechnen
-        distance = geodesic(center_location, provider["location"]).km
-        if distance <= radius:
-            provider["distance"] = round(distance, 2)
-            results.append(provider)
+        # SQL-Abfrage für Anbieter
+        cursor.execute("""
+            SELECT id, name, type, address, ST_X(location::geometry) AS lon, ST_Y(location::geometry) AS lat,
+                   parking_available, parking_paid, always_booked_in
+            FROM providers
+        """)
+        providers = cursor.fetchall()
+
+        for provider in providers:
+            provider_id, name, p_type, address, lon, lat, parking_available, parking_paid, always_booked_in = provider
+
+            # Verfügbarkeit prüfen
+            if always_booked_in == start_year:
+                app.logger.debug(f"{name} ist im Jahr {start_year} immer ausgebucht. Überspringen.")
+                continue
+
+            # Distanz berechnen
+            distance = geodesic(center_location, (lat, lon)).km
+            app.logger.debug(f"Berechnete Distanz für {name}: {distance} km")
+
+            if distance <= radius:
+                results.append({
+                    "id": provider_id,
+                    "name": name,
+                    "type": p_type,
+                    "address": address,
+                    "location": (lat, lon),
+                    "parking": {
+                        "available": parking_available,
+                        "paid": parking_paid,
+                    },
+                    "distance": round(distance, 2),
+                })
+    except Exception as e:
+        app.logger.error(f"Fehler bei der Datenbankabfrage: {e}")
+        return jsonify({"error": "Fehler bei der Verarbeitung"}), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
     return jsonify(results)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=80)
