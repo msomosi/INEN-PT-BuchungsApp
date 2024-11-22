@@ -1,4 +1,5 @@
-from flask import Flask, redirect, url_for, render_template, session, request
+from flask import Flask, redirect, url_for, render_template, session, request, jsonify
+from geopy.distance import geodesic  # Für Radius-Berechnung
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
 import os
@@ -84,6 +85,34 @@ def get_rooms():
         data = []
 
     return render_template('room-management.html', buchungen=data)
+
+@app.route('/search-providers', methods=['GET'])
+def search_providers():
+    user_location = request.args.get('location', '').strip().lower()
+    radius = float(request.args.get('radius', 10))  # Standardradius 10 km
+    start_date = request.args.get('start_date', None)
+    end_date = request.args.get('end_date', None)
+
+    if not start_date or not end_date:
+        return jsonify({"error": "Start- und Enddatum sind erforderlich"}), 400
+
+    start_year = int(start_date.split("-")[0])
+
+    # Fallback auf FH Burgenland, falls keine valide Stadt angegeben ist
+    center_location = cities.get(user_location, university_location)
+
+    results = []
+    for provider in providers:
+        if "always_booked_in" in provider and provider["always_booked_in"] == start_year:
+            continue  # Hotel ist in diesem Jahr ausgebucht
+
+        # Distanz berechnen
+        distance = geodesic(center_location, provider["location"]).km
+        if distance <= radius:
+            provider["distance"] = round(distance, 2)
+            results.append(provider)
+
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True, port=80)
