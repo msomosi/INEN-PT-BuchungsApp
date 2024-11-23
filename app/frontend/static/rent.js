@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 function addMarker(lat, lon, name) {
-  const marker = L.marker([lat, lon]).addTo(map).bindPopup(name)
+  const marker = L.marker([lat, lon]).addTo(map)
   markers.push(marker)
 }
 
@@ -29,10 +29,7 @@ function bookRoom() {
 }
 
 function highlightHotelOnMap(lat, lng, hotelName) {
-  const hotelMarker = L.marker([lat, lng])
-    .addTo(map)
-    .bindPopup(`<b>${hotelName}</b>`)
-    .openPopup()
+  const hotelMarker = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${hotelName}</b>`).openPopup()
 
   // Zoomen auf den Marker und die Hochschule Burgenland
   const bounds = L.latLngBounds([
@@ -48,8 +45,8 @@ function initializeDateSelection() {
 
   // Finde den nächsten Freitag und Samstag
   const today = new Date()
-  let nextFriday = new Date(today)
-  let nextSaturday = new Date(today)
+  const nextFriday = new Date(today)
+  const nextSaturday = new Date(today)
 
   nextFriday.setDate(today.getDate() + ((5 - today.getDay() + 7) % 7))
   nextSaturday.setDate(nextFriday.getDate() + 1)
@@ -62,14 +59,10 @@ function initializeDateSelection() {
 }
 
 function initializeMap() {
-  map = L.map("map").setView(
-    [destinationLocation.lat, destinationLocation.lng],
-    13
-  )
+  map = L.map("map").setView([destinationLocation.lat, destinationLocation.lng], 13)
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map)
 
   L.marker([destinationLocation.lat, destinationLocation.lng])
@@ -79,10 +72,9 @@ function initializeMap() {
 }
 
 async function searchProviders() {
-  const location = document.getElementById("location").value || "FH Burgenland"
-  const radius = parseFloat(document.getElementById("radius").value)
-  const center = [47.8294849, 16.5347871]
-  showRadiusCircle(center, radius)
+  const location = document.getElementById("location").value || destinationLocation.name
+  const radius = Number.parseFloat(document.getElementById("radius").value)
+  showRadiusCircle([destinationLocation.lat, destinationLocation.lng], radius)
 
   const startDate = document.getElementById("start_date").value
   const endDate = document.getElementById("end_date").value
@@ -115,11 +107,7 @@ async function searchProviders() {
         `
     li.addEventListener("click", () => {
       selectProvider(provider, li)
-      highlightHotelOnMap(
-        provider.location[0],
-        provider.location[1],
-        provider.name
-      )
+      highlightHotelOnMap(provider.location[0], provider.location[1], provider.name)
     })
     providerList.appendChild(li)
 
@@ -131,9 +119,7 @@ async function searchProviders() {
 
 function selectProvider(provider, listItem) {
   selectedProvider = provider
-  document
-    .querySelectorAll(".result-item")
-    .forEach(item => item.classList.remove("selected"))
+  document.querySelectorAll(".result-item").forEach(item => item.classList.remove("selected"))
   listItem.classList.add("selected")
   document.getElementById("book-btn").style.display = "block"
 
@@ -145,7 +131,10 @@ function selectProvider(provider, listItem) {
 }
 
 function showRadiusCircle(center, radius) {
-  if (radiusCircle) map.removeLayer(radiusCircle)
+  if (radiusCircle) {
+    map.removeLayer(radiusCircle)
+  }
+
   const radiusInMeters = radius * 1000
   radiusCircle = L.circle(center, {
     color: "red",
