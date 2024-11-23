@@ -2,14 +2,11 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buchungsmanagement-System</title>
     <link rel="stylesheet" href="static/style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" defer></script>
     <script src="static/rent.js" defer></script>
 </head>
 <body>
@@ -20,7 +17,7 @@
     <div class="container">
         <!-- Anbieter-Suche -->
         <div class="form-section">
-            <h1>Start your booking ..</h1>
+            <h1>Starten Sie Ihre Buchung</h1>
             <form id="search-form">
                 <label for="location">Ort:</label>
                 <input type="text" id="location" name="location" placeholder="Ort eingeben (optional)">
@@ -29,13 +26,13 @@
                 <input type="number" id="radius" name="radius" value="10" min="1">
 
                 <label for="start_date">Startdatum:</label>
-                <input type="date" id="start_date" required onchange="validateSearch()">
+                <input type="date" id="start_date" name="start_date" required onchange="validateSearch()">
 
                 <label for="end_date">Enddatum:</label>
-                <input type="date" id="end_date" required onchange="validateSearch()">
+                <input type="date" id="end_date" name="end_date" required onchange="validateSearch()">
 
                 <label for="days">Anzahl der Nächte:</label>
-                <input type="number" id="days" readonly>
+                <input type="number" id="days" name="days" readonly>
 
                 <button type="button" id="search-btn" onclick="searchProviders()">Unterkunft finden</button>
             </form>
