@@ -198,11 +198,33 @@
         let selectedProvider = null;
         let radiusCircle = null;
 
+        // Zieladresse der Hochschule Burgenland
+        const destinationLocation = {
+            name: "Hochschule Burgenland",
+            address: "Campus 1, 7000 Eisenstadt",
+            lat: 47.82948485,
+            lng: 16.534787097735926,
+            isDestination: true
+        };
+
         document.addEventListener("DOMContentLoaded", () => {
             initializeDateSelection();
             initializeMap();
         });
 
+        function highlightHotelOnMap(lat, lng, hotelName) {
+            const hotelMarker = L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup(`<b>${hotelName}</b>`)
+                .openPopup();
+
+            // Zoomen auf den Marker und die Hochschule Burgenland
+            const bounds = L.latLngBounds([
+                [destinationLocation.lat, destinationLocation.lng],
+                [lat, lng]
+            ]);
+            map.fitBounds(bounds, { padding: [100, 100] });
+        }
 
         function initializeDateSelection() {
             const fromDateInput = document.getElementById("start_date");
@@ -278,6 +300,7 @@
                 `;
                 li.addEventListener('click', () => {
                     selectProvider(provider, li);
+                    highlightHotelOnMap(provider.location[0], provider.location[1], provider.name);
                 });
                 providerList.appendChild(li);
 
