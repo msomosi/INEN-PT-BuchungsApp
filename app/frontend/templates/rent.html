@@ -246,11 +246,16 @@
         }
 
         function initializeMap() {
-            map = L.map('map').setView([47.8294849, 16.5347871], 13);
+            map = L.map('map').setView([destinationLocation.lat, destinationLocation.lng], 13);
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
+
+            L.marker([destinationLocation.lat, destinationLocation.lng])
+                .addTo(map)
+                .bindPopup(`<b>${destinationLocation.name}</b>`)
+                .openPopup();
         }
 
         function showRadiusCircle(center, radius) {
