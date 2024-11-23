@@ -198,7 +198,32 @@
         let selectedProvider = null;
         let radiusCircle = null;
 
-        function initMap() {
+        document.addEventListener("DOMContentLoaded", () => {
+            initializeDateSelection();
+            initializeMap();
+        });
+
+
+        function initializeDateSelection() {
+            const fromDateInput = document.getElementById("start_date");
+            const toDateInput = document.getElementById("end_date");
+
+            // Finde den nächsten Freitag und Samstag
+            const today = new Date();
+            let nextFriday = new Date(today);
+            let nextSaturday = new Date(today);
+
+            nextFriday.setDate(today.getDate() + ((5 - today.getDay() + 7) % 7));
+            nextSaturday.setDate(nextFriday.getDate() + 1);
+
+            // Formatierung als yyyy-mm-dd
+            const formatDate = (date) => date.toISOString().split("T")[0];
+
+            fromDateInput.value = formatDate(nextFriday);
+            toDateInput.value = formatDate(nextSaturday);
+        }
+
+        function initializeMap() {
             map = L.map('map').setView([47.8294849, 16.5347871], 13);
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
@@ -299,8 +324,6 @@
                 document.getElementById('search-btn').disabled = true;
             }
         }
-
-        window.onload = initMap;
     </script>
 </body>
 </html>
