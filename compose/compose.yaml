@@ -12,7 +12,12 @@ services:
     ports:
       - "8080:80"
     environment:
+      - DB_HOSTNAME=db
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
       - SESSION_KEY=12345678910111213141516
+
   login:
     image: apeni/login
     build: ../app/login
@@ -52,13 +57,53 @@ services:
     volumes:
       - ./localstack:/persisted-data
 
-  postgres:
-    image: postgres:14-alpine
+  db:
+    image: postgis/postgis:14-3.3
     ports:
       - 5432:5432
     volumes:
       - ./postgres:/var/lib/postgresql/data
+      - ./../app/database:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_PASSWORD=S3cret
       - POSTGRES_USER=citizix_user
       - POSTGRES_DB=citizix_db
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=user-name@domain-name.com
+      - PGADMIN_DEFAULT_PASSWORD=S3cret
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+      - PGADMIN_CONFIG_WTF_CSRF_CHECK_DEFAULT=False
+      - PGADMIN_CONFIG_WTF_CSRF_ENABLED=False
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    entrypoint: /bin/sh -c "chmod 600 /pgpass; /entrypoint.sh;"
+    user: root
+    volumes:
+      - ./pgadmin:/var/lib/pgadmin
+    configs:
+      - source: servers.json
+        target: /pgadmin4/servers.json
+      - source: pgpass
+        target: /pgpass
+
+configs:
+  pgpass:
+    content: "db:5432:*:citizix_user:S3cret"
+  servers.json:
+    content: |
+      {"Servers": {"1": {
+        "Group": "Servers",
+        "Name": "My Local Postgres 16.1",
+        "Host": "db",
+        "Port": 5432,
+        "MaintenanceDB": "citizix_db",
+        "Username": "citizix_user",
+        "PassFile": "/pgpass",
+        "SSLMode": "prefer"
+      }}}

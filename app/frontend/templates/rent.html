@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Buchungsmanagement-System</title>
     <style>
+        /* Allgemeiner Stil */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -11,136 +12,295 @@
             padding: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-image: url('https://www.fh-burgenland.at/fileadmin/_processed_/6/5/csm_Energieumwelt_Campus_06_4e3cb0982e.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            align-items: flex-start;
+            min-height: 100vh;
         }
+
         .container {
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 50px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
+            max-width: 900px;
             width: 100%;
-            position: relative;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        .logo {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 150px;
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
+
+        .map-container {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #map { height: 400px; }
+
         h1 {
             color: #333;
             text-align: center;
         }
-        p {
-            color: #666;
-            text-align: center;
-        }
-        a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        h2 {
-            color: #333;
-            margin-top: 30px;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            background-color: #f9f9f9;
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        label {
+
+        form label {
+            display: block;
             margin: 10px 0 5px;
             font-weight: bold;
         }
-        input[type="text"],
-        input[type="date"],
-        input[type="number"],
-        button {
+
+        form input,
+        form button {
             padding: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             width: 100%;
         }
-        input[readonly] {
-            background-color: #e9e9e9;
-        }
-        button {
+
+        form button {
             background-color: #3498db;
             color: white;
             cursor: pointer;
+            border: none;
         }
-        button:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
+
+        form button:hover {
+            background-color: #1d78b5;
         }
-        .warning {
-            color: red;
-            font-weight: bold;
+
+        #book-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            display: none; /* Anfangs versteckt */
+            width: 100%;
+            margin-top: 20px;
+            border: none;
+            cursor: pointer;
         }
-    </style>
-    <script>
-        function calculateDays() {
-            const startDate = new Date(document.getElementById('start_date').value);
-            const endDate = new Date(document.getElementById('end_date').value);
-            const warningElement = document.getElementById('warning');
-            const button = document.getElementById('submit_button');
- 
-            if (endDate <= startDate) {
-                warningElement.textContent = "Enddatum muss nach dem Startdatum liegen!";
-                document.getElementById('days').value = '';
-                button.disabled = true;
-            } else {
-                warningElement.textContent = '';
-                const timeDiff = endDate - startDate;
-                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                document.getElementById('days').value = daysDiff;
-                button.disabled = false;
+
+        #book-btn:hover {
+            background-color: #1d78b5;
+        }
+
+        .result-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .result-item:hover {
+            background-color: #f0f8ff;
+        }
+
+        .result-item.selected {
+            background-color: #d4edda; /* Markiere ausgewähltes Element */
+            border-color: #c3e6cb;
+        }
+
+        .result-info {
+            flex-grow: 1;
+            padding-right: 10px;
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .logo-container img {
+            width: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .map-container {
+                height: 300px;
+            }
+
+            .logo-container img {
+                width: 300px;
             }
         }
-    </script>
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
 </head>
 <body>
-    <div class="container">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/FHBurgenland-logo.png" alt="FH Burgenland Logo" class="logo">
-        <h1>Raum buchen</h1>
-        <form action="/rent" method="post">
-            <label for="room">Raum:</label>
-            <input type="text" id="room" name="room" required>
-         
-            <label for="start_date">Startdatum:</label>
-            <input type="date" id="start_date" name="start_date" required onchange="calculateDays()">
-         
-            <label for="end_date">Enddatum:</label>
-            <input type="date" id="end_date" name="end_date" required onchange="calculateDays()">
-         
-            <label for="days">Anzahl der Nächte:</label>
-            <input type="number" id="days" name="days" readonly>
-         
-            <div id="warning" class="warning"></div>
-         
-            <button type="submit" id="submit_button">Buchen</button>
-        </form>
+    <div class="logo-container">
+        <img src="https://hochschule-burgenland.at/typo3conf/ext/website_template/Resources/Public/Images/Logos/Bgld_FH_Logo_RGB.jpg" alt="Logo">
     </div>
+
+    <div class="container">
+        <!-- Anbieter-Suche -->
+        <div class="form-section">
+            <h1>Start your booking ..</h1>
+            <form id="search-form">
+                <label for="location">Ort:</label>
+                <input type="text" id="location" name="location" placeholder="Ort eingeben (optional)">
+
+                <label for="radius">Radius (in km):</label>
+                <input type="number" id="radius" name="radius" value="10" min="1">
+
+                <label for="start_date">Startdatum:</label>
+                <input type="date" id="start_date" required onchange="validateSearch()">
+
+                <label for="end_date">Enddatum:</label>
+                <input type="date" id="end_date" required onchange="validateSearch()">
+
+                <label for="days">Anzahl der Nächte:</label>
+                <input type="number" id="days" readonly>
+
+                <button type="button" id="search-btn" onclick="searchProviders()">Unterkunft finden</button>
+            </form>
+        </div>
+
+        <!-- Ergebnisse -->
+        <div id="results-section" style="display: none;">
+            <h2>Verfügbare Unterkunft:</h2>
+            <ul id="provider-list"></ul>
+            <button id="book-btn" onclick="bookRoom()">Buchen</button>
+        </div>
+
+        <!-- Karte -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let markers = [];
+        let selectedProvider = null;
+        let radiusCircle = null;
+
+        function initMap() {
+            map = L.map('map').setView([47.8294849, 16.5347871], 13);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+        }
+
+        function showRadiusCircle(center, radius) {
+            if (radiusCircle) map.removeLayer(radiusCircle);
+            const radiusInMeters = radius * 1000;
+            radiusCircle = L.circle(center, {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.1,
+                radius: radiusInMeters
+            }).addTo(map);
+            map.setView(center, 11);
+        }
+
+        async function searchProviders() {
+            const location = document.getElementById('location').value || 'FH Burgenland';
+            const radius = parseFloat(document.getElementById('radius').value);
+            const center = [47.8294849, 16.5347871];
+            showRadiusCircle(center, radius);
+
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+
+            const response = await fetch(`/search-providers?location=${location}&radius=${radius}&start_date=${startDate}&end_date=${endDate}`);
+            const providers = await response.json();
+
+            const providerList = document.getElementById('provider-list');
+            providerList.innerHTML = '';
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            if (!providers || providers.length === 0) {
+                providerList.innerHTML = '<li>Keine Anbieter gefunden.</li>';
+                document.getElementById('results-section').style.display = 'block';
+                return;
+            }
+
+            providers.forEach((provider) => {
+                const li = document.createElement('li');
+                li.className = 'result-item';
+                li.innerHTML = `
+                    <div class="result-info">
+                        <strong>${provider.name}</strong> (${provider.type}) - ${provider.distance} km entfernt
+                        <br>Adresse: ${provider.address}
+                        <br>Parkplatz: ${provider.parking.available ? 'Verfügbar' : 'Nicht verfügbar'}
+                    </div>
+                `;
+                li.addEventListener('click', () => {
+                    selectProvider(provider, li);
+                });
+                providerList.appendChild(li);
+
+                addMarker(provider.location[0], provider.location[1], provider.name);
+            });
+
+            document.getElementById('results-section').style.display = 'block';
+        }
+
+        function selectProvider(provider, listItem) {
+            selectedProvider = provider;
+            document.querySelectorAll('.result-item').forEach(item => item.classList.remove('selected'));
+            listItem.classList.add('selected');
+            document.getElementById('book-btn').style.display = 'block';
+
+            // Entferne den Radiuskreis beim Auswählen eines Anbieters
+            if (radiusCircle) {
+                map.removeLayer(radiusCircle);
+            }
+            map.setView(provider.location, 16);
+        }
+
+        function addMarker(lat, lon, name) {
+            const marker = L.marker([lat, lon]).addTo(map).bindPopup(name);
+            markers.push(marker);
+        }
+
+        function bookRoom() {
+            if (selectedProvider) {
+                alert(`Buchung erfolgreich für: ${selectedProvider.name}`);
+            }
+        }
+
+        function validateSearch() {
+            const startDate = new Date(document.getElementById('start_date').value);
+            const endDate = new Date(document.getElementById('end_date').value);
+
+            if (startDate && endDate && endDate > startDate) {
+                const days = (endDate - startDate) / (1000 * 3600 * 24);
+                document.getElementById('days').value = days;
+                document.getElementById('search-btn').disabled = false;
+            } else {
+                document.getElementById('days').value = '';
+                document.getElementById('search-btn').disabled = true;
+            }
+        }
+
+        window.onload = initMap;
+    </script>
 </body>
 </html>

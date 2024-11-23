@@ -51,11 +51,10 @@ def authorize():
     session['email'] = token.get('userinfo').get('email')
     app.logger.debug(session['email'])
 
-
     app.logger.info("Login: " + session.get('user') + " " + session.get('email'))
 
-
-    if session['user_type'] == 'employee':
+    # Weiterleitung basierend auf dem user_type
+    if session['user_type'] == 'employee' or session['user_type'] == 'anbieter':
         redirect_url = "/room-management"
     else:
         redirect_url = "/home"
@@ -67,6 +66,7 @@ def login(user_type):
     debug_request(request)
     app.logger.debug("user_type: " + user_type)
 
+    # Dummy-Login für Tests
     if user_type == 'dummy':
         session.clear()
         session['user_type'] = 'employee'
@@ -75,7 +75,18 @@ def login(user_type):
         session['google_token'] = 'john@doe.com'
         return redirect("/home")
 
+    # Anbieter-Login ohne OAuth
+    if user_type == 'anbieter':
+        session.clear()
+        session['user_type'] = 'anbieter'
+        session['user'] = 'Anbieter Test'
+        session['email'] = 'anbieter@test.com'
+        return redirect("/room-management")
+
+    # Speichern des user_type in der Session
     session['user_type'] = user_type
+
+    # Google OAuth Weiterleitung
     redirect_uri = url_for('authorize', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
