@@ -17,12 +17,7 @@ services:
     ports:
       - "8080:80"
     environment:
-      - DB_HOSTNAME=db
-      - DB_SID=citizix_db
-      - DB_USERNAME=citizix_user
-      - DB_PASSWORD=S3cret
       - SESSION_KEY=12345678910111213141516
-
   login:
     image: apeni/login
     build:
@@ -90,11 +85,14 @@ services:
     ports:
       - "8083:80"
     environment:
+      - SESSION_KEY=12345678910111213141516
+      - DB_HOSTNAME=db
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
       - S3_ENDPOINT=http://localstack:4566
       - AWS_ACCESS_KEY_ID=dummy_access_key
       - AWS_SECRET_ACCESS_KEY=dummy_secret_key
-      - SESSION_KEY=12345678910111213141516
-
   localstack:
     image: gresau/localstack-persist
     ports:
