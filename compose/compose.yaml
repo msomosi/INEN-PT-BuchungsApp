@@ -6,9 +6,14 @@ services:
       - 80:80
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+
   frontend:
     image: apeni/frontend
-    build: ../app/frontend
+    build:
+      context: ../app
+      dockerfile: ../app/build/Dockerfile
+      args:
+        module: frontend
     ports:
       - "8080:80"
     environment:
@@ -20,14 +25,23 @@ services:
 
   login:
     image: apeni/login
-    build: ../app/login
+    build:
+      context: ../app
+      dockerfile: ../app/build/Dockerfile
+      args:
+        module: login
     ports:
       - "8081:80"
     environment:
       - SESSION_KEY=12345678910111213141516
+
   buchungsmanagement:
     image: apeni/buchungsmanagement
-    build: ../app/buchungsmanagement
+    build:
+      context: ../app
+      dockerfile: ../app/build/Dockerfile
+      args:
+        module: buchungsmanagement
     ports:
       - "8082:80"
     environment:
@@ -35,9 +49,44 @@ services:
       - AWS_ACCESS_KEY_ID=dummy_access_key
       - AWS_SECRET_ACCESS_KEY=dummy_secret_key
       - SESSION_KEY=12345678910111213141516
+  anbietermgmt:
+    image: apeni/anbietermgmt
+    build:
+      context: ../app
+      dockerfile: ../app/build/Dockerfile
+      args:
+        module: anbietermgmt
+    ports:
+      - "8086:80"
+    environment:
+      - DB_HOSTNAME=db
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
+      - SESSION_KEY=12345678910111213141516
+  bookingmgmt:
+    image: apeni/bookingmgmt
+    build:
+      context: ../app
+      dockerfile: ../app/build/Dockerfile
+      args:
+        module: bookingmgmt
+    ports:
+      - "8085:80"
+    environment:
+      - DB_HOSTNAME=db
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
+      - SESSION_KEY=12345678910111213141516
+
   zimmerverwaltung:
     image: apeni/zimmerverwaltung
-    build: ../app/zimmerverwaltung
+    build:
+      context: ../app
+      dockerfile: ../app/build/Dockerfile
+      args:
+        module: zimmerverwaltung
     ports:
       - "8083:80"
     environment:
@@ -45,10 +94,6 @@ services:
       - AWS_ACCESS_KEY_ID=dummy_access_key
       - AWS_SECRET_ACCESS_KEY=dummy_secret_key
       - SESSION_KEY=12345678910111213141516
-    develop:
-      watch:
-        - path: ./zimmerverwaltung
-          action: rebuild
 
   localstack:
     image: gresau/localstack-persist
