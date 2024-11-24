@@ -12,7 +12,7 @@ def user_details():
     if not zimmer_id :
         return "<h1>Fehler: Ungültige Parameter</h1>", 400
 
-    conn_room = connect_to_db("bpf")
+    conn_room = create_db_connection()
     if not conn_room:
         return "<h1>Fehler: Verbindung zur Datenbank fehlgeschlagen</h1>", 500
 
@@ -85,7 +85,7 @@ def add_room():
         if date_from > date_to:
             return "<h1>Fehler: 'Von'-Datum liegt nach 'Bis'-Datum</h1>", 400
 
-        conn_room = connect_to_db("bpf")
+        conn_room = create_db_connection()
         if not conn_room:
             return "<h1>Fehler: Verbindung zur Datenbank fehlgeschlagen</h1>", 500
 
@@ -145,7 +145,7 @@ def show_table():
     # hier kommt die session hin mit der eingeloggen user id
     user_id = "1"
 
-    conn_room = connect_to_db("bpf")
+    conn_room = create_db_connection()
     if not conn_room:
         return "<h1>Fehler: Verbindung zur Zimmer-Datenbank fehlgeschlagen</h1>", 500
 

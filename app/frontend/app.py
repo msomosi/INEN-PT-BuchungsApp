@@ -103,7 +103,7 @@ def search_providers():
     # Verbinden mit der Datenbank
     results = []
     try:
-        conn = get_db_connection()
+        conn = create_db_connection()
         cursor = conn.cursor()
 
         # SQL-Abfrage für Anbieter

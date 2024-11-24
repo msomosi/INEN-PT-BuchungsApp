@@ -15,7 +15,7 @@ def book_rooms():
     if not selected_rooms:
         return "<h1>Fehler: Keine Zimmer ausgewählt</h1>", 400
 
-    conn_room = connect_to_db("bpf")
+    conn_room = create_db_connection()
     if not conn_room:
         return "<h1>Fehler: Verbindung zur Datenbank fehlgeschlagen</h1>", 500
 
@@ -64,7 +64,7 @@ def filter_rooms():
     }
     filtered_data = []
 
-    conn_room = connect_to_db("bpf")
+    conn_room = create_db_connection()
     if not conn_room:
         return "<h1>Fehler: Verbindung zur Zimmer-Datenbank fehlgeschlagen</h1>", 500
 
