@@ -1,20 +1,13 @@
-from flask import Flask, redirect, url_for, session, request
-from werkzeug.middleware.proxy_fix import ProxyFix
-from authlib.integrations.flask_client import OAuth
 import os
-import logging
 
-app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-app.secret_key = os.getenv('SESSION_KEY', default='BAD_SECRET_KEY')
+from authlib.integrations.flask_client import OAuth
+from factory import create_app, create_db_connection, debug_request
+from flask import redirect, request, url_for
 
-app.logger.setLevel(logging.DEBUG)
-app.logger.debug("Start login")
+app = create_app("login")
 
 app.config['GOOGLE_CLIENT_ID'] = os.environ.get('OAUTH_CLIENT_ID', '')
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('OAUTH_CLIENT_SECRET', '')
-
-
 
 CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
 oauth = OAuth(app)
@@ -51,7 +44,15 @@ def authorize():
     session['email'] = token.get('userinfo').get('email')
     app.logger.debug(session['email'])
 
-    app.logger.info("Login: " + session.get('user') + " " + session.get('email'))
+    if user:
+        app.logger.info("Login: " + session.get('user') + " " + session.get('email'))
+    else:
+        user = User(email=email, name=name, oauth_provider='google', is_verified=True)
+        db.session.add(user)
+        db.session.commit()
+        app.logger.info(f"Neuer Benutzer hinzugefügt: {user.name} ({user.email})")
+
+    session['user_id'] = user.id
 
     # Weiterleitung basierend auf dem user_type
     if session['user_type'] == 'employee' or session['user_type'] == 'anbieter':
