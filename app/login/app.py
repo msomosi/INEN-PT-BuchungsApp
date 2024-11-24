@@ -2,7 +2,7 @@ import os
 
 from authlib.integrations.flask_client import OAuth
 from factory import create_app, create_db_connection, debug_request
-from flask import redirect, request, url_for
+from flask import redirect, request, session, url_for
 
 app = create_app("login")
 
@@ -20,10 +20,6 @@ oauth.register(
 )
 
 app.logger.debug("Register oauth")
-
-def debug_request(request):
-    app.logger.info(request)
-    app.logger.debug(session)
 
 @app.route('/authorize')
 def authorize():

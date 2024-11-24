@@ -24,9 +24,6 @@ s3 = boto3.client(
 
 buchungen = []
 
-def debug_request(request):
-    app.logger.info(request)
-    app.logger.debug(session)
 
 @app.route('/booking')
 def get_bookings():
