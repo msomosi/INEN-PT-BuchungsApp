@@ -22,16 +22,13 @@ SET default_table_access_method = heap;
 
 
 --
--- Data for Name: tbl_user_details; Type: TABLE DATA; Schema: public; Owner: citizix_user
+-- Data for Name: tbl_user; Type: TABLE DATA; Schema: public; Owner: citizix_user
 --
 
-COPY public.tbl_buchung (buchung_id, user_id, zimmer_id) FROM stdin;
-1	3	6
-3	3	1
-4	3	3
-5	3	12
-6	3	26
-7	3	22
+COPY public.tbl_user_details (user_id, "CompanyName", "Firstname", "Lastname", "Matrikelnummer", "University", "Inskription_end", "Adresse", "Plz", "Location", notice, email, phone, "Koordinaten", "Parking", parking_pay) FROM stdin;
+1	OEJAB Eisenstadt                                  	Franz               	Hilber              	1	                                                  	1	Campus 2                                                                                            	7000	Eisenstadt                                        	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	oejab@user1.at                                                                                      	0126485682               	\N	t	t
+2	Hotel A                                           	Igraine             	OhneZahn            	2	                                                  	2	Rechbauerstraße 12                                                                                  	8010	Graz                                              	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	test@test.at                                                                                        	06642158713365           	\N	f	f
+3	                                                  	Tatjana             	Baier               	153003	FH Burgenland                                     	1986	Kalvarienbergstraße 16a                                                                             	8020	Graz                                              	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	                                                                                                    	                         	                                                                                                                                                                                                        	t	f
 \.
 
 
@@ -43,17 +40,6 @@ COPY public.tbl_user (user_id, role_id, verification, verification_date, usernam
 1	2	t	2024-11-20	oejab_eisenstadt    	oejab_eisenstadt
 2	2	t	2024-11-20	hotela              	hotela
 3	3	t	2024-11-20	tbaier              	tbaier
-\.
-
-
---
--- Data for Name: tbl_user; Type: TABLE DATA; Schema: public; Owner: citizix_user
---
-
-COPY public.tbl_user_details (user_id, "CompanyName", "Firstname", "Lastname", "Matrikelnummer", "University", "Inskription_end", "Adresse", "Plz", "Location", notice, email, phone, "Koordinaten", "Parking", parking_pay) FROM stdin;
-1	OEJAB Eisenstadt                                  	Franz               	Hilber              	1	                                                  	1	Campus 2                                                                                            	7000	Eisenstadt                                        	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	oejab@user1.at                                                                                      	0126485682               	\N	t	t
-2	Hotel A                                           	Igraine             	OhneZahn            	2	                                                  	2	Rechbauerstraße 12                                                                                  	8010	Graz                                              	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	test@test.at                                                                                        	06642158713365           	\N	f	f
-3	                                                  	Tatjana             	Baier               	153003	FH Burgenland                                     	1986	Kalvarienbergstraße 16a                                                                             	8020	Graz                                              	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	                                                                                                    	                         	                                                                                                                                                                                                        	t	f
 \.
 
 
@@ -91,6 +77,20 @@ COPY public.tbl_zimmer (zimmer_id, user_id, date, state_id) FROM stdin;
 28	1	2024-11-30	1
 22	1	2024-11-21	2
 29	2	2024-11-25	1
+\.
+
+
+--
+-- Data for Name: tbl_user_details; Type: TABLE DATA; Schema: public; Owner: citizix_user
+--
+
+COPY public.tbl_buchung (buchung_id, user_id, zimmer_id) FROM stdin;
+1	3	6
+3	3	1
+4	3	3
+5	3	12
+6	3	26
+7	3	22
 \.
 
 
