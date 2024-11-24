@@ -8,10 +8,28 @@ app = create_app("frontend")
 def home():
     debug_request(request)
 
-    if 'google_token' in session:
-        return render_template('home.html', user=session['user'])
-    else:
-        return render_template('login.html')
+    if 'user_type' in session:
+        user_type = session['user_type']
+
+        # Berechtigungen definieren
+        permissions = {
+            'student': ['create-booking', 'room-management', 'user-details'],
+            'anbieter': ['room-management', 'anbietermgmt', 'user-details', 'bookingmgmt']
+        }
+
+        # Berechtigungen für den aktuellen Benutzer
+        user_permissions = permissions.get(user_type, [])
+
+        session['permissions'] = user_permissions
+
+        app.logger.debug(f"Session after login: {session}")
+        app.logger.debug(f"Permissions on /home: {session.get('permissions')}")
+        
+        return render_template('home.html', user=session['user'], permissions=user_permissions)
+
+    # Fallback: Benutzer ist nicht eingeloggt
+    return render_template('login.html')
+
 
 @app.route('/login/<user_type>')
 def login():

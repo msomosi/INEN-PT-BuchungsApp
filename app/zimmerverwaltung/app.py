@@ -9,15 +9,6 @@ from geopy.distance import geodesic  # Für Radius-Berechnung
 
 app = create_app("zimmerverwaltung")
 
-# S3 Configuration
-bucket_name = 'zimmer'
-s3 = boto3.client(
-    's3',
-    endpoint_url = os.environ.get('S3_ENDPOINT', ''),
-    aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID', ''),
-    aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
-)
-
 # Städte-Koordinaten
 cities = {
     "eisenstadt": (47.8454821, 16.5249288),
@@ -28,35 +19,6 @@ cities = {
 
 # Uni-Standard-Position (z. B. FH Burgenland)
 university_location = (47.8294849, 16.5347871)  # Lat, Lon
-
-
-@app.route('/room')
-def get_room():
-    debug_request(request)
-    try:
-        response = s3.list_objects_v2(Bucket=bucket_name)
-        app.logger.debug(response)
-
-        bookings = []
-
-        objects = s3.list_objects_v2(Bucket=bucket_name)
-        for obj in objects['Contents']:
-            app.logger.info(obj['Key'])
-
-        for obj in response.get('Contents', []):
-            data = s3.get_object(Bucket=bucket_name, Key=obj['Key'])
-            content = data['Body'].read().decode('utf-8')
-            try:
-                booking = json.loads(content)
-                app.logger.info("Loaded booking: " + content)  # Log each loaded booking
-                bookings.append(booking)
-            except json.JSONDecodeError as err:
-                app.logger.error(f"JSON decoding error for {obj['Key']}: {err}")
-                continue  # Skip this booking if there's a JSON error
-    except Exception as err:
-        app.logger.error(f"Error accessing S3: " + str(err))
-        return str(err), 500
-    return jsonify(bookings)
 
 @app.route('/search-providers', methods=['GET'])
 def search_providers():

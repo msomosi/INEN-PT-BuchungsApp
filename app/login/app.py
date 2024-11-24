@@ -51,8 +51,8 @@ def authorize():
     session['user_id'] = user.id
 
     # Weiterleitung basierend auf dem user_type
-    if session['user_type'] == 'employee' or session['user_type'] == 'anbieter':
-        redirect_url = "/room-management"
+    if session['user_type'] == 'student' or session['user_type'] == 'anbieter':
+        redirect_url = "/home"
     else:
         redirect_url = "/home"
 
@@ -64,9 +64,9 @@ def login(user_type):
     app.logger.debug("user_type: " + user_type)
 
     # Dummy-Login für Tests
-    if user_type == 'dummy':
+    if user_type == 'student':
         session.clear()
-        session['user_type'] = 'employee'
+        session['user_type'] = 'student'
         session['user'] = 'John Doe'
         session['email'] = 'john@doe.com'
         session['google_token'] = 'john@doe.com'
@@ -76,9 +76,9 @@ def login(user_type):
     if user_type == 'anbieter':
         session.clear()
         session['user_type'] = 'anbieter'
-        session['user'] = 'Anbieter Test'
+        session['user'] = 'Anbieter ÖJAB'
         session['email'] = 'anbieter@test.com'
-        return redirect("/room-management")
+        return redirect("/home")
 
     # Speichern des user_type in der Session
     session['user_type'] = user_type
@@ -95,9 +95,9 @@ def logout():
         session.pop('google_token', None)
         session.pop('user_type', None)
         app.logger.info("Logout: " + session.pop('user') + " " + session.pop('email'))
-        session.clear()
+        
         app.logger.debug(session)
-
+    session.clear()
     return redirect("/home")
 
 @app.route('/user/<id>')
