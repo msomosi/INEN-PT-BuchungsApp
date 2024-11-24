@@ -16,5 +16,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 
 FROM base
-COPY ${module}/* ./
+COPY ${module} .
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:80", "app:app"]
