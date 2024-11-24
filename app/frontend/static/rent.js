@@ -56,6 +56,8 @@ function initializeDateSelection() {
 
   fromDateInput.value = formatDate(nextFriday)
   toDateInput.value = formatDate(nextSaturday)
+
+  validateSearch()
 }
 
 function initializeMap() {
