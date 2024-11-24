@@ -22,7 +22,7 @@ SET default_table_access_method = heap;
 
 
 --
--- Data for Name: tbl_buchung; Type: TABLE DATA; Schema: public; Owner: ubuntu
+-- Data for Name: tbl_user_details; Type: TABLE DATA; Schema: public; Owner: citizix_user
 --
 
 COPY public.tbl_buchung (buchung_id, user_id, zimmer_id) FROM stdin;
@@ -36,7 +36,7 @@ COPY public.tbl_buchung (buchung_id, user_id, zimmer_id) FROM stdin;
 
 
 --
--- Data for Name: tbl_user; Type: TABLE DATA; Schema: public; Owner: ubuntu
+-- Data for Name: tbl_zimmer; Type: TABLE DATA; Schema: public; Owner: citizix_user
 --
 
 COPY public.tbl_user (user_id, role_id, verification, verification_date, username, password) FROM stdin;
@@ -47,7 +47,7 @@ COPY public.tbl_user (user_id, role_id, verification, verification_date, usernam
 
 
 --
--- Data for Name: tbl_user_details; Type: TABLE DATA; Schema: public; Owner: ubuntu
+-- Data for Name: tbl_user; Type: TABLE DATA; Schema: public; Owner: citizix_user
 --
 
 COPY public.tbl_user_details (user_id, "CompanyName", "Firstname", "Lastname", "Matrikelnummer", "University", "Inskription_end", "Adresse", "Plz", "Location", notice, email, phone, "Koordinaten", "Parking", parking_pay) FROM stdin;
@@ -58,7 +58,7 @@ COPY public.tbl_user_details (user_id, "CompanyName", "Firstname", "Lastname", "
 
 
 --
--- Data for Name: tbl_zimmer; Type: TABLE DATA; Schema: public; Owner: ubuntu
+-- Data for Name: tbl_buchung; Type: TABLE DATA; Schema: public; Owner: citizix_user
 --
 
 COPY public.tbl_zimmer (zimmer_id, user_id, date, state_id) FROM stdin;
@@ -95,84 +95,84 @@ COPY public.tbl_zimmer (zimmer_id, user_id, date, state_id) FROM stdin;
 
 
 --
--- Name: tbl_buchung_buchung_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_buchung_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_buchung_buchung_id_seq', 7, true);
 
 
 --
--- Name: tbl_buchung_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_buchung_user_id_seq', 1, false);
 
 
 --
--- Name: tbl_buchung_zimmer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_zimmer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_buchung_zimmer_id_seq', 1, false);
 
 
 --
--- Name: tbl_user_details_Inskription_end_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Inskription_end_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public."tbl_user_details_Inskription_end_seq"', 2, true);
 
 
 --
--- Name: tbl_user_details_Matrikelnummer_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Matrikelnummer_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public."tbl_user_details_Matrikelnummer_seq"', 2, true);
 
 
 --
--- Name: tbl_user_details_Plz_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Plz_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public."tbl_user_details_Plz_seq"', 1, false);
 
 
 --
--- Name: tbl_user_details_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_user_details_user_id_seq', 3, true);
 
 
 --
--- Name: tbl_user_role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_user_role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_user_role_id_seq', 1, false);
 
 
 --
--- Name: tbl_user_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_user_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_user_user_id_seq', 2, true);
 
 
 --
--- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_zimmer_state_id_seq', 8, true);
 
 
 --
--- Name: tbl_zimmer_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_zimmer_user_id_seq', 1, false);
 
 
 --
--- Name: tbl_zimmer_zimmer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_zimmer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_zimmer_zimmer_id_seq', 29, true);

@@ -21,7 +21,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: tbl_booking_state; Type: TABLE; Schema: public; Owner: ubuntu
+-- Name: tbl_booking_state; Type: TABLE; Schema: public; Owner: citizix_user
 --
 
 CREATE TABLE public.tbl_booking_state (
@@ -30,10 +30,10 @@ CREATE TABLE public.tbl_booking_state (
 );
 
 
-ALTER TABLE public.tbl_booking_state OWNER TO ubuntu;
+ALTER TABLE public.tbl_booking_state OWNER TO citizix_user;
 
 --
--- Name: tbl_booking_state_state_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_booking_state_state_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_booking_state_state_id_seq
@@ -45,17 +45,17 @@ CREATE SEQUENCE public.tbl_booking_state_state_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_booking_state_state_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_booking_state_state_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_booking_state_state_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_booking_state_state_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_booking_state_state_id_seq OWNED BY public.tbl_booking_state.state_id;
 
 
 --
--- Name: tbl_buchung; Type: TABLE; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung; Type: TABLE; Schema: public; Owner: citizix_user
 --
 
 CREATE TABLE public.tbl_buchung (
@@ -65,10 +65,10 @@ CREATE TABLE public.tbl_buchung (
 );
 
 
-ALTER TABLE public.tbl_buchung OWNER TO ubuntu;
+ALTER TABLE public.tbl_buchung OWNER TO citizix_user;
 
 --
--- Name: tbl_buchung_buchung_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_buchung_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_buchung_buchung_id_seq
@@ -80,17 +80,17 @@ CREATE SEQUENCE public.tbl_buchung_buchung_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_buchung_buchung_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_buchung_buchung_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_buchung_buchung_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_buchung_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_buchung_buchung_id_seq OWNED BY public.tbl_buchung.buchung_id;
 
 
 --
--- Name: tbl_buchung_user_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_user_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_buchung_user_id_seq
@@ -101,17 +101,17 @@ CREATE SEQUENCE public.tbl_buchung_user_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_buchung_user_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_buchung_user_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_buchung_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_buchung_user_id_seq OWNED BY public.tbl_buchung.user_id;
 
 
 --
--- Name: tbl_buchung_zimmer_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_zimmer_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_buchung_zimmer_id_seq
@@ -122,17 +122,17 @@ CREATE SEQUENCE public.tbl_buchung_zimmer_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_buchung_zimmer_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_buchung_zimmer_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_buchung_zimmer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung_zimmer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_buchung_zimmer_id_seq OWNED BY public.tbl_buchung.zimmer_id;
 
 
 --
--- Name: tbl_rolle; Type: TABLE; Schema: public; Owner: ubuntu
+-- Name: tbl_rolle; Type: TABLE; Schema: public; Owner: citizix_user
 --
 
 CREATE TABLE public.tbl_rolle (
@@ -141,10 +141,10 @@ CREATE TABLE public.tbl_rolle (
 );
 
 
-ALTER TABLE public.tbl_rolle OWNER TO ubuntu;
+ALTER TABLE public.tbl_rolle OWNER TO citizix_user;
 
 --
--- Name: tbl_rolle_role_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_rolle_role_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_rolle_role_id_seq
@@ -156,17 +156,17 @@ CREATE SEQUENCE public.tbl_rolle_role_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_rolle_role_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_rolle_role_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_rolle_role_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_rolle_role_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_rolle_role_id_seq OWNED BY public.tbl_rolle.role_id;
 
 
 --
--- Name: tbl_user; Type: TABLE; Schema: public; Owner: ubuntu
+-- Name: tbl_user; Type: TABLE; Schema: public; Owner: citizix_user
 --
 
 CREATE TABLE public.tbl_user (
@@ -179,10 +179,10 @@ CREATE TABLE public.tbl_user (
 );
 
 
-ALTER TABLE public.tbl_user OWNER TO ubuntu;
+ALTER TABLE public.tbl_user OWNER TO citizix_user;
 
 --
--- Name: tbl_user_details; Type: TABLE; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details; Type: TABLE; Schema: public; Owner: citizix_user
 --
 
 CREATE TABLE public.tbl_user_details (
@@ -205,10 +205,10 @@ CREATE TABLE public.tbl_user_details (
 );
 
 
-ALTER TABLE public.tbl_user_details OWNER TO ubuntu;
+ALTER TABLE public.tbl_user_details OWNER TO citizix_user;
 
 --
--- Name: tbl_user_details_Inskription_end_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Inskription_end_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public."tbl_user_details_Inskription_end_seq"
@@ -220,17 +220,17 @@ CREATE SEQUENCE public."tbl_user_details_Inskription_end_seq"
     CACHE 1;
 
 
-ALTER SEQUENCE public."tbl_user_details_Inskription_end_seq" OWNER TO ubuntu;
+ALTER SEQUENCE public."tbl_user_details_Inskription_end_seq" OWNER TO citizix_user;
 
 --
--- Name: tbl_user_details_Inskription_end_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Inskription_end_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public."tbl_user_details_Inskription_end_seq" OWNED BY public.tbl_user_details."Inskription_end";
 
 
 --
--- Name: tbl_user_details_Matrikelnummer_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Matrikelnummer_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public."tbl_user_details_Matrikelnummer_seq"
@@ -242,17 +242,17 @@ CREATE SEQUENCE public."tbl_user_details_Matrikelnummer_seq"
     CACHE 1;
 
 
-ALTER SEQUENCE public."tbl_user_details_Matrikelnummer_seq" OWNER TO ubuntu;
+ALTER SEQUENCE public."tbl_user_details_Matrikelnummer_seq" OWNER TO citizix_user;
 
 --
--- Name: tbl_user_details_Matrikelnummer_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Matrikelnummer_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public."tbl_user_details_Matrikelnummer_seq" OWNED BY public.tbl_user_details."Matrikelnummer";
 
 
 --
--- Name: tbl_user_details_Plz_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Plz_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public."tbl_user_details_Plz_seq"
@@ -264,17 +264,17 @@ CREATE SEQUENCE public."tbl_user_details_Plz_seq"
     CACHE 1;
 
 
-ALTER SEQUENCE public."tbl_user_details_Plz_seq" OWNER TO ubuntu;
+ALTER SEQUENCE public."tbl_user_details_Plz_seq" OWNER TO citizix_user;
 
 --
--- Name: tbl_user_details_Plz_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_Plz_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public."tbl_user_details_Plz_seq" OWNED BY public.tbl_user_details."Plz";
 
 
 --
--- Name: tbl_user_details_user_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_user_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_user_details_user_id_seq
@@ -286,17 +286,17 @@ CREATE SEQUENCE public.tbl_user_details_user_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_user_details_user_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_user_details_user_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_user_details_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_user_details_user_id_seq OWNED BY public.tbl_user_details.user_id;
 
 
 --
--- Name: tbl_user_role_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_user_role_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_user_role_id_seq
@@ -308,17 +308,17 @@ CREATE SEQUENCE public.tbl_user_role_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_user_role_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_user_role_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_user_role_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_user_role_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_user_role_id_seq OWNED BY public.tbl_user.role_id;
 
 
 --
--- Name: tbl_user_user_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_user_user_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_user_user_id_seq
@@ -329,17 +329,17 @@ CREATE SEQUENCE public.tbl_user_user_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_user_user_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_user_user_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_user_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_user_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_user_user_id_seq OWNED BY public.tbl_user.user_id;
 
 
 --
--- Name: tbl_zimmer; Type: TABLE; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer; Type: TABLE; Schema: public; Owner: citizix_user
 --
 
 CREATE TABLE public.tbl_zimmer (
@@ -350,10 +350,10 @@ CREATE TABLE public.tbl_zimmer (
 );
 
 
-ALTER TABLE public.tbl_zimmer OWNER TO ubuntu;
+ALTER TABLE public.tbl_zimmer OWNER TO citizix_user;
 
 --
--- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_zimmer_state_id_seq
@@ -365,17 +365,17 @@ CREATE SEQUENCE public.tbl_zimmer_state_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_zimmer_state_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_zimmer_state_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_state_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_zimmer_state_id_seq OWNED BY public.tbl_zimmer.state_id;
 
 
 --
--- Name: tbl_zimmer_user_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_user_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_zimmer_user_id_seq
@@ -386,17 +386,17 @@ CREATE SEQUENCE public.tbl_zimmer_user_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_zimmer_user_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_zimmer_user_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_zimmer_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_zimmer_user_id_seq OWNED BY public.tbl_zimmer.user_id;
 
 
 --
--- Name: tbl_zimmer_zimmer_id_seq; Type: SEQUENCE; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_zimmer_id_seq; Type: SEQUENCE; Schema: public; Owner: citizix_user
 --
 
 CREATE SEQUENCE public.tbl_zimmer_zimmer_id_seq
@@ -407,108 +407,108 @@ CREATE SEQUENCE public.tbl_zimmer_zimmer_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.tbl_zimmer_zimmer_id_seq OWNER TO ubuntu;
+ALTER SEQUENCE public.tbl_zimmer_zimmer_id_seq OWNER TO citizix_user;
 
 --
--- Name: tbl_zimmer_zimmer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer_zimmer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: citizix_user
 --
 
 ALTER SEQUENCE public.tbl_zimmer_zimmer_id_seq OWNED BY public.tbl_zimmer.zimmer_id;
 
 
 --
--- Name: tbl_booking_state state_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_booking_state state_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_booking_state ALTER COLUMN state_id SET DEFAULT nextval('public.tbl_booking_state_state_id_seq'::regclass);
 
 
 --
--- Name: tbl_buchung buchung_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung buchung_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_buchung ALTER COLUMN buchung_id SET DEFAULT nextval('public.tbl_buchung_buchung_id_seq'::regclass);
 
 
 --
--- Name: tbl_buchung user_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung user_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_buchung ALTER COLUMN user_id SET DEFAULT nextval('public.tbl_buchung_user_id_seq'::regclass);
 
 
 --
--- Name: tbl_buchung zimmer_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung zimmer_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_buchung ALTER COLUMN zimmer_id SET DEFAULT nextval('public.tbl_buchung_zimmer_id_seq'::regclass);
 
 
 --
--- Name: tbl_rolle role_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_rolle role_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_rolle ALTER COLUMN role_id SET DEFAULT nextval('public.tbl_rolle_role_id_seq'::regclass);
 
 
 --
--- Name: tbl_user user_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_user user_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user ALTER COLUMN user_id SET DEFAULT nextval('public.tbl_user_user_id_seq'::regclass);
 
 
 --
--- Name: tbl_user role_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_user role_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user ALTER COLUMN role_id SET DEFAULT nextval('public.tbl_user_role_id_seq'::regclass);
 
 
 --
--- Name: tbl_user_details user_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details user_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user_details ALTER COLUMN user_id SET DEFAULT nextval('public.tbl_user_details_user_id_seq'::regclass);
 
 
 --
--- Name: tbl_user_details Matrikelnummer; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details Matrikelnummer; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user_details ALTER COLUMN "Matrikelnummer" SET DEFAULT nextval('public."tbl_user_details_Matrikelnummer_seq"'::regclass);
 
 
 --
--- Name: tbl_user_details Inskription_end; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details Inskription_end; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user_details ALTER COLUMN "Inskription_end" SET DEFAULT nextval('public."tbl_user_details_Inskription_end_seq"'::regclass);
 
 
 --
--- Name: tbl_user_details Plz; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details Plz; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user_details ALTER COLUMN "Plz" SET DEFAULT nextval('public."tbl_user_details_Plz_seq"'::regclass);
 
 
 --
--- Name: tbl_zimmer zimmer_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer zimmer_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_zimmer ALTER COLUMN zimmer_id SET DEFAULT nextval('public.tbl_zimmer_zimmer_id_seq'::regclass);
 
 
 --
--- Name: tbl_zimmer user_id; Type: DEFAULT; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer user_id; Type: DEFAULT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_zimmer ALTER COLUMN user_id SET DEFAULT nextval('public.tbl_zimmer_user_id_seq'::regclass);
 
 
 --
--- Data for Name: tbl_booking_state; Type: TABLE DATA; Schema: public; Owner: ubuntu
+-- Data for Name: tbl_booking_state; Type: TABLE DATA; Schema: public; Owner: citizix_user
 --
 
 COPY public.tbl_booking_state (state_id, state_name) FROM stdin;
@@ -521,7 +521,7 @@ COPY public.tbl_booking_state (state_id, state_name) FROM stdin;
 
 
 --
--- Data for Name: tbl_rolle; Type: TABLE DATA; Schema: public; Owner: ubuntu
+-- Data for Name: tbl_rolle; Type: TABLE DATA; Schema: public; Owner: citizix_user
 --
 
 COPY public.tbl_rolle (role_id, role_name) FROM stdin;
@@ -532,21 +532,21 @@ COPY public.tbl_rolle (role_id, role_name) FROM stdin;
 
 
 --
--- Name: tbl_booking_state_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_booking_state_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_booking_state_state_id_seq', 1, false);
 
 
 --
--- Name: tbl_rolle_role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ubuntu
+-- Name: tbl_rolle_role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: citizix_user
 --
 
 SELECT pg_catalog.setval('public.tbl_rolle_role_id_seq', 1, false);
 
 
 --
--- Name: tbl_booking_state tbl_booking_state_pkey; Type: CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_booking_state tbl_booking_state_pkey; Type: CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_booking_state
@@ -554,7 +554,7 @@ ALTER TABLE ONLY public.tbl_booking_state
 
 
 --
--- Name: tbl_buchung tbl_buchung_pkey; Type: CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung tbl_buchung_pkey; Type: CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_buchung
@@ -562,7 +562,7 @@ ALTER TABLE ONLY public.tbl_buchung
 
 
 --
--- Name: tbl_rolle tbl_rolle_pkey; Type: CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_rolle tbl_rolle_pkey; Type: CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_rolle
@@ -570,7 +570,7 @@ ALTER TABLE ONLY public.tbl_rolle
 
 
 --
--- Name: tbl_user_details tbl_user_details_pkey; Type: CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_user_details tbl_user_details_pkey; Type: CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user_details
@@ -578,7 +578,7 @@ ALTER TABLE ONLY public.tbl_user_details
 
 
 --
--- Name: tbl_zimmer tbl_zimmer_pkey; Type: CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer tbl_zimmer_pkey; Type: CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_zimmer
@@ -586,7 +586,7 @@ ALTER TABLE ONLY public.tbl_zimmer
 
 
 --
--- Name: tbl_buchung fk_buchung_userid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung fk_buchung_userid; Type: FK CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_buchung
@@ -594,7 +594,7 @@ ALTER TABLE ONLY public.tbl_buchung
 
 
 --
--- Name: tbl_buchung fk_buchung_zimmerid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_buchung fk_buchung_zimmerid; Type: FK CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_buchung
@@ -602,7 +602,7 @@ ALTER TABLE ONLY public.tbl_buchung
 
 
 --
--- Name: tbl_user fk_rolle_roleid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_user fk_rolle_roleid; Type: FK CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user
@@ -610,7 +610,7 @@ ALTER TABLE ONLY public.tbl_user
 
 
 --
--- Name: tbl_user fk_user_userid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_user fk_user_userid; Type: FK CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_user
@@ -618,7 +618,7 @@ ALTER TABLE ONLY public.tbl_user
 
 
 --
--- Name: tbl_zimmer fk_zimmer_stateid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer fk_zimmer_stateid; Type: FK CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_zimmer
@@ -626,7 +626,7 @@ ALTER TABLE ONLY public.tbl_zimmer
 
 
 --
--- Name: tbl_zimmer fk_zimmer_userid; Type: FK CONSTRAINT; Schema: public; Owner: ubuntu
+-- Name: tbl_zimmer fk_zimmer_userid; Type: FK CONSTRAINT; Schema: public; Owner: citizix_user
 --
 
 ALTER TABLE ONLY public.tbl_zimmer
