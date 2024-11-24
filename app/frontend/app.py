@@ -1,22 +1,8 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
 import requests
 from factory import create_app, create_db_connection, debug_request
 from flask import jsonify, redirect, render_template, request, url_for
 from geopy.distance import geodesic  # Für Radius-Berechnung
 
-# PostgreSQL-Datenbankverbindung
-DATABASE_CONFIG = {
-    'dbname':   os.environ.get('DB_SID', ''),
-    'user':     os.environ.get('DB_USERNAME', ''),
-    'password': os.environ.get('DB_PASSWORD', ''),
-    'host':     os.environ.get('DB_HOSTNAME', ''),
-    'port':     os.environ.get('DB_PORT', '5432')
-}
-
-def get_db_connection():
-    """Erstellt eine Verbindung zur PostgreSQL-Datenbank."""
-    return psycopg2.connect(**DATABASE_CONFIG)
 app = create_app("frontend")
 
 # Städte-Koordinaten

@@ -1,4 +1,3 @@
-from connect import connect_to_db
 from datetime import datetime, timedelta
 
 from factory import create_app, create_db_connection, debug_request

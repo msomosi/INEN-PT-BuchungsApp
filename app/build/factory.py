@@ -1,6 +1,7 @@
 import logging, os
 from logging.config import dictConfig
 
+import psycopg2
 from flask import Flask, session
 from flask.logging import default_handler
 from flask_cors import CORS
@@ -26,6 +27,14 @@ dictConfig(
     }
 )
 
+db_config = {
+  'dbname':   os.environ.get('DB_SID', ''),
+  'user':     os.environ.get('DB_USERNAME', ''),
+  'password': os.environ.get('DB_PASSWORD', ''),
+  'host':     os.environ.get('DB_HOSTNAME', ''),
+  'port':     os.environ.get('DB_PORT', '5432')
+}
+
 logger = logging.getLogger("root")
 
 def create_app(app_name):
@@ -36,6 +45,18 @@ def create_app(app_name):
     app.secret_key = os.getenv('SESSION_KEY', default='BAD_SECRET_KEY')
     logger.info("Start " + app_name)
     return app
+
+def create_db_connection():
+    logger.debug("Db Config: " + str(db_config))
+
+    try:
+        db_connection = psycopg2.connect(**db_config)
+        logger.info(f"Verbindung zur Datenbank {db_config['dbname']} erstellt")
+        logger.debug(db_connection)
+        return db_connection
+    except Exception as err:
+        logger.error(f"Fehler bei der Verbindung zur Datenbank {db_config['dbname']}: {err}")
+        raise
 
 def debug_request(request):
     logger.info(request)
