@@ -1,10 +1,11 @@
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 labels:
   - includeSelectors: true
     pairs:
-      app.kubernetes.io/name : localstack
+      app.kubernetes.io/name: localstack
       app.kubernetes.io/component: localstack
       app.kubernetes.io/version: localstack-0.6.16
 
@@ -13,5 +14,5 @@ resources:
   - roles.yaml
   - service.yaml
   - serviceaccount.yaml
-  - tool-pods.yaml
+  #- tool-pods.yaml
   - pvc.yaml

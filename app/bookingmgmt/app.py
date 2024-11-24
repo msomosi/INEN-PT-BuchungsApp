@@ -1,15 +1,13 @@
-#!/usr/bin/env python3
-
-from flask import Flask, request, session, render_template_string, redirect, url_for
-from connect import connect_to_db
 from datetime import datetime, timedelta
 
+from factory import create_app, create_db_connection, debug_request
+from flask import redirect, render_template_string, request, url_for
 
-app = Flask(__name__)
-
+app = create_app("bookingmgmt")
 
 @app.route('/book', methods=['POST'])
 def book_rooms():
+    debug_request(request)
 
     # id vom studenten nach login
     user_id = 3
@@ -19,7 +17,7 @@ def book_rooms():
     if not selected_rooms:
         return "<h1>Fehler: Keine Zimmer ausgewählt</h1>", 400
 
-    conn_room = connect_to_db("bpf")
+    conn_room = create_db_connection()
     if not conn_room:
         return "<h1>Fehler: Verbindung zur Datenbank fehlgeschlagen</h1>", 500
 
@@ -54,6 +52,7 @@ def book_rooms():
 
 @app.route('/', methods=['GET', 'POST'])
 def filter_rooms():
+    debug_request(request)
 
     # Studenten ID Übergabe durch Login
     student_user_id = 3
@@ -68,7 +67,7 @@ def filter_rooms():
     }
     filtered_data = []
 
-    conn_room = connect_to_db("bpf")
+    conn_room = create_db_connection()
     if not conn_room:
         return "<h1>Fehler: Verbindung zur Zimmer-Datenbank fehlgeschlagen</h1>", 500
 
@@ -254,9 +253,5 @@ def filter_rooms():
     """
     return render_template_string(html_template, filters=filters, filtered_data=filtered_data)
 
-
-
-# Flask unter CGI ausführen
 if __name__ == '__main__':
-    from wsgiref.handlers import CGIHandler
-    CGIHandler().run(app)
+    app.run(debug=True, port=80)

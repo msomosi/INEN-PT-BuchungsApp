@@ -5,9 +5,6 @@ kind: Kustomization
 resources:
   - buchungsmanagement/
   - config/
-  - envoy/gateway.yaml
-  - envoy/gatewayclass.yaml
   - frontend/
   - login/
-  - namespace.yaml
   - zimmerverwaltung/

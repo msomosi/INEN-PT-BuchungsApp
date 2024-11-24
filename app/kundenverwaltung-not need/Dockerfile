@@ -7,5 +7,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-#CMD ["python", "app.py"]
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:80", "app:app"]

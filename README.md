@@ -5,8 +5,17 @@
 https://mcce-apeni.mathiasrangger.at/home
 
 ## Build images
-cd app
-./build.sh
+./bin/build_local.sh
+
+
+## Run app in docker-compose
+
+### Install docker
+https://docs.docker.com/engine/install/ubuntu/
+
+### Start app
+./bin/run_local.sh
+
 
 
 ## Run app in minikube
@@ -23,7 +32,7 @@ https://kubernetes.io/docs/tasks/tools/
 
 
 ### Start app
-cd terraform/env/minikube
-terraform init
-terraform plan
+cd terraform/env/minikube\
+terraform init\
+terraform plan\
 terraform apply -auto-approve

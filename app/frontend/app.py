@@ -1,20 +1,12 @@
-from flask import Flask, redirect, url_for, render_template, session, request
-from werkzeug.middleware.proxy_fix import ProxyFix
-import logging
-import os
 import requests
+from factory import create_app, create_db_connection, debug_request
+from flask import redirect, render_template, request, session
 
-app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-app.logger.setLevel(logging.DEBUG)
-app.logger.debug("Start frontend")
-
-app.secret_key = '12345678910111213141516'  # Replace with a strong random value
+app = create_app("frontend")
 
 @app.route('/home')
 def home():
-    app.logger.debug("Route: " + request.path)
-    app.logger.info(session)
+    debug_request(request)
 
     if 'google_token' in session:
         return render_template('home.html', user=session['user'])
@@ -23,17 +15,18 @@ def home():
 
 @app.route('/login/<user_type>')
 def login():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     return
+
 
 @app.route('/rent')
 def new_booking():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     return render_template('rent.html')
 
 @app.route('/rent', methods=['POST'])
 def create_booking():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
 
     room = request.form['room']
     start_date = request.form['start_date']
@@ -42,39 +35,60 @@ def create_booking():
 
     # Erstellen des Buchungsobjekts
     buchung = {
-        'user': session['email'],
+        'user': session.get('email', 'guest'),
         'room': room,
         'start_date': start_date,
         'end_date': end_date,
         'days': days
     }
 
-    app.logger.info("Buchung erstellt: " + buchung['user'] + ", Zimmer: " + buchung['room'])
+    app.logger.info(f"Buchung erstellt: {buchung['user']}, Zimmer: {buchung['room']}")
     app.logger.debug(buchung)
 
     try:
-        response = requests.post(request.url_root + 'booking', json=buchung)
+        response_host = 'http://buchungsmanagement/' if request.host == 'localhost' else request.url_root
+        app.logger.debug(response_host + 'booking')
+        response = requests.post(response_host + 'booking', json=buchung)
         app.logger.debug(response)
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
     except Exception as err:
-        app.logger.error("Fehler beim Speichern der Buchung: " + str(err))
+        app.logger.error(f"Fehler beim Speichern der Buchung: {err}")
         return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(err)), 500
 
     return render_template('bestaetigung.html', buchung=buchung)
 
 @app.route('/room-management')
 def get_rooms():
-    app.logger.debug("Route: " + request.path)
+    debug_request(request)
     try:
-        response = requests.get(request.url_root + 'room')
+        response_host = 'http://zimmerverwaltung/' if request.host == 'localhost' else request.url_root
+        app.logger.debug(response_host + 'room')
+        response = requests.get(response_host + 'room')
         app.logger.debug(response)
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
         data = response.json()
     except Exception as err:
-        app.logger.error("Fehler beim Laden der Buchungen: " + str(err))
-        data=[]
+        app.logger.error(f"Fehler beim Laden der Buchungen: {err}")
+        data = []
 
     return render_template('room-management.html', buchungen=data)
+
+@app.route('/user-details/<id>')
+def user_details(id = "1"):
+    debug_request(request)
+    try:
+        path = "user/" + id
+        response_host = 'http://login/' if request.host == 'localhost' else request.url_root
+        app.logger.debug(response_host + path)
+        response = requests.get(response_host + path)
+        app.logger.debug(response)
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
+        data = response.json()
+    except Exception as err:
+        app.logger.error(f"Fehler beim Laden der Buchungen: {err}")
+        data = []
+
+    return render_template('user-details.html', user=data)
 
 if __name__ == '__main__':
     app.run(debug=True, port=80)

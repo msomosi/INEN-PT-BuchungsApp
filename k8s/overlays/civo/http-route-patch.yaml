@@ -1,0 +1,5 @@
+---
+- op: replace
+  path: /spec/parentRefs/0
+  value:
+    name: booking-app-gateway

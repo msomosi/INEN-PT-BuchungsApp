@@ -2,145 +2,53 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buchungsmanagement-System</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-image: url('https://www.fh-burgenland.at/fileadmin/_processed_/6/5/csm_Energieumwelt_Campus_06_4e3cb0982e.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        .container {
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 50px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            width: 100%;
-            position: relative;
-        }
-        .logo {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 150px;
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        p {
-            color: #666;
-            text-align: center;
-        }
-        a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        h2 {
-            color: #333;
-            margin-top: 30px;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            background-color: #f9f9f9;
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        label {
-            margin: 10px 0 5px;
-            font-weight: bold;
-        }
-        input[type="text"],
-        input[type="date"],
-        input[type="number"],
-        button {
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 100%;
-        }
-        input[readonly] {
-            background-color: #e9e9e9;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
-        .warning {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
-    <script>
-        function calculateDays() {
-            const startDate = new Date(document.getElementById('start_date').value);
-            const endDate = new Date(document.getElementById('end_date').value);
-            const warningElement = document.getElementById('warning');
-            const button = document.getElementById('submit_button');
- 
-            if (endDate <= startDate) {
-                warningElement.textContent = "Enddatum muss nach dem Startdatum liegen!";
-                document.getElementById('days').value = '';
-                button.disabled = true;
-            } else {
-                warningElement.textContent = '';
-                const timeDiff = endDate - startDate;
-                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                document.getElementById('days').value = daysDiff;
-                button.disabled = false;
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="static/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" defer></script>
+    <script src="static/rent.js" defer></script>
 </head>
 <body>
+    <div class="logo-container">
+        <img src="https://hochschule-burgenland.at/typo3conf/ext/website_template/Resources/Public/Images/Logos/Bgld_FH_Logo_RGB.jpg" alt="Logo">
+    </div>
+
     <div class="container">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/FHBurgenland-logo.png" alt="FH Burgenland Logo" class="logo">
-        <h1>Raum buchen</h1>
-        <form action="/rent" method="post">
-            <label for="room">Raum:</label>
-            <input type="text" id="room" name="room" required>
-         
-            <label for="start_date">Startdatum:</label>
-            <input type="date" id="start_date" name="start_date" required onchange="calculateDays()">
-         
-            <label for="end_date">Enddatum:</label>
-            <input type="date" id="end_date" name="end_date" required onchange="calculateDays()">
-         
-            <label for="days">Anzahl der Nächte:</label>
-            <input type="number" id="days" name="days" readonly>
-         
-            <div id="warning" class="warning"></div>
-         
-            <button type="submit" id="submit_button">Buchen</button>
-        </form>
+        <!-- Anbieter-Suche -->
+        <div class="form-section">
+            <h1>Starten Sie Ihre Buchung</h1>
+            <form id="search-form">
+                <label for="location">Ort:</label>
+                <input type="text" id="location" name="location" placeholder="Ort eingeben (optional)">
+
+                <label for="radius">Radius (in km):</label>
+                <input type="number" id="radius" name="radius" value="10" min="1">
+
+                <label for="start_date">Startdatum:</label>
+                <input type="date" id="start_date" name="start_date" required onchange="validateSearch()">
+
+                <label for="end_date">Enddatum:</label>
+                <input type="date" id="end_date" name="end_date" required onchange="validateSearch()">
+
+                <label for="days">Anzahl der Nächte:</label>
+                <input type="number" id="days" name="days" readonly>
+
+                <button type="button" id="search-btn" onclick="searchProviders()">Unterkunft finden</button>
+            </form>
+        </div>
+
+        <!-- Ergebnisse -->
+        <div id="results-section" style="display: none;">
+            <h2>Verfügbare Unterkunft:</h2>
+            <ul id="provider-list"></ul>
+            <button id="book-btn" onclick="bookRoom()">Buchen</button>
+        </div>
+
+        <!-- Karte -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
     </div>
 </body>
 </html>

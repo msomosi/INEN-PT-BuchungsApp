@@ -1,8 +1,0 @@
----
-- op: replace
-  path: /spec/listeners/0
-  value:
-    name: http
-    protocol: HTTP
-    #    hostname: "mcce-apeni.mathiasrangger.at"
-    port: 80

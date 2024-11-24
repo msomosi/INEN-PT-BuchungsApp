@@ -6,3 +6,8 @@ resources:
   - oauth-configmap.yaml
   - s3-configmap.yaml
   - s3-secret.yaml
+
+secretGenerator:
+  - name: session-secret
+    literals:
+      - SESSION_KEY=12345678910111213141516

@@ -16,6 +16,11 @@ spec:
       - name: login
         image: login
         env:
+        - name: SESSION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: session-secret
+              key: SESSION_KEY
         - name: OAUTH_CLIENT_ID
           valueFrom:
             configMapKeyRef:

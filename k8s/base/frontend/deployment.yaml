@@ -17,3 +17,9 @@ spec:
         image: frontend
         ports:
         - containerPort: 80
+        env:
+        - name: SESSION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: session-secret
+              key: SESSION_KEY

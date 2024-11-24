@@ -1,21 +1,17 @@
 ---
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: booking-app
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-spec:
-  project: default
-  sources:
-    - repoURL: https://github.com/msomosi/INEN-PT-BuchungsApp.git
-      path: k8s/overlays/civo
-      targetRevision: mathias
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: booking-app
-  syncPolicy:
-    syncOptions:
-      - ApplyOutOfSyncOnly=true
-      - CreateNamespace=true
+applications:
+  booking-app:
+    namespace: argocd
+    project: default
+    sources:
+      - repoURL: ${repository}
+        path: ${path}
+        targetRevision: ${revision}
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: booking-app
+    syncPolicy:
+      automated: {}
+      syncOptions:
+        - ApplyOutOfSyncOnly=true
+        - CreateNamespace=true
