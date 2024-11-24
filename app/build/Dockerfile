@@ -1,5 +1,6 @@
-FROM python:3.8-slim
+FROM python:3-slim AS base
 
+ARG module
 WORKDIR /app
 
 # Systempakete für psycopg2 installieren
@@ -8,10 +9,12 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt requirements.txt
+RUN pip install --upgrade pip
+
+COPY build/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
 
-#CMD ["python", "app.py"]
+FROM base
+COPY ${module}/* ./
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:80", "app:app"]
