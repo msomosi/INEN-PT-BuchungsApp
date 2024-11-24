@@ -29,7 +29,10 @@ services:
       - "8081:80"
     environment:
       - SESSION_KEY=12345678910111213141516
-
+      - DB_HOSTNAME=db
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
   buchungsmanagement:
     image: apeni/buchungsmanagement
     build:

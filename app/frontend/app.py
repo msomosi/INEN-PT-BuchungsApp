@@ -73,7 +73,22 @@ def get_rooms():
 
     return render_template('room-management.html', buchungen=data)
 
+@app.route('/user-details/<id>')
+def user_details(id = "1"):
+    debug_request(request)
+    try:
+        path = "user/" + id
+        response_host = 'http://login/' if request.host == 'localhost' else request.url_root
+        app.logger.debug(response_host + path)
+        response = requests.get(response_host + path)
+        app.logger.debug(response)
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
+        data = response.json()
+    except Exception as err:
+        app.logger.error(f"Fehler beim Laden der Buchungen: {err}")
+        data = []
 
+    return render_template('user-details.html', user=data)
 
 if __name__ == '__main__':
     app.run(debug=True, port=80)

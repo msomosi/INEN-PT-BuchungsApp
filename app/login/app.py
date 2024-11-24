@@ -2,7 +2,7 @@ import os
 
 from authlib.integrations.flask_client import OAuth
 from factory import create_app, create_db_connection, debug_request
-from flask import redirect, request, session, url_for
+from flask import jsonify, redirect, request, session, url_for
 
 app = create_app("login")
 
@@ -99,6 +99,41 @@ def logout():
         app.logger.debug(session)
 
     return redirect("/home")
+
+@app.route('/user/<id>')
+def user(id):
+    db = create_db_connection()
+    try:
+        with db.cursor() as cur:
+            query = """
+                SELECT *
+                FROM tbl_user_details u
+                WHERE u.user_id = %s;
+            """
+            cur.execute(query, (id))
+            user_details = cur.fetchone()
+            if not user_details:
+                msg = f"User nicht gefunden: " + str(id)
+                app.logger.error(msg)
+                return jsonify({'error': msg}), 404
+                # Status Code 404 – Ressource nicht gefunden: Die angeforderte Seite oder Ressource kann nicht gefunden werden.
+
+            app.logger.debug(user_details)
+
+            columns = [column[0] for column in cur.description]
+            app.logger.debug(columns)
+
+            sanitize = lambda s: s.strip() if isinstance(s, str) else s
+            data = dict(zip(columns, map( sanitize, user_details)))
+            app.logger.debug(data)
+
+            return jsonify(data)
+    except Exception as err:
+        msg = f"Datenbankabfrage fehlgeschlagen: " + str(err)
+        app.logger.error(msg)
+        return jsonify({'error': msg}), 500
+    finally:
+        db.close()
 
 if __name__ == '__main__':
     app.run(debug=True, port=80)
