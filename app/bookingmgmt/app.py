@@ -7,6 +7,8 @@ app = create_app("bookingmgmt")
 
 @app.route('/book', methods=['POST'])
 def book_rooms():
+    debug_request(request)
+
     # id vom studenten nach login
     user_id = 3
 
@@ -50,6 +52,7 @@ def book_rooms():
 
 @app.route('/', methods=['GET', 'POST'])
 def filter_rooms():
+    debug_request(request)
 
     # Studenten ID Übergabe durch Login
     student_user_id = 3

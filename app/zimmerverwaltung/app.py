@@ -60,6 +60,8 @@ def get_room():
 
 @app.route('/search-providers', methods=['GET'])
 def search_providers():
+    debug_request(request)
+
     user_location = request.args.get('location', '').strip().lower()
     radius = float(request.args.get('radius', 10))  # Standardradius 10 km
     start_date = request.args.get('start_date', None)

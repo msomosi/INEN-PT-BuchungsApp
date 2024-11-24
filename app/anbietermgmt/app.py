@@ -7,7 +7,9 @@ app = create_app("anbietermgmt")
 
 @app.route('/user_details')
 def user_details():
+    debug_request(request)
     zimmer_id = request.args.get('zimmer_id')
+    app.logger.debug(zimmer_id)
 
     if not zimmer_id :
         return "<h1>Fehler: Ungültige Parameter</h1>", 400
@@ -39,7 +41,7 @@ def user_details():
                 "date": user_details[5],
             }
     except Exception as e:
-        print(f"Fehler bei der Abfrage: {e}")
+        app.logger.error(f"Fehler bei der Abfrage: {e}")
         return "<h1>Fehler: Datenbankabfrage fehlgeschlagen</h1>", 500
     finally:
         conn_room.close()
@@ -69,6 +71,8 @@ def user_details():
 
 @app.route('/add_room', methods=['GET', 'POST'])
 def add_room():
+    debug_request(request)
+
     if request.method == 'POST':
 
         user_id = "1"
@@ -141,6 +145,7 @@ def add_room():
 
 @app.route('/')
 def show_table():
+    debug_request(request)
 
     # hier kommt die session hin mit der eingeloggen user id
     user_id = "1"

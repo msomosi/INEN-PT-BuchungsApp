@@ -102,6 +102,8 @@ def logout():
 
 @app.route('/user/<id>')
 def user(id):
+    debug_request(request)
+
     db = create_db_connection()
     try:
         with db.cursor() as cur:
