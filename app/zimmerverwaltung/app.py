@@ -1,20 +1,12 @@
-from flask import Flask, jsonify, request, session
-from flask_cors import CORS
-from werkzeug.middleware.proxy_fix import ProxyFix
+import json
+import os
 
 import boto3
 from botocore.exceptions import NoCredentialsError
-import json
-import os
-import logging
+from factory import create_app, create_db_connection, debug_request
+from flask import jsonify, request
 
-app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-app.secret_key = os.getenv('SESSION_KEY', default='BAD_SECRET_KEY')
-CORS(app)
-
-app.logger.setLevel(logging.DEBUG)
-app.logger.debug("Start zimmerverwaltung")
+app = create_app("zimmerverwaltung")
 
 # S3 Configuration
 bucket_name = 'zimmer'

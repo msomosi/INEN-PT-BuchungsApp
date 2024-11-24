@@ -1,19 +1,9 @@
-from flask import Flask, redirect, url_for, render_template, session, request, jsonify
-from geopy.distance import geodesic  # Für Radius-Berechnung
-from werkzeug.middleware.proxy_fix import ProxyFix
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import logging
-import os
 import requests
-
-app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-app.secret_key = os.getenv('SESSION_KEY', default='BAD_SECRET_KEY')
-
-app.logger.setLevel(logging.DEBUG)
-app.logger.debug("Start frontend")
-
+from factory import create_app, create_db_connection, debug_request
+from flask import jsonify, redirect, render_template, request, url_for
+from geopy.distance import geodesic  # Für Radius-Berechnung
 
 # PostgreSQL-Datenbankverbindung
 DATABASE_CONFIG = {
@@ -27,10 +17,7 @@ DATABASE_CONFIG = {
 def get_db_connection():
     """Erstellt eine Verbindung zur PostgreSQL-Datenbank."""
     return psycopg2.connect(**DATABASE_CONFIG)
-
-def debug_request(request):
-    app.logger.info(request)
-    app.logger.debug(session)
+app = create_app("frontend")
 
 # Städte-Koordinaten
 cities = {

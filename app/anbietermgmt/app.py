@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-
-from flask import Flask, request, session, render_template_string, redirect, url_for
 from connect import connect_to_db
 from datetime import datetime, timedelta
 
-app = Flask(__name__)
+from factory import create_app, create_db_connection, debug_request
+from flask import redirect, render_template_string, request, url_for
+
+app = create_app("anbietermgmt")
 
 @app.route('/user_details')
 def user_details():
@@ -223,9 +223,6 @@ def show_table():
     """
     return render_template_string(html_template, data=data)
 
-# Flask unter CGI ausführen
+
 if __name__ == '__main__':
-    from wsgiref.handlers import CGIHandler
-    CGIHandler().run(app)
-
-
+    app.run(debug=True, port=80)

@@ -1,16 +1,13 @@
-#!/usr/bin/env python3
-
-from flask import Flask, request, session, render_template_string, redirect, url_for
 from connect import connect_to_db
 from datetime import datetime, timedelta
 
+from factory import create_app, create_db_connection, debug_request
+from flask import redirect, render_template_string, request, url_for
 
-app = Flask(__name__)
-
+app = create_app("bookingmgmt")
 
 @app.route('/book', methods=['POST'])
 def book_rooms():
-
     # id vom studenten nach login
     user_id = 3
 
@@ -254,9 +251,5 @@ def filter_rooms():
     """
     return render_template_string(html_template, filters=filters, filtered_data=filtered_data)
 
-
-
-# Flask unter CGI ausführen
 if __name__ == '__main__':
-    from wsgiref.handlers import CGIHandler
-    CGIHandler().run(app)
+    app.run(debug=True, port=80)
