@@ -33,6 +33,11 @@ repos:
     hooks:
       - id: biome-format
         additional_dependencies: ["@biomejs/biome@1.9.4"]
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (python)
   - repo: local
     hooks:
       # Run kustomize build on all overlays
