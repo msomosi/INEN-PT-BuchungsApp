@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: white;
+        }
+
+        .titel-box {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            margin: 0;
+            background-color: white;
+            border-radius: 5px;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .logo {
+            position: absolute;
+            left: 50px;
+            top: 55%;
+            transform: translateY(-50%);
+            width: 450px;
+            height: 450px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 40%;
+            transform: translateY(-50%);
+        }
+
+        .login-container-mitarbeiter {
+            background: white;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 70%;
+            transform: translateY(-50%);
+        }
+
+        .login-container-dummy {
+            background: white;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 70%;
+            left: 70%;
+            transform: translateY(-50%);
+        }
+
+        .login-container-anbieter {
+            background: white;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 40%;
+            left: 70%;
+            transform: translateY(-50%);
+        }
+
+        .all-users-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: auto; /* Automatisches Verschieben nach unten */
+            margin-bottom: 20px; /* Abstand vom unteren Rand */
+        }
+
+
+        h1 {
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .google-login {
+            margin-top: 20px;
+        }
+
+        .google-login-button {
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            background-color: #4285f4;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="titel-box">
+        <h1>Herzlich Wilkommen in der Buchungsmanagement App</h1>
+    </div>
+    <div class="logo">
+        <div id="root"></div>
+    </div>
+    <div class="login-container">
+        <h2>Studenten Login</h2>
+        <div class="google-login">
+            <a href="{{ url_for('login', user_type='student') }}" class="google-login-button">Login with Google</a>
+        </div>
+    </div>
+    <div class="login-container-mitarbeiter">
+        <h2>Mitarbeiter Login</h2>
+        <div class="google-login">
+            <a href="{{ url_for('login', user_type='employee') }}" class="google-login-button">Login with Google</a>
+        </div>
+    </div>
+    <div class="login-container-dummy">
+        <h2>Student Login</h2>
+        <div class="google-login">
+            <a href="{{ url_for('login')}}" class="google-login-button">Student Login</a>
+        </div>
+    </div>
+    <div class="login-container-anbieter">
+        <h2>Anbieter Login</h2>
+        <div class="google-login">
+            <a href="{{ url_for('login', user_type='anbieter') }}" class="google-login-button">Anbieter Login</a>
+        </div>
+    </div>
+    <div class="all-users-container">
+        <h2>Alle Benutzer</h2>
+        <button type="button" id="all-users-btn" onclick="loadAllUsers()">Alle Benutzer anzeigen</button>
+        <ul id="user-list" style="margin-top: 20px;"></ul>
+    </div>
+    
+    
+    <script>
+        function Logo() {
+            const img = document.createElement('img');
+            img.src = '{{ url_for('static', filename='logo.png') }}'; // Path to the logo image
+            img.className = 'logo';
+            return img;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const root = document.getElementById('root');
+            const header = Logo();
+            root.appendChild(header);
+        });
+
+        function handleCredentialResponse(response) {
+            console.log('Encoded JWT ID token: ' + response.credential);
+        }
+
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            document.head.appendChild(script);
+        })();
+
+        async function loadAllUsers() {
+            try {
+                const response = await fetch('/get-users'); // API-Endpoint abrufen
+                const users = await response.json();
+
+                const userList = document.getElementById('user-list');
+                userList.innerHTML = ''; // Vorherige Liste leeren
+
+                users.forEach(user => {
+                    const listItem = document.createElement('li');
+
+                    const button = document.createElement('button');
+                    button.textContent = `Login as ${user.name} (${user.role})`;
+                    button.style.margin = '5px';
+                    button.onclick = () => loginAsUser(user.user_id, user.username);
+
+                    listItem.appendChild(button);
+                    userList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden der Benutzer:', error);
+                alert('Es gab ein Problem beim Abrufen der Benutzer.');
+            }
+        }
+
+
+        async function loginAsUser(user_id, username) {
+            console.log(`Attempting login for user_id: ${user_id}, username: ${username}`);
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user_id, username: username, password: username }) // Passwort = Benutzername für Tests
+                });
+
+                const result = await response.json();
+                console.log(result);
+                if (result.error) {
+                    alert(`Login fehlgeschlagen: ${result.error}`);
+                } else {
+                    alert(`Erfolgreich als ${username} angemeldet!`);
+                    window.location.href = result.redirect; // Weiterleitung zur Startseite
+                }
+            } catch (error) {
+                console.error('Fehler beim Login:', error);
+                alert('Es gab ein Problem beim Login.');
+            }
+        }
+
+
+
+
+
+
+    </script>
+</body>
+</html>

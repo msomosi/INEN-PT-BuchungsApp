@@ -27,65 +27,64 @@ def authorize():
 
     try:
         token = oauth.google.authorize_access_token()
+        session['google_token'] = token
+        session['user'] = token.get('userinfo').get('name')
+        session['email'] = token.get('userinfo').get('email')
+
+        app.logger.debug(f"User logged in: {session['user']} ({session['email']})")
     except Exception as e:
         app.logger.error(f'Fehler bei der Autorisierung: {e}')
         return redirect('/home')
 
-    app.logger.debug(token)
+    # Weitere Logik hier, um Benutzer in die Datenbank zu schreiben
+    return redirect('/home')
 
-    session['google_token'] = token
-    session['user'] = token.get('userinfo').get('name')
-    app.logger.debug(session['user'])
 
-    session['email'] = token.get('userinfo').get('email')
-    app.logger.debug(session['email'])
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
 
-    if user:
-        app.logger.info("Login: " + session.get('user') + " " + session.get('email'))
-    else:
-        user = User(email=email, name=name, oauth_provider='google', is_verified=True)
-        db.session.add(user)
-        db.session.commit()
-        app.logger.info(f"Neuer Benutzer hinzugefügt: {user.name} ({user.email})")
+    app.logger.debug(f"Login-Anfrage erhalten: username={username}, password={password}")
 
-    session['user_id'] = user.id
+    try:
+        conn = create_db_connection()
+        cursor = conn.cursor()
 
-    # Weiterleitung basierend auf dem user_type
-    if session['user_type'] == 'student' or session['user_type'] == 'anbieter':
-        redirect_url = "/home"
-    else:
-        redirect_url = "/home"
+        # Prüfen, ob der Benutzer existiert
+        cursor.execute("""
+            SELECT u.user_id, r.role_name, u.username
+            FROM tbl_user u
+            JOIN tbl_rolle r ON u.role_id = r.role_id
+            WHERE u.username = %s AND u.password = %s
+        """, (username, password))
+        user = cursor.fetchone()
 
-    return redirect(redirect_url)
+        if user:
+            session.clear()
+            session['user_id'] = user[0]
+            session['user'] = user[2]
+            session['user_type'] = user[1]
 
-@app.route('/login/<user_type>')
-def login(user_type):
-    debug_request(request)
-    app.logger.debug("user_type: " + user_type)
+            app.logger.info(f"Benutzer erfolgreich angemeldet: {user[2]} mit Rolle {user[1]}")
 
-    # Dummy-Login für Tests
-    if user_type == 'student':
-        session.clear()
-        session['user_type'] = 'student'
-        session['user'] = 'John Doe'
-        session['email'] = 'john@doe.com'
-        session['google_token'] = 'john@doe.com'
-        return redirect("/home")
+            return jsonify({
+                'message': user[2],
+                'redirect': '/home'
+            })
+        else:
+            app.logger.warning(f"Ungültige Login-Daten: username={username}")
+            return jsonify({'error': "Ungültige Anmeldedaten"}), 401
+    except Exception as err:
+        app.logger.error(f"Fehler beim Login: {err}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
-    # Anbieter-Login ohne OAuth
-    if user_type == 'anbieter':
-        session.clear()
-        session['user_type'] = 'anbieter'
-        session['user'] = 'Anbieter ÖJAB'
-        session['email'] = 'anbieter@test.com'
-        return redirect("/home")
-
-    # Speichern des user_type in der Session
-    session['user_type'] = user_type
-
-    # Google OAuth Weiterleitung
-    redirect_uri = url_for('authorize', _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
 
 @app.route('/logout')
 def logout():

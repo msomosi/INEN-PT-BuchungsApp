@@ -30,16 +30,15 @@ def search_providers():
     end_date = request.args.get('end_date', None)
 
     if not start_date or not end_date:
-        msg = f"Start- und Enddatum sind erforderlich: " + str(err)
+        msg = "Start- und Enddatum sind erforderlich."
         app.logger.error(msg)
-        return jsonify({'error': msg}), 500
+        return jsonify({'error': msg}), 400
 
     start_year = int(start_date.split("-")[0])
 
     # Fallback auf FH Burgenland, falls keine valide Stadt angegeben ist
     center_location = cities.get(user_location, university_location)
 
-    # Verbinden mit der Datenbank
     results = []
     try:
         conn = create_db_connection()
@@ -52,6 +51,7 @@ def search_providers():
             FROM providers
         """)
         providers = cursor.fetchall()
+
         for provider in providers:
             provider_id, name, p_type, address, lon, lat, parking_available, parking_paid, always_booked_in = provider
 
@@ -78,7 +78,7 @@ def search_providers():
                     "distance": round(distance, 2),
                 })
     except Exception as err:
-        msg = f"Fehler bei der Datenbankabfrage: " + str(err)
+        msg = f"Fehler bei der Datenbankabfrage: {err}"
         app.logger.error(msg)
         return jsonify({'error': msg}), 500
     finally:
@@ -88,7 +88,6 @@ def search_providers():
             conn.close()
 
     return jsonify(results)
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)

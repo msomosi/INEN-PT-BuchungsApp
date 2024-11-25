@@ -3,164 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Login | Buchungsmanagement</title>
     <style>
         body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f9fc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            width: 80%;
+            max-width: 1200px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: white;
+        }
+
+        .left-section {
+            background-color: #e5f6fd;
+            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        .left-section img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .right-section {
+            flex: 1;
+            padding: 30px;
+            display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            margin: 0;
-            background-color: white;
+            justify-content: center;
+            align-items: center;
         }
 
-        .titel-box {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
-            margin: 0;
-            background-color: white;
-            border-radius: 5px;
-            width: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        .logo {
-            position: absolute;
-            left: 50px;
-            top: 55%;
-            transform: translateY(-50%);
-            width: 450px;
-            height: 450px;
-        }
-
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            top: 40%;
-            transform: translateY(-50%);
-        }
-
-        .login-container-mitarbeiter {
-            background: white;
-            padding: 40px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            top: 70%;
-            transform: translateY(-50%);
-        }
-
-        .login-container-dummy {
-            background: white;
-            padding: 40px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            top: 70%;
-            left: 70%;
-            transform: translateY(-50%);
-        }
-
-        .login-container-anbieter {
-            background: white;
-            padding: 40px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            top: 40%;
-            left: 70%;
-            transform: translateY(-50%);
-        }
-
-        h1 {
-            text-align: center;
-            margin-top: 80px;
-        }
-
-        h2 {
+        .right-section img {
+            width: 200px;
             margin-bottom: 20px;
         }
 
-        .google-login {
-            margin-top: 20px;
+        .right-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
         }
 
-        .google-login-button {
-            display: inline-block;
-            padding: 10px 20px;
-            color: white;
-            background-color: #4285f4;
+        .form-group {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 15px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: #017cbb;
+            outline: none;
+        }
+
+        .right-section button {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px;
+            font-size: 16px;
+            color: white;
+            background-color: #017cbb;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .right-section button:hover {
+            background-color: #015a88;
         }
     </style>
 </head>
 <body>
-    <div class="titel-box">
-        <h1>Herzlich Wilkommen in der Buchungsmanagement App</h1>
-    </div>
-    <div class="logo">
-        <div id="root"></div>
-    </div>
-    <div class="login-container">
-        <h2>Studenten Login</h2>
-        <div class="google-login">
-            <a href="{{ url_for('login', user_type='student') }}" class="google-login-button">Login with Google</a>
+    <div class="container">
+        <!-- Left Section -->
+        <div class="left-section">
+            <img src="{{ url_for('static', filename='login_page.jpg') }}" alt="Booking Illustration">
+        </div>
+        
+        <!-- Right Section -->
+        <div class="right-section">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            <h2>Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <input type="text" id="username" placeholder="Benutzername" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Passwort" required>
+                </div>
+                <button type="submit">Anmelden</button>
+            </form>
         </div>
     </div>
-    <div class="login-container-mitarbeiter">
-        <h2>Mitarbeiter Login</h2>
-        <div class="google-login">
-            <a href="{{ url_for('login', user_type='employee') }}" class="google-login-button">Login with Google</a>
-        </div>
-    </div>
-    <div class="login-container-dummy">
-        <h2>Student Login</h2>
-        <div class="google-login">
-            <a href="{{ url_for('login', user_type='student') }}" class="google-login-button">Student Login</a>
-        </div>
-    </div>
-    <div class="login-container-anbieter">
-        <h2>Anbieter Login</h2>
-        <div class="google-login">
-            <a href="{{ url_for('login', user_type='anbieter') }}" class="google-login-button">Anbieter Login</a>
-        </div>
-    </div>
+
     <script>
-        function Logo() {
-            const img = document.createElement('img');
-            img.src = '{{ url_for('static', filename='logo.png') }}'; // Path to the logo image
-            img.className = 'logo';
-            return img;
-        }
+        // Login-Formular-Submit-Handler
+        document.getElementById('login-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const root = document.getElementById('root');
-            const header = Logo();
-            root.appendChild(header);
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.error) {
+                    alert(`Login fehlgeschlagen: ${result.error}`);
+                } else {
+                    
+                    window.location.href = result.redirect;
+                }
+            } catch (error) {
+                console.error('Fehler beim Login:', error);
+                alert('Es gab ein Problem beim Login.');
+            }
         });
-
-        function handleCredentialResponse(response) {
-            console.log('Encoded JWT ID token: ' + response.credential);
-        }
-
-        (function() {
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            document.head.appendChild(script);
-        })();
     </script>
 </body>
 </html>

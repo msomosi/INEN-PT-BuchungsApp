@@ -1,6 +1,6 @@
 import requests
 from factory import create_app, create_db_connection, debug_request
-from flask import redirect, render_template, request, session
+from flask import redirect, render_template, request, session, jsonify
 
 app = create_app("frontend")
 
@@ -8,13 +8,17 @@ app = create_app("frontend")
 def home():
     debug_request(request)
 
+    app.logger.debug(f"Session-Daten: {session}")
+
     if 'user_type' in session:
-        user_type = session['user_type']
+        # Entferne überflüssige Leerzeichen
+        user_type = session['user_type'].strip()
 
         # Berechtigungen definieren
         permissions = {
             'student': ['create-booking', 'room-management', 'user-details'],
-            'anbieter': ['room-management', 'anbietermgmt', 'user-details', 'bookingmgmt']
+            'anbieter': ['room-management', 'anbietermgmt', 'user-details', 'bookingmgmt'],
+            'admin': ['create-booking', 'room-management', 'anbietermgmt', 'user-details', 'bookingmgmt']
         }
 
         # Berechtigungen für den aktuellen Benutzer
@@ -22,16 +26,17 @@ def home():
 
         session['permissions'] = user_permissions
 
-        app.logger.debug(f"Session after login: {session}")
-        app.logger.debug(f"Permissions on /home: {session.get('permissions')}")
+        app.logger.debug(f"Permissions for user {session['user']}: {user_permissions}")
         
         return render_template('home.html', user=session['user'], permissions=user_permissions)
 
-    # Fallback: Benutzer ist nicht eingeloggt
+    app.logger.warning("Benutzer ist nicht eingeloggt. Weiterleitung zur Login-Seite.")
     return render_template('login.html')
 
 
-@app.route('/login/<user_type>')
+
+
+@app.route('/login')
 def login():
     debug_request(request)
     return
@@ -75,6 +80,8 @@ def create_booking():
 
     return render_template('bestaetigung.html', buchung=buchung)
 
+
+
 @app.route('/room-management')
 def get_rooms():
     debug_request(request)
@@ -107,6 +114,45 @@ def user_details(id = "1"):
         data = []
 
     return render_template('user-details.html', user=data)
+
+@app.route('/get-users', methods=['GET'])
+def get_users():
+    try:
+        app.logger.info("Route /get-users aufgerufen")
+        conn = create_db_connection()
+        app.logger.info("Datenbankverbindung erfolgreich")
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT u.user_id, u.username, ud."Firstname", ud."Lastname", r.role_name
+            FROM tbl_user u
+            JOIN tbl_user_details ud ON u.user_id = ud.user_id
+            JOIN tbl_rolle r ON u.role_id = r.role_id
+        """)
+        users = cursor.fetchall()
+        app.logger.info(f"Abfrage erfolgreich, {len(users)} Benutzer gefunden")
+
+        user_list = []
+        for user_id, username, firstname, lastname, role_name in users:
+            user_list.append({
+                "user_id": user_id,
+                "username": username,
+                "name": f"{firstname} {lastname}",
+                "role": role_name
+            })
+
+        return jsonify(user_list)
+    except Exception as err:
+        app.logger.error(f"Fehler beim Abrufen der Benutzer: {err}")
+        return jsonify({'error': str(err)}), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=80)

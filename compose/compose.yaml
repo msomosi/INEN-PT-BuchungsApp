@@ -18,6 +18,11 @@ services:
       - "8080:80"
     environment:
       - SESSION_KEY=12345678910111213141516
+      - DB_HOSTNAME=db
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
+
   login:
     image: apeni/login
     build:
@@ -33,6 +38,7 @@ services:
       - DB_SID=citizix_db
       - DB_USERNAME=citizix_user
       - DB_PASSWORD=S3cret
+
   buchungsmanagement:
     image: apeni/buchungsmanagement
     build:
@@ -47,6 +53,7 @@ services:
       - AWS_ACCESS_KEY_ID=dummy_access_key
       - AWS_SECRET_ACCESS_KEY=dummy_secret_key
       - SESSION_KEY=12345678910111213141516
+
   anbietermgmt:
     image: apeni/anbietermgmt
     build:
@@ -62,6 +69,7 @@ services:
       - DB_USERNAME=citizix_user
       - DB_PASSWORD=S3cret
       - SESSION_KEY=12345678910111213141516
+      
   bookingmgmt:
     image: apeni/bookingmgmt
     build:
