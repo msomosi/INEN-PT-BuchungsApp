@@ -67,7 +67,7 @@
         <h1>Willkommen, {{ user }}!</h1>
         
         {% if 'create-booking' in permissions %}
-        <p><a href="{{ url_for('create_booking') }}">Raum buchen</a></p>
+        <p><a href="{{ url_for('create_booking') }}">Zimmer buchen</a></p>
         {% endif %}
 
         {% if 'room-management' in permissions %} 
@@ -75,11 +75,11 @@
         {% endif %}
 
         {% if 'user-details' in permissions %}
-            <p><a href="/user-details/1">Benutzerinfo</a></p>
+            <p><a href="/user-profile" class="profile-link">Mein Profil</a></p>
         {% endif %}
 
         {% if 'anbietermgmt' in permissions %}
-            <p><a href="/anbietermgmt">Anbietermgmt</a></p>
+            <p><a href="/anbietermgmt">Zimmer Management</a></p>
         {% endif %}
         
         {% if 'bookingmgmt' in permissions %}

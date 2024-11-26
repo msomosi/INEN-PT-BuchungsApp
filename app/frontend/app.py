@@ -16,8 +16,8 @@ def home():
 
         # Berechtigungen definieren
         permissions = {
-            'student': ['create-booking', 'room-management','bookingmgmt','user-details'],
-            'anbieter': ['room-management', 'anbietermgmt', 'user-details', 'bookingmgmt'],
+            'student': ['create-booking', 'room-management','user-details'],
+            'anbieter': ['anbietermgmt', 'user-details'],
             'admin': ['create-booking', 'room-management', 'anbietermgmt', 'user-details', 'bookingmgmt']
         }
 
@@ -142,59 +142,179 @@ def create_booking():
     return render_template('bestaetigung.html', buchung=buchung)
 
 
-@app.route('/user-details/<id>')
-def user_details(id = "1"):
+@app.route('/user-profile', methods=['GET'])
+def user_profile():
+    """Zeigt das Benutzerprofil basierend auf der user_id aus der Session."""
     debug_request(request)
     try:
-        path = "user/" + id
-        response_host = 'http://login/' if request.host == 'localhost' else request.url_root
-        app.logger.debug(response_host + path)
-        response = requests.get(response_host + path)
-        app.logger.debug(response)
-        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
-        data = response.json()
-    except Exception as err:
-        app.logger.error(f"Fehler beim Laden der Buchungen: {err}")
-        data = []
+        user_id = session.get('user_id')
+        role_id = session.get('role_id')  # Rolle aus der Session holen
+        if not user_id:
+            app.logger.error("Keine user_id in der Session gefunden.")
+            return render_template('error.html', message='Benutzer ist nicht eingeloggt.')
 
-    return render_template('user-details.html', user=data)
-
-@app.route('/get-users', methods=['GET'])
-def get_users():
-    try:
-        app.logger.info("Route /get-users aufgerufen")
         conn = create_db_connection()
-        app.logger.info("Datenbankverbindung erfolgreich")
+        with conn.cursor() as cur:
+            query = """
+                SELECT 
+                    user_id, "Firstname", "Lastname", "CompanyName", "Matrikelnummer", 
+                    "University", "Inskription_end", "Adresse", "Plz", "Location", 
+                    email, phone
+                FROM 
+                    tbl_user_details
+                WHERE 
+                    user_id = %s;
+            """
+            cur.execute(query, (user_id,))
+            row = cur.fetchone()
 
-        cursor = conn.cursor()
+            if not row:
+                app.logger.warning(f"Keine Benutzerdetails für user_id {user_id} gefunden.")
+                return render_template('error.html', message='Benutzerdetails nicht gefunden.')
 
-        cursor.execute("""
-            SELECT u.user_id, u.username, ud."Firstname", ud."Lastname", r.role_name
-            FROM tbl_user u
-            JOIN tbl_user_details ud ON u.user_id = ud.user_id
-            JOIN tbl_rolle r ON u.role_id = r.role_id
-        """)
-        users = cursor.fetchall()
-        app.logger.info(f"Abfrage erfolgreich, {len(users)} Benutzer gefunden")
+            # Benutzerinformationen in ein Wörterbuch konvertieren
+            user_data = {
+                "user_id": row[0],
+                "firstname": row[1],
+                "lastname": row[2],
+                "company_name": row[3],
+                "matrikelnummer": row[4],
+                "university": row[5],
+                "inskription_end": row[6],
+                "adresse": row[7],
+                "plz": row[8],
+                "location": row[9],
+                "email": row[10],
+                "phone": row[11],
+                "role_id": role_id  # Rolle in die Benutzerdaten einfügen
+            }
 
-        user_list = []
-        for user_id, username, firstname, lastname, role_name in users:
-            user_list.append({
-                "user_id": user_id,
-                "username": username,
-                "name": f"{firstname} {lastname}",
-                "role": role_name
-            })
-
-        return jsonify(user_list)
-    except Exception as err:
-        app.logger.error(f"Fehler beim Abrufen der Benutzer: {err}")
-        return jsonify({'error': str(err)}), 500
+        return render_template('user-profile.html', user=user_data)
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen des Benutzerprofils: {e}")
+        return render_template('error.html', message='Fehler beim Laden des Benutzerprofils.')
     finally:
-        if 'cursor' in locals():
-            cursor.close()
         if 'conn' in locals():
             conn.close()
+
+
+@app.route('/update-profile', methods=['POST'])
+def update_profile():
+    """Aktualisiert die bearbeitbaren Felder im Benutzerprofil."""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            app.logger.error("Keine user_id in der Session gefunden.")
+            return jsonify({'error': 'Benutzer ist nicht eingeloggt.'}), 401
+
+        # Hole die aktualisierten Daten aus dem Formular
+        updated_data = {
+            "adresse": request.form.get('adresse'),
+            "plz": request.form.get('plz'),
+            "location": request.form.get('location'),
+            "email": request.form.get('email'),
+            "phone": request.form.get('phone')
+        }
+
+        # Verarbeite die Änderungen
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            query = """
+                UPDATE tbl_user_details
+                SET 
+                    "Adresse" = %s,
+                    "Plz" = %s,
+                    "Location" = %s,
+                    email = %s,
+                    phone = %s
+                WHERE user_id = %s;
+            """
+            cur.execute(query, (
+                updated_data['adresse'], 
+                updated_data['plz'], 
+                updated_data['location'], 
+                updated_data['email'], 
+                updated_data['phone'], 
+                user_id
+            ))
+            conn.commit()
+
+        app.logger.info(f"Benutzerdetails für user_id {user_id} erfolgreich aktualisiert.")
+        return jsonify({'success': 'Profil erfolgreich aktualisiert.'}), 200
+    except Exception as e:
+        app.logger.error(f"Fehler beim Aktualisieren des Profils: {e}")
+        return jsonify({'error': 'Fehler beim Aktualisieren des Profils.'}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/user-details/<zimmer_id>', methods=['GET'])
+def user_details(zimmer_id):
+    """Zeigt Details eines Benutzers basierend auf der Zimmer-ID."""
+    debug_request(request)
+    try:
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            # Schritt 1: user_id anhand der zimmer_id aus tbl_buchung abrufen
+            query_user_id = """
+                SELECT user_id 
+                FROM tbl_buchung 
+                WHERE zimmer_id = %s;
+            """
+            cur.execute(query_user_id, (zimmer_id,))
+            user_id_row = cur.fetchone()
+            
+            if not user_id_row:
+                app.logger.warning(f"Keine Buchung für zimmer_id {zimmer_id} gefunden.")
+                return render_template('error.html', message='Keine Buchung gefunden.')
+
+            user_id = user_id_row[0]
+
+            # Schritt 2: Benutzerinformationen aus tbl_user_details und tbl_user abrufen
+            query_user_details = """
+                SELECT 
+                    ud."Firstname", ud."Lastname", ud."Adresse", ud."Plz", 
+                    ud."Location", ud.email, ud.phone, u.verification, 
+                    u.verification_date
+                FROM 
+                    tbl_user_details ud
+                JOIN 
+                    tbl_user u ON ud.user_id = u.user_id
+                WHERE 
+                    ud.user_id = %s;
+            """
+            cur.execute(query_user_details, (user_id,))
+            user_row = cur.fetchone()
+
+            if not user_row:
+                app.logger.warning(f"Keine Benutzerdetails für user_id {user_id} gefunden.")
+                return render_template('error.html', message='Benutzerdetails nicht gefunden.')
+
+            # Benutzerinformationen in ein Wörterbuch konvertieren
+            user_data = {
+                "firstname": user_row[0],
+                "lastname": user_row[1],
+                "adresse": user_row[2],
+                "plz": user_row[3],
+                "location": user_row[4],
+                "email": user_row[5],
+                "phone": user_row[6],
+                "verification": "Verifiziert" if user_row[7] else "Nicht verifiziert",
+                "verification_date": user_row[8].strftime('%Y-%m-%d') if user_row[8] else "Nicht verfügbar"
+            }
+
+        return render_template('user-details.html', user=user_data)
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der Benutzerdetails: {e}")
+        return render_template('error.html', message='Fehler beim Laden der Benutzerdetails.')
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+
+
+
+
 
 
 

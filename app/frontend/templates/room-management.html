@@ -46,15 +46,18 @@
         }
 
         .add-room-container {
-            text-align: center; 
-            width: 50%; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px auto;
+            width: 80%;
         }
 
         .add-room-container button {
-            font-size: 18px; 
-            padding: 15px 30px; 
-            margin: 20px auto; 
-            display: inline-block; 
+            font-size: 18px;
+            padding: 15px 30px;
+            width: 100%;
+            max-width: 600px;
             background-color: #017cbb;
             color: white;
             border: none;
@@ -64,6 +67,13 @@
 
         .add-room-container button:hover {
             background-color: #015a88;
+        }
+
+        .form-container {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
         }
 
         .form-group {
@@ -82,10 +92,25 @@
             border-radius: 5px;
         }
 
+        .form-container button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #015a88;
+        }
+
         table {
             border-collapse: collapse;
             width: 80%;
-            margin: 0 auto 20px;
+            margin: 20px auto;
             background-color: white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
@@ -106,6 +131,24 @@
 
         tr:hover {
             background-color: #f1f1f1;
+        }
+
+        .back-button {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .back-button a {
+            text-decoration: none;
+            color: white;
+            background-color: #017cbb;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .back-button a:hover {
+            background-color: #015a88;
         }
     </style>
 </head>
@@ -131,10 +174,10 @@
     <!-- Add Room Section -->
     <div class="add-room-container">
         <button id="toggle-add-room">Add Room</button>
-        <form id="add-room-form" style="display: none; margin-top: 20px;">
+        <div class="form-container" id="add-room-form">
             <div class="form-group">
                 <label for="num_rooms">Anzahl Zimmer:</label>
-                <input type="number" id="num_rooms" name="num_rooms" min="1" required>
+                <input type="number" id="num_rooms" name="num_rooms" min="1" value="1" required>
             </div>
             <div class="form-group">
                 <label for="date_from">Datum von:</label>
@@ -145,10 +188,9 @@
                 <input type="date" id="date_to" name="date_to" required>
             </div>
             <button type="submit">Hinzufügen</button>
-        </form>
+        </div>
     </div>
     
-
     <!-- Room Table -->
     <table>
         <thead>
@@ -179,6 +221,11 @@
         </tbody>
     </table>
 
+    <!-- Back to Home Button -->
+    <div class="back-button">
+        <a href="/home">Zurück zur Startseite</a>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Toggle Add Room Form
@@ -187,6 +234,9 @@
             toggleButton.addEventListener('click', () => {
                 addRoomForm.style.display = addRoomForm.style.display === 'none' ? 'block' : 'none';
             });
+
+            // Fetch updated data when the page loads
+            fetchRooms();
         });
 
         async function fetchRooms() {
@@ -202,7 +252,7 @@
                 const pendingCount = document.getElementById('pending-count');
                 const availableCount = document.getElementById('available-count');
 
-                // Tabelle mit Zimmerdaten füllen
+                // Update the table
                 roomTable.innerHTML = '';
                 rooms.forEach((room) => {
                     const row = document.createElement('tr');
@@ -216,7 +266,7 @@
                     roomTable.appendChild(row);
                 });
 
-                // Zähler aktualisieren
+                // Update the counters
                 bookedCount.textContent = summary.booked || 0;
                 pendingCount.textContent = summary.pending || 0;
                 availableCount.textContent = summary.available || 0;
@@ -224,7 +274,6 @@
                 console.error('Fehler beim Abrufen der Zimmerdaten:', error);
             }
         }
-
     </script>
 </body>
 </html>
