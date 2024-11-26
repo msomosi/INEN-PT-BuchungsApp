@@ -2,91 +2,191 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Buchungsmanagement-System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f9fc;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
+            background-color: #f4f9fc;
+            display: flex;
+            flex-direction: column;
         }
+
+        .sidebar {
+            width: 250px;
+            background-color: #017cbb;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            transform: translateX(-250px);
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+            box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar img {
+            width: 100px;
+            margin-bottom: 20px;
+            margin-top: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a {
+            width: 90%;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            border-radius: 5px;
+            margin: 5px 10px;
+            transition: background 0.3s, transform 0.2s ease-in-out;
+            text-align: left;
+        }
+
+        .sidebar a:hover {
+            background-color: #015a88;
+            transform: translateX(5px);
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar:hover {
+            background-color: #015a88;
+        }
+
         .container {
-            background-color: #fff;
+            background-color: white;
+            margin: 0 auto;
             padding: 50px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            width: 100%;
-            position: relative;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            margin-top: 50px;
         }
-        .logo {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+
+        .container img {
             width: 150px;
+            margin-bottom: 20px;
         }
+
+        .ratings-container {
+            background-color: white;
+            margin: 20px auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .ratings-container img {
+            width: 100px;
+            margin-bottom: 10px;
+        }
+
+        .ratings-container h2 {
+            color: #017cbb;
+            margin-bottom: 15px;
+        }
+
         h1 {
-            color: #333;
-            text-align: center;
+            color: #017cbb;
         }
+
         p {
-            color: #666;
-            text-align: center;
+            margin: 10px 0;
+            font-size: 16px;
         }
+
         a {
-            color: #3498db;
             text-decoration: none;
+            color: #017cbb;
+            font-weight: bold;
         }
+
         a:hover {
             text-decoration: underline;
-        }
-        h2 {
-            color: #333;
-            margin-top: 30px;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            background-color: #f9f9f9;
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="https://hochschule-burgenland.at/typo3conf/ext/website_template/Resources/Public/Images/Logos/Bgld_FH_Logo_RGB.jpg" alt="Hochschule Burgenland Logo" class="logo">
-        <h1>Willkommen, {{ user }}!</h1>
-        
+    <div class="sidebar open" id="sidebar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
+        </div>
+        <a href="/home">🏠 Startseite</a>
         {% if 'create-booking' in permissions %}
-        <p><a href="{{ url_for('create_booking') }}">Zimmer buchen</a></p>
+        <a href="{{ url_for('create_booking') }}">🛏️ Zimmer buchen</a>
         {% endif %}
-
-        {% if 'room-management' in permissions %} 
-            <p><a href="/booked-management">Buchungsübersicht</a></p>
+        {% if 'room-management' in permissions %}
+        <a href="/booked-management">📖 Buchungsübersicht</a>
         {% endif %}
-
         {% if 'user-details' in permissions %}
-            <p><a href="/user-profile" class="profile-link">Mein Profil</a></p>
+        <a href="/user-profile">👤 Mein Profil</a>
         {% endif %}
-
         {% if 'anbietermgmt' in permissions %}
-            <p><a href="/anbietermgmt">Zimmer Management</a></p>
+        <a href="/anbietermgmt">🛠️ Zimmer Management</a>
         {% endif %}
-        
         {% if 'bookingmgmt' in permissions %}
-            <p><a href="/bookingmgmt">Bookingmgmt</a></p>
+        <a href="/bookingmgmt">📋 Buchungen verwalten</a>
         {% endif %}
-        <p><a href="/logout">Abmelden</a></p>
-
+        <a href="/logout">🚪 Abmelden</a>
     </div>
+    
+    <button class="toggle-sidebar" id="toggle-sidebar">☰ Menü</button>
+
+    <div class="container">
+        <img src="https://hochschule-burgenland.at/typo3conf/ext/website_template/Resources/Public/Images/Logos/Bgld_FH_Logo_RGB.jpg" alt="Logo">
+        <h1>Willkommen, {{ user }}!</h1>
+        <p>Bitte wählen Sie eine Option aus dem Menü.</p>
+    </div>
+
+    <div class="ratings-container">
+        <img src="{{ url_for('static', filename='star.png') }}" alt="Star">
+        <h2>Your Ratings</h2>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggle-sidebar');
+
+        if (window.location.pathname === '/home') {
+            sidebar.classList.add('open'); // Sidebar standardmäßig öffnen im home
+        }
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+    </script>
 </body>
 </html>

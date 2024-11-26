@@ -12,6 +12,78 @@
             padding: 0;
         }
 
+        .sidebar {
+            width: 200px;
+            background-color: #017cbb;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            transform: translateX(-200px);
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+            box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar img {
+            width: 100px;
+            margin-bottom: 20px;
+            margin-top: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a {
+            width: 90%;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            border-radius: 5px;
+            margin: 5px 10px;
+            transition: background 0.3s, transform 0.2s ease-in-out;
+            text-align: left;
+        }
+
+        .sidebar a:hover {
+            background-color: #015a88;
+            transform: translateX(5px);
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar:hover {
+            background-color: #015a88;
+        }
+
+        .container {
+            margin-left: 220px;
+            padding: 20px;
+        }
+
         h1 {
             text-align: center;
             margin: 20px 0;
@@ -50,23 +122,25 @@
             flex-direction: column;
             align-items: center;
             margin: 20px auto;
-            width: 80%;
+            width: 100%;
+            max-width: 800px;
         }
 
         .add-room-container button {
             font-size: 18px;
             padding: 15px 30px;
-            width: 100%;
-            max-width: 600px;
             background-color: #017cbb;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         .add-room-container button:hover {
             background-color: #015a88;
+            transform: translateY(-2px);
         }
 
         .form-container {
@@ -74,6 +148,22 @@
             margin-top: 20px;
             width: 100%;
             max-width: 600px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .form-group {
@@ -82,25 +172,38 @@
 
         .form-group label {
             display: block;
+            font-size: 14px;
             margin-bottom: 5px;
+            color: #333;
         }
 
         .form-group input {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
+            font-size: 14px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #017cbb;
+            outline: none;
+            box-shadow: 0 0 5px rgba(1, 124, 187, 0.3);
         }
 
         .form-container button {
             font-size: 16px;
             padding: 10px 20px;
-            margin-top: 10px;
             background-color: #017cbb;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 10px auto;
         }
 
         .form-container button:hover {
@@ -132,148 +235,121 @@
         tr:hover {
             background-color: #f1f1f1;
         }
-
-        .back-button {
-            text-align: center;
-            margin: 20px;
-        }
-
-        .back-button a {
-            text-decoration: none;
-            color: white;
-            background-color: #017cbb;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-
-        .back-button a:hover {
-            background-color: #015a88;
-        }
     </style>
 </head>
 <body>
-    <h1>Anbietermanagement</h1>
-
-    <!-- Summary Section -->
-    <div class="summary">
-        <div>
-            <h3>Booked</h3>
-            <p id="booked-count">{{ summary.booked }}</p>
-        </div>
-        <div>
-            <h3>Pending</h3>
-            <p id="pending-count">{{ summary.pending }}</p>
-        </div>
-        <div>
-            <h3>Available</h3>
-            <p id="available-count">{{ summary.available }}</p>
-        </div>
+    <!-- Sidebar -->
+    <div class="sidebar open" id="sidebar">
+        <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
+        <a href="/home">🏠 Startseite</a>
+        {% if 'create-booking' in permissions %}
+        <a href="{{ url_for('create_booking') }}">🛏️ Zimmer buchen</a>
+        {% endif %}
+        {% if 'room-management' in permissions %}
+        <a href="/booked-management">📖 Buchungsübersicht</a>
+        {% endif %}
+        {% if 'user-details' in permissions %}
+        <a href="/user-profile">👤 Mein Profil</a>
+        {% endif %}
+        {% if 'anbietermgmt' in permissions %}
+        <a href="/anbietermgmt">🛠️ Zimmer Management</a>
+        {% endif %}
+        {% if 'bookingmgmt' in permissions %}
+        <a href="/bookingmgmt">📋 Buchungen verwalten</a>
+        {% endif %}
+        <a href="/logout">🚪 Abmelden</a>
     </div>
 
-    <!-- Add Room Section -->
-    <div class="add-room-container">
-        <button id="toggle-add-room">Add Room</button>
-        <div class="form-container" id="add-room-form">
-            <div class="form-group">
-                <label for="num_rooms">Anzahl Zimmer:</label>
-                <input type="number" id="num_rooms" name="num_rooms" min="1" value="1" required>
-            </div>
-            <div class="form-group">
-                <label for="date_from">Datum von:</label>
-                <input type="date" id="date_from" name="date_from" required>
-            </div>
-            <div class="form-group">
-                <label for="date_to">Datum bis:</label>
-                <input type="date" id="date_to" name="date_to" required>
-            </div>
-            <button type="submit">Hinzufügen</button>
-        </div>
-    </div>
-    
-    <!-- Room Table -->
-    <table>
-        <thead>
-            <tr>
-                <th>Zimmer-ID</th>
-                <th>Datum</th>
-                <th>Buchungsstatus</th>
-                <th>Info Student:in</th>
-                <th>Student:in</th>
-            </tr>
-        </thead>
-        <tbody id="room-table">
-            {% for room in rooms %}
-            <tr>
-                <td>{{ room.zimmer_id }}</td>
-                <td>{{ room.date }}</td>
-                <td>{{ room.state_name }}</td>
-                <td>
-                    {% if room.state_id > 1 %}
-                        <a href="/user-details/{{ room.zimmer_id }}" target="_blank">Details</a>
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>{{ room.firstname }} {{ room.lastname }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <button class="toggle-sidebar" id="toggle-sidebar">☰ Menü</button>
 
-    <!-- Back to Home Button -->
-    <div class="back-button">
-        <a href="/home">Zurück zur Startseite</a>
+    <div class="container">
+        <h1>Anbietermanagement</h1>
+
+        <!-- Summary Section -->
+        <div class="summary">
+            <div>
+                <h3>Booked</h3>
+                <p id="booked-count">{{ summary.booked }}</p>
+            </div>
+            <div>
+                <h3>Pending</h3>
+                <p id="pending-count">{{ summary.pending }}</p>
+            </div>
+            <div>
+                <h3>Available</h3>
+                <p id="available-count">{{ summary.available }}</p>
+            </div>
+        </div>
+
+        <!-- Add Room Section -->
+        <div class="add-room-container">
+            <button id="toggle-add-room">➕ Add Room</button>
+            <div class="form-container" id="add-room-form">
+                <h3 style="text-align: center; color: #017cbb;">Add New Room</h3>
+                <div class="form-group">
+                    <label for="num_rooms">Anzahl Zimmer:</label>
+                    <input type="number" id="num_rooms" name="num_rooms" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="date_from">Datum von:</label>
+                    <input type="date" id="date_from" name="date_from" required>
+                </div>
+                <div class="form-group">
+                    <label for="date_to">Datum bis:</label>
+                    <input type="date" id="date_to" name="date_to" required>
+                </div>
+                <button type="submit">Hinzufügen</button>
+            </div>
+        </div>
+        
+        <!-- Room Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Zimmer-ID</th>
+                    <th>Datum</th>
+                    <th>Buchungsstatus</th>
+                    <th>Info Student:in</th>
+                    <th>Student:in</th>
+                </tr>
+            </thead>
+            <tbody id="room-table">
+                {% for room in rooms %}
+                <tr>
+                    <td>{{ room.zimmer_id }}</td>
+                    <td>{{ room.date }}</td>
+                    <td>{{ room.state_name }}</td>
+                    <td>
+                        {% if room.state_id > 1 %}
+                            <a href="/user-details/{{ room.zimmer_id }}" target="_blank">Details</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ room.firstname }} {{ room.lastname }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Toggle Add Room Form
-            const toggleButton = document.getElementById('toggle-add-room');
-            const addRoomForm = document.getElementById('add-room-form');
-            toggleButton.addEventListener('click', () => {
-                addRoomForm.style.display = addRoomForm.style.display === 'none' ? 'block' : 'none';
-            });
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggle-sidebar');
+        const addRoomButton = document.getElementById('toggle-add-room');
+        const addRoomForm = document.getElementById('add-room-form');
 
-            // Fetch updated data when the page loads
-            fetchRooms();
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
         });
 
-        async function fetchRooms() {
-            try {
-                const responseRooms = await fetch('/anbietermgmt');
-                const responseSummary = await fetch('/room_summary');
-
-                const rooms = await responseRooms.json();
-                const summary = await responseSummary.json();
-
-                const roomTable = document.getElementById('room-table');
-                const bookedCount = document.getElementById('booked-count');
-                const pendingCount = document.getElementById('pending-count');
-                const availableCount = document.getElementById('available-count');
-
-                // Update the table
-                roomTable.innerHTML = '';
-                rooms.forEach((room) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${room.zimmer_id}</td>
-                        <td>${room.date}</td>
-                        <td>${room.state_name}</td>
-                        <td>${room.state_id > 1 ? `<a href="/user-details/${room.zimmer_id}" target="_blank">Details</a>` : '-'}</td>
-                        <td>${room.firstname || '-'} ${room.lastname || '-'}</td>
-                    `;
-                    roomTable.appendChild(row);
-                });
-
-                // Update the counters
-                bookedCount.textContent = summary.booked || 0;
-                pendingCount.textContent = summary.pending || 0;
-                availableCount.textContent = summary.available || 0;
-            } catch (error) {
-                console.error('Fehler beim Abrufen der Zimmerdaten:', error);
+        addRoomButton.addEventListener('click', () => {
+            if (addRoomForm.style.display === 'none' || addRoomForm.style.display === '') {
+                addRoomForm.style.display = 'block';
+            } else {
+                addRoomForm.style.display = 'none';
             }
-        }
+        });
     </script>
 </body>
 </html>

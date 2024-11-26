@@ -3,35 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mein Profil | Buchungsmanagement</title>
+    <title>Mein Profil</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
             background-color: #f4f9fc;
             display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #017cbb;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            padding-top: 20px;
+            transform: translateX(-200px);
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+            box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar img {
+            width: 100px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a {
+            width: 90%;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            border-radius: 5px;
+            margin: 5px 10px;
+            transition: background 0.3s, transform 0.2s ease-in-out;
+            text-align: left;
+        }
+
+        .sidebar a:hover {
+            background-color: #015a88;
+            transform: translateX(5px);
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar:hover {
+            background-color: #015a88;
         }
 
         .container {
             display: flex;
-            width: 80%;
-            max-width: 1200px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
+            margin: 50px auto;
+            padding: 20px;
             background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 1000px;
         }
 
         .left-section {
-            background-color: #e5f6fd;
             flex: 1;
+            background-color: #e5f6fd;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
         .left-section img {
@@ -40,31 +107,13 @@
         }
 
         .right-section {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
+            flex: 2;
+            padding: 20px;
         }
 
-        .right-section h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #333;
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .right-section h1 .edit-icon {
-            margin-left: 10px;
-            cursor: pointer;
+        h1 {
             color: #017cbb;
-            font-size: 20px;
-            text-decoration: none;
-        }
-
-        .right-section h1 .edit-icon:hover {
-            color: #005f8a;
+            margin-bottom: 20px;
         }
 
         .info-table {
@@ -74,183 +123,103 @@
 
         .info-table td {
             padding: 10px;
-            vertical-align: top;
         }
 
         .info-table td:first-child {
-            width: 150px;
             font-weight: bold;
             color: #333;
         }
-
-        input[type="text"], input[type="email"], input[type="tel"] {
-            width: 100%;
-            padding: 8px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            display: none; /* Standardmäßig ausgeblendet */
-        }
-
-        .button-container {
-            margin-top: 20px;
-            display: none; 
-            justify-content: space-between; 
-        }
-
-        .button-container button {
-            width: 48%; 
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #017cbb;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .button-container button:hover {
-            background-color: #015a88;
-        }
-
-        .back-button {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .back-button a {
-            text-decoration: none;
-            color: white;
-            background-color: #017cbb;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-
-        .back-button a:hover {
-            background-color: #015a88;
-        }
     </style>
-    <script>
-        function toggleEditMode() {
-            const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]');
-            const spans = document.querySelectorAll('.editable');
-            const buttons = document.querySelector('.button-container');
-
-            // Zeige/Verstecke Eingabefelder und Text-Spans
-            inputs.forEach(input => input.style.display = input.style.display === 'inline-block' ? 'none' : 'inline-block');
-            spans.forEach(span => span.style.display = span.style.display === 'none' ? 'inline' : 'none');
-
-            // Zeige die Buttons nur im Bearbeitungsmodus
-            buttons.style.display = buttons.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        async function saveChanges(event) {
-            event.preventDefault();
-            const formData = new FormData(document.getElementById('profile-form'));
-            const response = await fetch('/update-profile', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            alert(result.success || result.error);
-            if (response.ok) {
-                location.reload(); // Seite neu laden, um Änderungen anzuzeigen
-            }
-        }
-    </script>
 </head>
 <body>
+    <div class="sidebar" id="sidebar">
+        <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
+        <a href="/home">🏠 Startseite</a>
+        {% if 'create-booking' in permissions %}
+        <a href="{{ url_for('create_booking') }}">🛏️ Zimmer buchen</a>
+        {% endif %}
+        {% if 'room-management' in permissions %}
+        <a href="/booked-management">📖 Buchungsübersicht</a>
+        {% endif %}
+        {% if 'user-details' in permissions %}
+        <a href="/user-profile">👤 Mein Profil</a>
+        {% endif %}
+        {% if 'anbietermgmt' in permissions %}
+        <a href="/anbietermgmt">🛠️ Zimmer Management</a>
+        {% endif %}
+        {% if 'bookingmgmt' in permissions %}
+        <a href="/bookingmgmt">📋 Buchungen verwalten</a>
+        {% endif %}
+        <a href="/logout">🚪 Abmelden</a>
+    </div>
+
+    <button class="toggle-sidebar" id="toggle-sidebar">☰ Menü</button>
+
     <div class="container">
-        <!-- Left Section -->
         <div class="left-section">
             <img src="{{ url_for('static', filename='profile_page.jpg') }}" alt="Profil Illustration">
         </div>
-        
-        <!-- Right Section -->
         <div class="right-section">
-            <h1>Mein Profil 
-                <a class="edit-icon" onclick="toggleEditMode()">✏️</a>
-            </h1>
-
-            <!-- Profil-Tabelle -->
-            <form id="profile-form" onsubmit="saveChanges(event)">
-                <table class="info-table">
-                    <tr>
-                        <td>Vorname:</td>
-                        <td>{{ user.firstname }}</td>
-                    </tr>
-                    <tr>
-                        <td>Nachname:</td>
-                        <td>{{ user.lastname }}</td>
-                    </tr>
-                    {% if user.role_id == 3 %}
-                    <tr>
-                        <td>Matrikelnummer:</td>
-                        <td>{{ user.matrikelnummer }}</td>
-                    </tr>
-                    <tr>
-                        <td>Universität:</td>
-                        <td>{{ user.university }}</td>
-                    </tr>
-                    <tr>
-                        <td>Inskription bis:</td>
-                        <td>{{ user.inskription_end }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td>Firma:</td>
-                        <td>{{ user.company_name }}</td>
-                    </tr>
-                    {% endif %}
-                    <tr>
-                        <td>Adresse:</td>
-                        <td>
-                            <span class="editable">{{ user.adresse }}</span>
-                            <input type="text" name="adresse" value="{{ user.adresse }}">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PLZ:</td>
-                        <td>
-                            <span class="editable">{{ user.plz }}</span>
-                            <input type="text" name="plz" value="{{ user.plz }}">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Ort:</td>
-                        <td>
-                            <span class="editable">{{ user.location }}</span>
-                            <input type="text" name="location" value="{{ user.location }}">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>E-Mail:</td>
-                        <td>
-                            <span class="editable">{{ user.email }}</span>
-                            <input type="email" name="email" value="{{ user.email }}">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Telefon:</td>
-                        <td>
-                            <span class="editable">{{ user.phone }}</span>
-                            <input type="tel" name="phone" value="{{ user.phone }}">
-                        </td>
-                    </tr>
-                </table>
-
-                <div class="button-container">
-                    <button type="submit">Änderungen speichern</button>
-                    <button type="button" onclick="toggleEditMode()">Abbrechen</button>
-                </div>
-            </form>
-
-            <div class="back-button">
-                <a href="/home">Zurück zur Startseite</a>
-            </div>
+            <h1>Mein Profil</h1>
+            <table class="info-table">
+                <tr>
+                    <td>Vorname:</td>
+                    <td>{{ user.firstname }}</td>
+                </tr>
+                <tr>
+                    <td>Nachname:</td>
+                    <td>{{ user.lastname }}</td>
+                </tr>
+                {% if user.role_id == 3 %}
+                <tr>
+                    <td>Matrikelnummer:</td>
+                    <td>{{ user.matrikelnummer }}</td>
+                </tr>
+                <tr>
+                    <td>Universität:</td>
+                    <td>{{ user.university }}</td>
+                </tr>
+                <tr>
+                    <td>Inskription bis:</td>
+                    <td>{{ user.inskription_end }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td>Firma:</td>
+                    <td>{{ user.company_name }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Adresse:</td>
+                    <td>{{ user.adresse }}</td>
+                </tr>
+                <tr>
+                    <td>PLZ:</td>
+                    <td>{{ user.plz }}</td>
+                </tr>
+                <tr>
+                    <td>Ort:</td>
+                    <td>{{ user.location }}</td>
+                </tr>
+                <tr>
+                    <td>E-Mail:</td>
+                    <td>{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <td>Telefon:</td>
+                    <td>{{ user.phone }}</td>
+                </tr>
+            </table>
         </div>
     </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggle-sidebar');
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+    </script>
 </body>
 </html>
