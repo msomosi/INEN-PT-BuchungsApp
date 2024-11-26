@@ -69,6 +69,22 @@ services:
       - DB_USERNAME=citizix_user
       - DB_PASSWORD=S3cret
       - SESSION_KEY=12345678910111213141516
+  
+  booked-management:
+    image: apeni/booked-management
+    build:
+      context: ../app
+      dockerfile: ../app/build/Dockerfile
+      args:
+        module: booked-management
+    ports:
+      - "8087:80"
+    environment:
+      - DB_HOSTNAME=db
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
+      - SESSION_KEY=12345678910111213141516
       
   bookingmgmt:
     image: apeni/bookingmgmt

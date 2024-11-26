@@ -1,161 +1,26 @@
 from datetime import datetime, timedelta
-
 from factory import create_app, create_db_connection, debug_request
-from flask import redirect, render_template_string, request, url_for
+from flask import jsonify, request
 
 app = create_app("anbietermgmt")
 
-@app.route('/user_details')
-def user_details():
-    debug_request(request)
-    zimmer_id = request.args.get('zimmer_id')
-    app.logger.debug(zimmer_id)
+# API zum Abrufen der Zimmerdaten
+from flask import session
 
-    if not zimmer_id :
-        return "<h1>Fehler: Ungültige Parameter</h1>", 400
+@app.route('/anbietermgmt', methods=['GET'])
+def get_rooms():
+    """API, um alle Zimmer für den angemeldeten Benutzer zu laden."""
+    debug_request(request)
+    
+    user_id = "1"  # Hier wird der eingeloggte Benutzer gesetzt (z. B. aus Session)
 
     conn_room = create_db_connection()
     if not conn_room:
-        return "<h1>Fehler: Verbindung zur Datenbank fehlgeschlagen</h1>", 500
+        return jsonify({'error': 'Verbindung zur Zimmer-Datenbank fehlgeschlagen'}), 500
 
     try:
         with conn_room.cursor() as cur:
-            query = """
-                SELECT u."Firstname", u."Lastname", u.email, u.phone, z.zimmer_id, z.date
-                FROM tbl_user_details u
-                JOIN tbl_buchung b ON u.user_id = b.user_id
-                JOIN tbl_zimmer z ON b.zimmer_id = z.zimmer_id
-                WHERE z.zimmer_id = %s;
-            """
-            cur.execute(query, (zimmer_id))
-            user_details = cur.fetchone()
-            if not user_details:
-                return "<h1>Benutzer nicht gefunden</h1>", 404
-
-            user_info = {
-                "Firstname": user_details[0],
-                "Lastname": user_details[1],
-                "email": user_details[2],
-                "phone": user_details[3],
-                "zimmer_id": user_details[4],
-                "date": user_details[5],
-            }
-    except Exception as e:
-        app.logger.error(f"Fehler bei der Abfrage: {e}")
-        return "<h1>Fehler: Datenbankabfrage fehlgeschlagen</h1>", 500
-    finally:
-        conn_room.close()
-
-
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html lang="de">
-    <head>
-        <meta charset="UTF-8">
-        <title>Benutzerdetails</title>
-    </head>
-    <body>
-        <h1>Details zum Benutzer</h1>
-        <p><strong>Firstname:</strong> {{ user_info.Firstname }}</p>
-        <p><strong>Lastname:</strong> {{ user_info.Lastname }}</p>
-        <p><strong>E-Mail:</strong> {{ user_info.email }}</p>
-        <p><strong>Telefon:</strong> {{ user_info.phone }}</p>
-        <p><strong>Zimmer-ID:</strong> {{ user_info.zimmer_id }}</p>
-        <p><strong>Datum:</strong> {{ user_info.date }}</p>
-        <a href="#" onclick="window.close();">Fenster schließen</a>
-    </body>
-    </html>
-    """, user_info=user_info)
-
-
-
-@app.route('/add_room', methods=['GET', 'POST'])
-def add_room():
-    debug_request(request)
-
-    if request.method == 'POST':
-
-        user_id = "1"
-        if not user_id:
-            return "<h1>Fehler: Kein Benutzer angemeldet</h1>", 400
-
-        try:
-            num_rooms = int(request.form['num_rooms'])
-            date_from = datetime.strptime(request.form['date_from'], '%Y-%m-%d')
-            date_to = datetime.strptime(request.form['date_to'], '%Y-%m-%d')
-        except ValueError:
-            return "<h1>Fehler: Ungültige Eingabewerte</h1>", 400
-
-        if date_from > date_to:
-            return "<h1>Fehler: 'Von'-Datum liegt nach 'Bis'-Datum</h1>", 400
-
-        conn_room = create_db_connection()
-        if not conn_room:
-            return "<h1>Fehler: Verbindung zur Datenbank fehlgeschlagen</h1>", 500
-
-        try:
-            with conn_room.cursor() as cur:
-
-                current_date = date_from
-                while current_date <= date_to:
-                    for _ in range(num_rooms):
-                        query = """
-                            INSERT INTO tbl_zimmer (user_id, date)
-                            VALUES (%s, %s);
-                        """
-                        cur.execute(query, (user_id, current_date))
-                    current_date += timedelta(days=1)
-
-                conn_room.commit()
-        except Exception as e:
-            print(f"Fehler bei der Datenbankoperation: {e}")
-            return "<h1>Fehler: Einfügen in die Datenbank fehlgeschlagen</h1>", 500
-        finally:
-            conn_room.close()
-
-        return redirect(url_for('show_table'))
-
-    html_template = """
-    <!DOCTYPE html>
-    <html lang="de">
-    <head>
-        <meta charset="UTF-8">
-        <title>Zimmer hinzufügen</title>
-    </head>
-    <body>
-        <h1>Zimmer hinzufügen</h1>
-        <form method="post">
-            <label for="num_rooms">Anzahl Zimmer:</label>
-            <input type="number" id="num_rooms" name="num_rooms" min="1" required><br><br>
-
-            <label for="date_from">Datum von:</label>
-            <input type="date" id="date_from" name="date_from" required><br><br>
-
-            <label for="date_to">Datum bis:</label>
-            <input type="date" id="date_to" name="date_to" required><br><br>
-
-            <button type="submit">Hinzufügen</button>
-        </form>
-    </body>
-    </html>
-    """
-    return render_template_string(html_template)
-
-
-
-@app.route('/')
-def show_table():
-    debug_request(request)
-
-    # hier kommt die session hin mit der eingeloggen user id
-    user_id = "1"
-
-    conn_room = create_db_connection()
-    if not conn_room:
-        return "<h1>Fehler: Verbindung zur Zimmer-Datenbank fehlgeschlagen</h1>", 500
-
-    try:
-        with conn_room.cursor() as cur:
+            # SQL-Abfrage, um nur Zimmer mit user_id = 1 zu laden
             query = """
                 SELECT z.zimmer_id, z.user_id, z.date, z.state_id, s.state_name, u."Firstname", u."Lastname"
                 FROM tbl_zimmer z
@@ -164,68 +29,112 @@ def show_table():
                 LEFT JOIN tbl_user_details u ON b.user_id = u.user_id
                 WHERE z.user_id = %s
                 ORDER BY z.date ASC
-                """
+            """
             cur.execute(query, (user_id,))
             rows = cur.fetchall()
 
+            # Die Ergebnisse in ein JSON-kompatibles Format umwandeln
             data = [
-                {"zimmer_id": row[0], "user_id": row[1], "date": row[2], "state_id": row[3], "state_name": row[4],"firstname": row[5] if row[5] else "-", "lastname": row[6] if row[6] else "-",}
+                {
+                    "zimmer_id": row[0],
+                    "user_id": row[1],
+                    "date": row[2].strftime('%Y-%m-%d'),  # Datum als String formatieren
+                    "state_id": row[3],
+                    "state_name": row[4],
+                    "firstname": row[5] or "-",
+                    "lastname": row[6] or "-",
+                }
                 for row in rows
             ]
+
+        return jsonify(data)
     except Exception as e:
-        print(f"Fehler bei der Abfrage: {e}")
-        return "<h1>Fehler: Datenbankabfrage fehlgeschlagen</h1>", 500
+        app.logger.error(f"Fehler bei der Abfrage: {e}")
+        return jsonify({'error': 'Datenbankabfrage fehlgeschlagen'}), 500
     finally:
         conn_room.close()
 
-    html_template = """
-    <!DOCTYPE html>
-    <html lang="de">
-    <head>
-        <meta charset="UTF-8">
-        <title>Zimmerübersicht</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    </head>
-    <body>
-        <h1 style="text-align: center;">Meine Zimmerübersicht</h1>
-        <div style="text-align: center; margin-bottom: 20px;">
-        <a href="add_room">
-            <button style="padding: 10px 20px; font-size: 16px;">Zimmer hinzufügen</button>
-        </a>
-       </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Zimmer-ID</th>
-                    <th>Datum</th>
-                    <th>Buchungsstatus</th>
-                    <th>Info Student:in</th>
-                    <th>Student:in</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in data %}
-                <tr>
-                    <td>{{ row.zimmer_id }}</td>
-                    <td>{{ row.date }}</td>
-                    <td>{{ row.state_name }}</td>
-                    <td>
-                    {% if row.state_id in [2, 3, 4] %}
-                        <a href="user_details?zimmer_id={{ row.zimmer_id }}" target="_blank">
-                            <button>Benutzerdetails</button>
-                    {% else %}
-                        -
-                    {% endif %}
-                    <td>{{ row.firstname }} {{ row.lastname }}</td>
-                </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </body>
-    </html>
-    """
-    return render_template_string(html_template, data=data)
+
+# API zum Hinzufügen von Zimmern
+@app.route('/add_room', methods=['POST'])
+def add_room():
+    debug_request(request)
+    user_id = "1"  # Angemeldeter Benutzer
+    if not user_id:
+        return jsonify({'error': 'Kein Benutzer angemeldet'}), 400
+
+    data = request.json
+    try:
+        num_rooms = int(data['num_rooms'])
+        date_from = datetime.strptime(data['date_from'], '%Y-%m-%d')
+        date_to = datetime.strptime(data['date_to'], '%Y-%m-%d')
+    except (ValueError, KeyError) as e:
+        return jsonify({'error': f'Ungültige Eingabewerte: {e}'}), 400
+
+    if date_from > date_to:
+        return jsonify({'error': "'Von'-Datum liegt nach 'Bis'-Datum"}), 400
+
+    conn_room = create_db_connection()
+    if not conn_room:
+        return jsonify({'error': 'Verbindung zur Datenbank fehlgeschlagen'}), 500
+
+    try:
+        with conn_room.cursor() as cur:
+            current_date = date_from
+            while current_date <= date_to:
+                for _ in range(num_rooms):
+                    query = """
+                        INSERT INTO tbl_zimmer (user_id, date)
+                        VALUES (%s, %s);
+                    """
+                    cur.execute(query, (user_id, current_date))
+                current_date += timedelta(days=1)
+
+            conn_room.commit()
+
+        return jsonify({'success': 'Zimmer erfolgreich hinzugefügt'})
+    except Exception as e:
+        app.logger.error(f"Fehler bei der Datenbankoperation: {e}")
+        return jsonify({'error': 'Fehler beim Einfügen der Zimmer'}), 500
+    finally:
+        conn_room.close()
+
+# API für die Zimmerzusammenfassung
+@app.route('/room_summary', methods=['GET'])
+def get_room_summary():
+    """API, um die Zusammenfassung der Zimmer anzuzeigen."""
+    debug_request(request)
+    user_id = "1"  
+
+    conn_room = create_db_connection()
+    if not conn_room:
+        return jsonify({'error': 'Verbindung zur Zimmer-Datenbank fehlgeschlagen'}), 500
+
+    try:
+        with conn_room.cursor() as cur:
+            # Abfrage für die Zähler basierend auf den Status
+            query = """
+                SELECT 
+                    COUNT(*) FILTER (WHERE state_id = 1) AS available,
+                    COUNT(*) FILTER (WHERE state_id = 2) AS pending,
+                    COUNT(*) FILTER (WHERE state_id = 3) AS booked
+                FROM tbl_zimmer
+                WHERE user_id = %s
+            """
+            cur.execute(query, (user_id,))
+            summary = cur.fetchone()
+
+            return jsonify({
+                "available": summary[0] or 0,
+                "pending": summary[1] or 0,
+                "booked": summary[2] or 0
+            })
+    except Exception as e:
+        app.logger.error(f"Fehler bei der Abfrage: {e}")
+        return jsonify({'error': 'Fehler beim Abrufen der Zimmerzusammenfassung'}), 500
+    finally:
+        conn_room.close()
+
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 import requests
 from factory import create_app, create_db_connection, debug_request
 from flask import redirect, render_template, request, session, jsonify
+from datetime import datetime
 
 app = create_app("frontend")
 
@@ -11,12 +12,11 @@ def home():
     app.logger.debug(f"Session-Daten: {session}")
 
     if 'user_type' in session:
-        # Entferne überflüssige Leerzeichen
         user_type = session['user_type'].strip()
 
         # Berechtigungen definieren
         permissions = {
-            'student': ['create-booking', 'room-management', 'user-details'],
+            'student': ['create-booking', 'room-management','bookingmgmt','user-details'],
             'anbieter': ['room-management', 'anbietermgmt', 'user-details', 'bookingmgmt'],
             'admin': ['create-booking', 'room-management', 'anbietermgmt', 'user-details', 'bookingmgmt']
         }
@@ -40,6 +40,67 @@ def home():
 def login():
     debug_request(request)
     return
+
+@app.route('/anbietermgmt')
+def anbietermgmt():
+    try:
+        # Daten von der API abrufen
+        response_rooms = requests.get('http://anbietermgmt/anbietermgmt')
+        response_summary = requests.get('http://anbietermgmt/room_summary')
+
+        # Prüfen, ob die API erfolgreich Daten zurückgegeben hat
+        rooms = response_rooms.json() if response_rooms.status_code == 200 else []
+        summary = response_summary.json() if response_summary.status_code == 200 else {
+            "available": 0,
+            "pending": 0,
+            "booked": 0
+        }
+
+        # Weitergabe an das Template
+        return render_template('room-management.html', rooms=rooms, summary=summary)
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der Zimmerdaten: {e}")
+        return render_template('error.html', message='Fehler beim Laden der Daten.')
+
+
+@app.route('/booked-management')
+def booked_management():
+    """Zeigt dem Benutzer alle Zimmer, die er gebucht hat."""
+    debug_request(request)
+    try:
+        # Hole die user_id aus der Session
+        user_id = session.get('user_id')
+        if not user_id:
+            app.logger.error("Benutzer ist nicht eingeloggt.")
+            return render_template('error.html', message='Benutzer ist nicht eingeloggt.')
+
+        # API-Aufruf mit der user_id als Parameter
+        response = requests.get(f'http://booked-management/booked-rooms?user_id={user_id}', timeout=5)
+        if response.status_code == 200:
+            rooms = response.json()
+            app.logger.debug(f"Buchungen: {rooms}")
+
+            # Datumsteilung
+            current_date = datetime.now().date()
+            future_bookings = [
+                room for room in rooms if datetime.strptime(room['date'], "%a, %d %b %Y %H:%M:%S %Z").date() > current_date
+            ]
+            past_bookings = [
+                room for room in rooms if datetime.strptime(room['date'], "%a, %d %b %Y %H:%M:%S %Z").date() <= current_date
+            ]
+        else:
+            app.logger.error(f"Fehlerhafte API-Antwort: {response.status_code}")
+            future_bookings = []
+            past_bookings = []
+
+        return render_template(
+            'booked-management.html',
+            future_bookings=future_bookings,
+            past_bookings=past_bookings
+        )
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der Buchungsübersicht: {e}")
+        return render_template('error.html', message='Fehler beim Laden der Buchungsübersicht.')
 
 
 @app.route('/rent')
@@ -80,23 +141,6 @@ def create_booking():
 
     return render_template('bestaetigung.html', buchung=buchung)
 
-
-
-@app.route('/room-management')
-def get_rooms():
-    debug_request(request)
-    try:
-        response_host = 'http://zimmerverwaltung/' if request.host == 'localhost' else request.url_root
-        app.logger.debug(response_host + 'room')
-        response = requests.get(response_host + 'room')
-        app.logger.debug(response)
-        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
-        data = response.json()
-    except Exception as err:
-        app.logger.error(f"Fehler beim Laden der Buchungen: {err}")
-        data = []
-
-    return render_template('room-management.html', buchungen=data)
 
 @app.route('/user-details/<id>')
 def user_details(id = "1"):

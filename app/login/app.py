@@ -54,7 +54,7 @@ def login():
 
         # Prüfen, ob der Benutzer existiert
         cursor.execute("""
-            SELECT u.user_id, r.role_name, u.username
+            SELECT u.user_id, u.role_id, r.role_name, u.username
             FROM tbl_user u
             JOIN tbl_rolle r ON u.role_id = r.role_id
             WHERE u.username = %s AND u.password = %s
@@ -63,14 +63,15 @@ def login():
 
         if user:
             session.clear()
-            session['user_id'] = user[0]
-            session['user'] = user[2]
-            session['user_type'] = user[1]
+            session['user_id'] = user[0]  # Eindeutige Benutzer-ID
+            session['role_id'] = user[1]  # Rolle des Benutzers
+            session['user_type'] = user[2]  # Name der Rolle (z. B. "admin", "student", "anbieter")
+            session['user'] = user[3]  # Benutzername
 
-            app.logger.info(f"Benutzer erfolgreich angemeldet: {user[2]} mit Rolle {user[1]}")
+            app.logger.info(f"Benutzer erfolgreich angemeldet: {user[3]} mit Rolle {user[2]}")
 
             return jsonify({
-                'message': user[2],
+                'message': user[3],
                 'redirect': '/home'
             })
         else:
@@ -84,6 +85,7 @@ def login():
             cursor.close()
         if 'conn' in locals():
             conn.close()
+
 
 
 @app.route('/logout')

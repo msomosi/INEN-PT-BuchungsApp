@@ -70,8 +70,8 @@
         <p><a href="{{ url_for('create_booking') }}">Raum buchen</a></p>
         {% endif %}
 
-        {% if 'room-management' in permissions %}
-            <p><a href="/room-management">Buchungsübersicht</a></p>
+        {% if 'room-management' in permissions %} 
+            <p><a href="/booked-management">Buchungsübersicht</a></p>
         {% endif %}
 
         {% if 'user-details' in permissions %}

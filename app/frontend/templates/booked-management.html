@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Buchungen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f9fc;
+            margin: 0;
+            padding: 0;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #017cbb;
+        }
+        .table-container {
+            margin: 20px auto;
+            width: 80%;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #e5f6fd;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Meine Buchungsübersicht</h1>
+
+    <!-- Zukünftige Buchungen -->
+    <h2>Aktive Buchungen</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Buchungs-ID</th>
+                    <th>Zimmer-ID</th>
+                    <th>Datum</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for room in future_bookings %}
+                    <tr>
+                        <td>{{ room.buchung_id }}</td>
+                        <td>{{ room.zimmer_id }}</td>
+                        <td>{{ room.date }}</td>
+                        <td>{{ room.state }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">Keine zukünftigen Buchungen gefunden</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Vergangene/Abgeschlossene Buchungen -->
+    <h2>Abgeschlossene Buchungen</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Buchungs-ID</th>
+                    <th>Zimmer-ID</th>
+                    <th>Datum</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for room in past_bookings %}
+                    <tr>
+                        <td>{{ room.buchung_id }}</td>
+                        <td>{{ room.zimmer_id }}</td>
+                        <td>{{ room.date }}</td>
+                        <td>{{ room.state }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">Keine abgeschlossenen Buchungen gefunden</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
