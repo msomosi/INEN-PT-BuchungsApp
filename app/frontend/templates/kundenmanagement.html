@@ -238,6 +238,14 @@
                     <input type="text" id="adresse" name="adresse" required>
                 </div>
                 <div class="form-group">
+                    <label for="postal_code">Postleitzahl:</label>
+                    <input type="text" id="postal_code" name="postal_code" required>
+                </div>
+                <div class="form-group">
+                    <label for="location">Ort:</label>
+                    <input type="text" id="location" name="location" required>
+                </div>
+                <div class="form-group">
                     <label for="email">E-Mail:</label>
                     <input type="email" id="email" name="email" required>
                 </div>
@@ -255,11 +263,12 @@
                 <tr>
                     <th>User ID</th>
                     <th>Username</th>
-                    <th>Company</th>
+                    <th>Firma</th> 
                     <th>Adresse</th>
-                    <th>Email</th>
+                    <th>PLZ</th>
+                    <th>Ort</th> 
                     <th>Telefon</th>
-                    <th>Aktionen</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -268,9 +277,11 @@
                     <td>{{ user.user_id }}</td>
                     <td>{{ user.username }}</td>
                     <td>{{ user.company_name }}</td>
-                    <td>{{ user.adresse }}</td>
-                    <td>{{ user.email }}</td>
+                    <td>{{ user.address }}</td>
+                    <td>{{ user.postal_code }}</td>
+                    <td>{{ user.location }}</td>
                     <td>{{ user.phone }}</td>
+
                     <td>
                         <!-- Bearbeiten -->
                         <button class="edit-btn" data-user-id="{{ user.user_id }}">✏️ Bearbeiten</button>
@@ -286,6 +297,8 @@
                                 <input type="text" name="username" value="{{ user.username }}" required>
                                 <input type="text" name="company_name" value="{{ user.company_name }}" required>
                                 <input type="text" name="adresse" value="{{ user.adresse }}" required>
+                                <input type="text" name="postal_code" value="{{ user.postal_code }}" required>
+                                <input type="text" name="location" value="{{ user.location }}" required>
                                 <input type="email" name="email" value="{{ user.email }}" required>
                                 <input type="text" name="phone" value="{{ user.phone }}" required>
                             </div>

@@ -342,9 +342,11 @@ def add_kunde():
             "password": request.form['password'],
             "company_name": request.form['company_name'],
             "adresse": request.form['adresse'],
-            "email": request.form['email'],
+            "postal_code": request.form['postal_code'],  
+            "location": request.form['location'],
             "phone": request.form['phone']
         }
+
 
         # Sende die Daten als JSON und setze den Content-Type korrekt
         response = requests.post(
@@ -369,9 +371,11 @@ def edit_kunde(user_id):
             "username": request.form['username'],
             "company_name": request.form['company_name'],
             "adresse": request.form['adresse'],
-            "email": request.form['email'],
+            "postal_code": request.form['postal_code'],  # Hinzufügen von postal_code
+            "location": request.form['location'],
             "phone": request.form['phone']
         }
+
         response = requests.put(f'http://kundenmanagement/edit-kunde/{user_id}', json=data)
         response.raise_for_status()
         return redirect('/kundenmanagement')

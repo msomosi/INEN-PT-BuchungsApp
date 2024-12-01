@@ -1,15 +1,18 @@
 import json
 import os
 
-import boto3
-from botocore.exceptions import NoCredentialsError
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
+from geopy.distance import geodesic  # Für Radius-Berechnung
 from factory import create_app, create_db_connection, debug_request
 from flask import jsonify, request
-from geopy.distance import geodesic  # Für Radius-Berechnung
 
 app = create_app("zimmerverwaltung")
 
-# Städte-Koordinaten
+# Geolocator initialisieren
+geolocator = Nominatim(user_agent="zimmerverwaltung")
+
+# Städte-Koordinaten (Fallback)
 cities = {
     "eisenstadt": (47.8454821, 16.5249288),
     "fh burgenland": (47.8294849, 16.5347871),
@@ -19,6 +22,32 @@ cities = {
 
 # Uni-Standard-Position (z. B. FH Burgenland)
 university_location = (47.8294849, 16.5347871)  # Lat, Lon
+
+def geocode_address(address, postal_code, location):
+    """Konvertiere Adresse, Postleitzahl und Ort in Latitude und Longitude."""
+    full_address = f"{address}, {postal_code}, {location}, Austria"
+
+    # Sonderfall für Campus 2, Eisenstadt
+    if address.strip().lower() == "campus 2" and location.strip().lower() == "eisenstadt":
+        app.logger.info("Manuelle Koordinaten für Campus 2, Eisenstadt verwendet.")
+        return 47.82955551147461, 16.535341262817383
+
+    try:
+        location = geolocator.geocode({
+            "street": address,
+            "city": location,
+            "postalcode": postal_code,
+            "country": "Austria"
+        }, timeout=10)
+        if location:
+            return location.latitude, location.longitude
+        else:
+            app.logger.warning(f"Geokodierung fehlgeschlagen für Adresse: {full_address}")
+            return None, None
+    except GeocoderTimedOut as e:
+        app.logger.error(f"Geocoder Timeout: {e}")
+        return None, None
+
 
 @app.route('/search-providers', methods=['GET'])
 def search_providers():
@@ -34,8 +63,6 @@ def search_providers():
         app.logger.error(msg)
         return jsonify({'error': msg}), 400
 
-    start_year = int(start_date.split("-")[0])
-
     # Fallback auf FH Burgenland, falls keine valide Stadt angegeben ist
     center_location = cities.get(user_location, university_location)
 
@@ -44,20 +71,23 @@ def search_providers():
         conn = create_db_connection()
         cursor = conn.cursor()
 
-        # SQL-Abfrage für Anbieter
+        # SQL-Abfrage für Anbieter erweitern, um postal_code einzubeziehen
         cursor.execute("""
-            SELECT id, name, type, address, ST_X(location::geometry) AS lon, ST_Y(location::geometry) AS lat,
-                   parking_available, parking_paid, always_booked_in
-            FROM providers
+            SELECT a.provider_id, a.company_name, c.address, c.postal_code, c.location, c.phone, 
+                   a.parking AS parking_available, a.parking_free AS parking_paid
+            FROM accommodation a
+            JOIN contact c ON a.contact_id = c.contact_id
         """)
+
         providers = cursor.fetchall()
 
         for provider in providers:
-            provider_id, name, p_type, address, lon, lat, parking_available, parking_paid, always_booked_in = provider
+            provider_id, name, address, postal_code, location, phone, parking_available, parking_paid = provider
 
-            # Verfügbarkeit prüfen
-            if always_booked_in == start_year:
-                app.logger.debug(f"{name} ist im Jahr {start_year} immer ausgebucht. Überspringen.")
+            # Geokodierung der Adresse
+            lat, lon = geocode_address(address, postal_code, location)
+            if lat is None or lon is None:
+                app.logger.warning(f"Überspringe Anbieter {name}: Keine Koordinaten für Adresse {address}, PLZ {postal_code}, Ort {location}")
                 continue
 
             # Distanz berechnen
@@ -68,8 +98,8 @@ def search_providers():
                 results.append({
                     "id": provider_id,
                     "name": name,
-                    "type": p_type,
-                    "address": address,
+                    "address": f"{address}, {postal_code} {location}",
+                    "phone": phone,
                     "location": (lat, lon),
                     "parking": {
                         "available": parking_available,
@@ -88,6 +118,7 @@ def search_providers():
             conn.close()
 
     return jsonify(results)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)

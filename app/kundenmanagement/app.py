@@ -25,22 +25,27 @@ def get_kunden():
         # Daten abrufen
         if search_query:
             query = """
-                SELECT u.user_id, u.username, d."CompanyName", d."Adresse", d.email, d.phone
-                FROM tbl_user u
-                JOIN tbl_user_details d ON u.user_id = d.user_id
-                WHERE u.role_id = 2 AND d."CompanyName" ILIKE %s
-                ORDER BY u.user_id
-            """
+            SELECT u.user_id, u.username, a.company_name, c.address, c.postal_code, c.location, c.phone
+            FROM "user" u
+            JOIN accommodation a ON u.provider_id = a.provider_id
+            JOIN contact c ON a.contact_id = c.contact_id
+            WHERE u.role_id = 2 AND a.company_name ILIKE %s
+            ORDER BY u.user_id
+        """
             cursor.execute(query, (f"%{search_query}%",))
         else:
             query = """
-                SELECT u.user_id, u.username, d."CompanyName", d."Adresse", d.email, d.phone
-                FROM tbl_user u
-                JOIN tbl_user_details d ON u.user_id = d.user_id
+                SELECT u.user_id, u.username, a.company_name, c.address, c.postal_code, c.location, c.phone
+                FROM "user" u
+                JOIN accommodation a ON u.provider_id = a.provider_id
+                JOIN contact c ON a.contact_id = c.contact_id
                 WHERE u.role_id = 2
                 ORDER BY u.user_id
             """
+
+            
             cursor.execute(query)
+
         users = cursor.fetchall()
 
         # Ergebnis zurückgeben
@@ -49,55 +54,54 @@ def get_kunden():
                 "user_id": user[0],
                 "username": user[1],
                 "company_name": user[2],
-                "adresse": user[3],
-                "email": user[4],
-                "phone": user[5],
+                "address": user[3],
+                "postal_code": user[4], 
+                "location": user[5],
+                "phone": user[6],
             }
             for user in users
         ]
+
 
         return jsonify(users=users_list, search_query=search_query)
     finally:
         conn.close()
 
+
 @app.route('/add-kunde', methods=['POST'])
 def add_kunde():
-    """API zum Hinzufügen eines neuen Kunden."""
     username = request.form.get('username')
     password = request.form.get('password')
     company_name = request.form.get('company_name')
-    adresse = request.form.get('adresse')
-    email = request.form.get('email')
+    address = request.form.get('address')
+    postal_code = request.form.get('postal_code')
+    location = request.form.get('location')
     phone = request.form.get('phone')
 
     conn = create_db_connection()
     cursor = conn.cursor()
 
     try:
-        # Nächste freie user_id ermitteln
+        # Kontakt hinzufügen
         cursor.execute("""
-            SELECT COALESCE(MAX(user_id), 0) + 1 AS next_user_id
-            FROM tbl_user
-        """)
-        next_user_id = cursor.fetchone()[0]
+            INSERT INTO contact (address, postal_code, location, phone)
+            VALUES (%s, %s, %s, %s) RETURNING contact_id
+        """, (address, postal_code, location, phone))
 
-        # Eintrag in tbl_user_details erstellen
-        cursor.execute(
-            """
-            INSERT INTO tbl_user_details (user_id, "CompanyName", "Adresse", email, phone)
-            VALUES (%s, %s, %s, %s, %s)
-            """, (next_user_id, company_name, adresse, email, phone)
-        )
 
-        # Eintrag in tbl_user erstellen
-        cursor.execute(
-            """
-            INSERT INTO tbl_user (user_id, role_id, username, password, verification)
-            VALUES (%s, 2, %s, %s, TRUE)
-            """, (next_user_id, username, password)
-        )
+        # Anbieter hinzufügen
+        cursor.execute("""
+            INSERT INTO accommodation (contact_id, company_name)
+            VALUES (%s, %s) RETURNING provider_id
+        """, (contact_id, company_name))
+        provider_id = cursor.fetchone()[0]
 
-        # Änderungen speichern
+        # Benutzer hinzufügen
+        cursor.execute("""
+            INSERT INTO "user" (role_id, provider_id, username, password, verification)
+            VALUES (2, %s, %s, %s, TRUE)
+        """, (provider_id, username, password))
+
         conn.commit()
         return redirect('/kundenmanagement?status=success')
     except Exception as e:
@@ -108,30 +112,43 @@ def add_kunde():
 
 
 
+
+
 @app.route('/edit-kunde/<int:user_id>', methods=['PUT'])
 def edit_kunde(user_id):
-    """API zum Bearbeiten eines Kunden."""
     try:
         data = request.json
         conn = create_db_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            UPDATE tbl_user
+        # Benutzer aktualisieren
+        cursor.execute("""
+            UPDATE "user"
             SET username = %s
             WHERE user_id = %s
-            """, (data['username'], user_id)
-        )
-        cursor.execute(
-            """
-            UPDATE tbl_user_details
-            SET "CompanyName" = %s, "Adresse" = %s, email = %s, phone = %s
-            WHERE user_id = %s
-            """, (data['company_name'], data['adresse'], data['email'], data['phone'], user_id)
-        )
-        conn.commit()
+        """, (data['username'], user_id))
 
+        # Anbieter aktualisieren
+        cursor.execute("""
+            UPDATE accommodation
+            SET company_name = %s
+            WHERE provider_id = (
+                SELECT provider_id FROM "user" WHERE user_id = %s
+            )
+        """, (data['company_name'], user_id))
+
+        # Kontakt aktualisieren
+        cursor.execute("""
+            UPDATE contact
+            SET address = %s, postal_code = %s, location = %s, phone = %s
+            WHERE contact_id = (
+                SELECT a.contact_id FROM accommodation a
+                JOIN "user" u ON a.provider_id = u.provider_id
+                WHERE u.user_id = %s
+            )
+        """, (data['address'], data['postal_code'], data['location'], data['phone'], user_id))
+
+        conn.commit()
         return jsonify({"success": True, "message": "Kunde erfolgreich bearbeitet"}), 200
     except Exception as e:
         conn.rollback()
@@ -140,23 +157,40 @@ def edit_kunde(user_id):
         conn.close()
 
 
+
+
 @app.route('/delete-kunde/<int:user_id>', methods=['DELETE'])
 def delete_kunde(user_id):
-    """API zum Löschen eines Kunden."""
     try:
         conn = create_db_connection()
         cursor = conn.cursor()
 
-        cursor.execute("DELETE FROM tbl_user_details WHERE user_id = %s", (user_id,))
-        cursor.execute("DELETE FROM tbl_user WHERE user_id = %s", (user_id,))
-        conn.commit()
+        # Anbieter-ID ermitteln
+        cursor.execute("""
+            SELECT provider_id FROM "user" WHERE user_id = %s
+        """, (user_id,))
+        provider_id = cursor.fetchone()[0]
 
+        # Kontakt-ID ermitteln
+        cursor.execute("""
+            SELECT contact_id FROM accommodation WHERE provider_id = %s
+        """, (provider_id,))
+        contact_id = cursor.fetchone()[0]
+
+        # Löschen in der richtigen Reihenfolge
+        cursor.execute("DELETE FROM contact WHERE contact_id = %s", (contact_id,))
+        cursor.execute("DELETE FROM accommodation WHERE provider_id = %s", (provider_id,))
+        cursor.execute("DELETE FROM \"user\" WHERE user_id = %s", (user_id,))
+
+        conn.commit()
         return jsonify({"success": True, "message": "Kunde erfolgreich gelöscht"}), 200
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
     finally:
         conn.close()
+
+
 
 
 if __name__ == '__main__':

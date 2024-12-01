@@ -55,10 +55,11 @@ def login():
         # Prüfen, ob der Benutzer existiert
         cursor.execute("""
             SELECT u.user_id, u.role_id, r.role_name, u.username
-            FROM tbl_user u
-            JOIN tbl_rolle r ON u.role_id = r.role_id
+            FROM "user" u
+            JOIN role r ON u.role_id = r.role_id
             WHERE u.username = %s AND u.password = %s
         """, (username, password))
+
         user = cursor.fetchone()
 
         if user:
@@ -110,11 +111,13 @@ def user(id):
     try:
         with db.cursor() as cur:
             query = """
-                SELECT *
-                FROM tbl_user_details u
+                SELECT u.user_id, u.first_name, u.last_name, u.email, r.role_name
+                FROM "user" u
+                JOIN role r ON u.role_id = r.role_id
                 WHERE u.user_id = %s;
             """
-            cur.execute(query, (id))
+            cur.execute(query, (id,))
+
             user_details = cur.fetchone()
             if not user_details:
                 msg = f"User nicht gefunden: " + str(id)
