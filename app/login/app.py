@@ -36,7 +36,7 @@ def authorize():
         app.logger.error(f'Fehler bei der Autorisierung: {e}')
         return redirect('/home')
 
-    # Weitere Logik hier, um Benutzer in die Datenbank zu schreiben
+    
     return redirect('/home')
 
 
@@ -67,8 +67,9 @@ def login():
             session['role_id'] = user[1]  # Rolle des Benutzers
             session['user_type'] = user[2]  # Name der Rolle (z. B. "admin", "student", "anbieter")
             session['user'] = user[3]  # Benutzername
+            
+            app.logger.debug(f"Session-Daten nach Login: {session}")
 
-            app.logger.info(f"Benutzer erfolgreich angemeldet: {user[3]} mit Rolle {user[2]}")
 
             return jsonify({
                 'message': user[3],

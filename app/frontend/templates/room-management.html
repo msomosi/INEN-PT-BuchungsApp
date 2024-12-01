@@ -80,7 +80,7 @@
         }
 
         .container {
-            margin-left: 220px;
+            margin-left: 50px;
             padding: 20px;
         }
 
@@ -239,7 +239,7 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar open" id="sidebar">
+    <div class="sidebar" id="sidebar">
         <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
         <a href="/home">🏠 Startseite</a>
         {% if 'create-booking' in permissions %}

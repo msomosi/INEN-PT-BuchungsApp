@@ -102,6 +102,22 @@ services:
       - DB_PASSWORD=S3cret
       - SESSION_KEY=12345678910111213141516
 
+  kundenmanagement:
+    image: apeni/kundenmanagement
+    build:
+      context: ../app
+      dockerfile: ../app/build/Dockerfile
+      args:
+        module: kundenmanagement
+    ports:
+      - "8088:80"
+    environment:
+      - DB_HOSTNAME=db
+      - DB_SID=citizix_db
+      - DB_USERNAME=citizix_user
+      - DB_PASSWORD=S3cret
+      - SESSION_KEY=12345678910111213141516
+
   zimmerverwaltung:
     image: apeni/zimmerverwaltung
     build:

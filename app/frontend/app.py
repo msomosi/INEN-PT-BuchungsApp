@@ -18,7 +18,7 @@ def home():
         permissions = {
             'student': ['create-booking', 'room-management','user-details'],
             'anbieter': ['anbietermgmt', 'user-details'],
-            'admin': ['create-booking', 'room-management', 'anbietermgmt', 'user-details', 'bookingmgmt']
+            'admin': ['user-details','kundenmanagement']
         }
 
         # Berechtigungen für den aktuellen Benutzer
@@ -311,8 +311,85 @@ def user_details(zimmer_id):
         if 'conn' in locals():
             conn.close()
 
+@app.route('/kundenmanagement', methods=['GET'])
+def kundenmanagement():
+    """Ruft die Kundenliste über die API auf."""
+    try:
+        search_query = request.args.get('search', '')
+        response = requests.get(f'http://kundenmanagement/kundenmanagement?search={search_query}')
+        response.raise_for_status()
+
+        data = response.json()
+        users_list = data.get('users', [])
+        search_query = data.get('search_query', '')
+
+        return render_template(
+            'kundenmanagement.html',
+            users=users_list,
+            search_query=search_query
+        )
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Fehler beim Abrufen der Kundenmanagement-Daten: {e}")
+        return render_template('error.html', message='Fehler beim Laden der Kundenmanagement-Daten.')
 
 
+@app.route('/add-kunde', methods=['POST'])
+def add_kunde():
+    """Sendet neue Kundendaten an die API."""
+    try:
+        data = {
+            "username": request.form['username'],
+            "password": request.form['password'],
+            "company_name": request.form['company_name'],
+            "adresse": request.form['adresse'],
+            "email": request.form['email'],
+            "phone": request.form['phone']
+        }
+
+        # Sende die Daten als JSON und setze den Content-Type korrekt
+        response = requests.post(
+            'http://kundenmanagement/add-kunde',
+            json=data,  # Daten im JSON-Format
+            headers={"Content-Type": "application/json"}  # Sicherstellen des Content-Types
+        )
+        response.raise_for_status()
+        return redirect('/kundenmanagement')
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Fehler beim Hinzufügen eines Kunden: {e}")
+        return render_template('error.html', message='Fehler beim Hinzufügen des Kunden.')
+
+
+
+
+@app.route('/edit-kunde/<int:user_id>', methods=['POST'])
+def edit_kunde(user_id):
+    """Sendet bearbeitete Kundendaten an die API."""
+    try:
+        data = {
+            "username": request.form['username'],
+            "company_name": request.form['company_name'],
+            "adresse": request.form['adresse'],
+            "email": request.form['email'],
+            "phone": request.form['phone']
+        }
+        response = requests.put(f'http://kundenmanagement/edit-kunde/{user_id}', json=data)
+        response.raise_for_status()
+        return redirect('/kundenmanagement')
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Fehler beim Bearbeiten eines Kunden: {e}")
+        return render_template('error.html', message='Fehler beim Bearbeiten des Kunden.')
+
+
+@app.route('/delete-kunde/<int:user_id>', methods=['POST'])
+def delete_kunde(user_id):
+    """Sendet Löschanfrage an die API."""
+    try:
+        response = requests.delete(f'http://kundenmanagement/delete-kunde/{user_id}')
+        response.raise_for_status()
+        return redirect('/kundenmanagement')
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Fehler beim Löschen eines Kunden: {e}")
+        return render_template('error.html', message='Fehler beim Löschen des Kunden.')
 
 
 

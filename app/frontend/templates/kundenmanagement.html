@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kundenmanagement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f9fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #017cbb;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            transform: translateX(-200px);
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+            box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar img {
+            width: 100px;
+            margin-bottom: 20px;
+            margin-top: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a {
+            width: 90%;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            border-radius: 5px;
+            margin: 5px 10px;
+            text-align: left;
+            transition: background 0.3s, transform 0.2s ease-in-out;
+        }
+
+        .sidebar a:hover {
+            background-color: #015a88;
+            transform: translateX(5px);
+        }
+
+        .toggle-sidebar {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+
+        .toggle-sidebar:hover {
+            background-color: #015a88;
+        }
+
+        .container {
+            margin-left: 50px;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #017cbb;
+        }
+
+        .form-container {
+            display: none;
+            margin-top: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease-in-out;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .form-container button {
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .form-container button:hover {
+            background-color: #015a88;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #e5f6fd;
+        }
+
+        .search-bar {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .search-bar button {
+            padding: 10px 20px;
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search-bar button:hover {
+            background-color: #015a88;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
+        <a href="/home">🏠 Startseite</a>
+        <a href="/kundenmanagement">👥 Kundenmanagement</a>
+        <a href="/logout">🚪 Abmelden</a>
+    </div>
+
+    <button class="toggle-sidebar" id="toggle-sidebar">☰ Menü</button>
+
+    <div class="container">
+        <h1>Kundenmanagement</h1>
+
+        <!-- Suchleiste -->
+        <div class="search-bar">
+            <form method="GET" action="/kundenmanagement">
+                <input type="text" name="search" placeholder="Firma suchen..." value="{{ search_query }}">
+                <button type="submit">🔍 Suchen</button>
+            </form>
+        </div>
+
+        <!-- Kunde hinzufügen -->
+        <div style="text-align: center;">
+            <button id="toggle-add-kunde">➕ Kunde hinzufügen</button>
+        </div>
+
+        <div class="form-container" id="add-kunde-form">
+            <h3 style="text-align: center; color: #017cbb;">Neuen Kunden hinzufügen</h3>
+            <form method="POST" action="/add-kunde">
+                <div class="form-group">
+                    <label for="username">Benutzername:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Passwort:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="company_name">Firmenname:</label>
+                    <input type="text" id="company_name" name="company_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="adresse">Adresse:</label>
+                    <input type="text" id="adresse" name="adresse" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-Mail:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Telefonnummer:</label>
+                    <input type="text" id="phone" name="phone" required>
+                </div>
+                <button type="submit">Kunde hinzufügen</button>
+            </form>
+        </div>
+
+        <!-- Tabelle -->
+        <table>
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Company</th>
+                    <th>Adresse</th>
+                    <th>Email</th>
+                    <th>Telefon</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr id="user-row-{{ user.user_id }}">
+                    <td>{{ user.user_id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.company_name }}</td>
+                    <td>{{ user.adresse }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>
+                        <!-- Bearbeiten -->
+                        <button class="edit-btn" data-user-id="{{ user.user_id }}">✏️ Bearbeiten</button>
+            
+                        <!-- Löschen -->
+                        <button class="delete-btn" data-user-id="{{ user.user_id }}">🗑️ Löschen</button>
+                    </td>
+                </tr>
+                <tr id="edit-form-{{ user.user_id }}" style="display: none;">
+                    <td colspan="7">
+                        <form method="POST" class="edit-form" data-user-id="{{ user.user_id }}">
+                            <div>
+                                <input type="text" name="username" value="{{ user.username }}" required>
+                                <input type="text" name="company_name" value="{{ user.company_name }}" required>
+                                <input type="text" name="adresse" value="{{ user.adresse }}" required>
+                                <input type="email" name="email" value="{{ user.email }}" required>
+                                <input type="text" name="phone" value="{{ user.phone }}" required>
+                            </div>
+                            <button type="submit">Änderungen speichern</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggle-sidebar');
+        const addKundeButton = document.getElementById('toggle-add-kunde');
+        const addKundeForm = document.getElementById('add-kunde-form');
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        addKundeButton.addEventListener('click', () => {
+            addKundeForm.style.display = addKundeForm.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Bearbeiten-Button
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const userId = button.dataset.userId;
+                const editForm = document.getElementById(`edit-form-${userId}`);
+                editForm.style.display = editForm.style.display === 'none' ? 'table-row' : 'none';
+            });
+        });
+
+        // Bearbeiten-Formular
+        document.querySelectorAll('.edit-form').forEach(form => {
+            form.addEventListener('submit', async event => {
+                event.preventDefault();
+                const userId = form.dataset.userId;
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch(`/edit-kunde/${userId}`, {
+                        method: 'POST',
+                        body: new URLSearchParams(formData),
+                    });
+
+                    if (response.ok) {
+                        alert('Kunde erfolgreich bearbeitet');
+                        location.reload();
+                    } else {
+                        alert('Fehler beim Bearbeiten des Kunden');
+                    }
+                } catch (error) {
+                    console.error('Fehler:', error);
+                }
+            });
+        });
+
+        // Löschen-Button
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const userId = button.dataset.userId;
+
+                if (!confirm('Möchten Sie diesen Kunden wirklich löschen?')) return;
+
+                try {
+                    const response = await fetch(`/delete-kunde/${userId}`, {
+                        method: 'POST',
+                    });
+
+                    if (response.ok) {
+                        alert('Kunde erfolgreich gelöscht');
+                        document.getElementById(`user-row-${userId}`).remove();
+                    } else {
+                        alert('Fehler beim Löschen des Kunden');
+                    }
+                } catch (error) {
+                    console.error('Fehler:', error);
+                }
+            });
+        });
+
+        // Kunden hinzufügen
+
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status');
+        const message = urlParams.get('message');
+
+        if (status === 'success') {
+            alert('Kunde wurde erfolgreich hinzugefügt!');
+        } else if (status === 'error') {
+            alert(`Fehler beim Hinzufügen des Kunden: ${message}`);
+        }
+
+        // Entferne die Parameter aus der URL, nachdem sie verarbeitet wurden
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+    </script>
+</body>
+</html>

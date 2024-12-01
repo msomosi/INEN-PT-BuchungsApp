@@ -83,14 +83,15 @@
 
         .container {
             background-color: white;
-            margin: 0 auto;
+            
             padding: 50px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             max-width: 800px;
             width: 90%;
             text-align: center;
-            margin-top: 50px;
+            margin-top: 100px;
+            margin-left: 450px;
         }
 
         .container img {
@@ -107,6 +108,7 @@
             max-width: 800px;
             width: 90%;
             text-align: center;
+            margin-left: 470px;
         }
 
         .ratings-container img {
@@ -150,6 +152,9 @@
         {% endif %}
         {% if 'room-management' in permissions %}
         <a href="/booked-management">📖 Buchungsübersicht</a>
+        {% endif %}
+        {% if 'kundenmanagement' in permissions %}
+        <a href="/kundenmanagement">👥 Kundenmanagement</a>
         {% endif %}
         {% if 'user-details' in permissions %}
         <a href="/user-profile">👤 Mein Profil</a>
