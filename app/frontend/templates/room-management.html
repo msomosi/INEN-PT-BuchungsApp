@@ -235,6 +235,36 @@
         tr:hover {
             background-color: #f1f1f1;
         }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: white;
+            display: inline-block;
+        }
+
+        .status.available {
+            background-color: green;
+        }
+
+        .status.pending {
+            background-color: orange;
+        }
+
+        .status.confirmed {
+            background-color: blue;
+        }
+
+        .status.completed {
+            background-color: gray;
+        }
+
+        .status.failed {
+            background-color: red;
+        }
+
+
     </style>
 </head>
 <body>
@@ -267,19 +297,14 @@
 
         <!-- Summary Section -->
         <div class="summary">
+            {% for state_name, count in summary.items() %}
             <div>
-                <h3>Booked</h3>
-                <p id="booked-count">{{ summary.booked }}</p>
+                <h3>{{ state_name }}</h3>
+                <p>{{ count }}</p>
             </div>
-            <div>
-                <h3>Pending</h3>
-                <p id="pending-count">{{ summary.pending }}</p>
-            </div>
-            <div>
-                <h3>Available</h3>
-                <p id="available-count">{{ summary.available }}</p>
-            </div>
+            {% endfor %}
         </div>
+        
 
         <!-- Add Room Section -->
         <div class="add-room-container">
@@ -311,6 +336,7 @@
                     <th>Buchungsstatus</th>
                     <th>Info Student:in</th>
                     <th>Student:in</th>
+                    <th>Aktion</th>
                 </tr>
             </thead>
             <tbody id="room-table">
@@ -318,7 +344,9 @@
                 <tr>
                     <td>{{ room.zimmer_id }}</td>
                     <td>{{ room.date }}</td>
-                    <td>{{ room.state_name }}</td>
+                    <td>
+                        <span class="status {{ room.state_name|lower }}">{{ room.state_name }}</span>
+                    </td>
                     <td>
                         {% if room.state_id > 1 %}
                             <a href="/user-details/{{ room.zimmer_id }}" target="_blank">Details</a>
@@ -327,10 +355,20 @@
                         {% endif %}
                     </td>
                     <td>{{ room.firstname }} {{ room.lastname }}</td>
+                    <td>
+                        {% if room.state_name == 'pending' %}
+                        <button class="update-status-btn" data-booking-id="{{ room.booking_id }}" data-new-status-id="3">
+                            Auf "Bestätigt" setzen
+                        </button>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        
     </div>
 
     <script>
@@ -350,6 +388,34 @@
                 addRoomForm.style.display = 'none';
             }
         });
+
+        document.querySelectorAll('.update-status-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const bookingId = button.getAttribute('data-booking-id');
+            const newStatusId = button.getAttribute('data-new-status-id');
+
+            fetch('/update-booking-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ booking_id: bookingId, status_id: newStatusId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Status erfolgreich aktualisiert!');
+                    location.reload(); // Aktualisiert die Seite
+                } else {
+                    alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Ein unerwarteter Fehler ist aufgetreten.');
+            });
+        });
+    });
     </script>
 </body>
 </html>

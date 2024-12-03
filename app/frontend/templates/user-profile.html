@@ -114,6 +114,23 @@
         h1 {
             color: #017cbb;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .edit-btn {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .edit-btn:hover {
+            background-color: #015a88;
         }
 
         .info-table {
@@ -128,6 +145,18 @@
         .info-table td:first-child {
             font-weight: bold;
             color: #333;
+        }
+
+        .info-table input {
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .info-table input[readonly] {
+            background-color: #f4f4f4;
+            border: none;
         }
     </style>
 </head>
@@ -160,65 +189,160 @@
             <img src="{{ url_for('static', filename='profile_page.jpg') }}" alt="Profil Illustration">
         </div>
         <div class="right-section">
-            <h1>Mein Profil</h1>
-            <table class="info-table">
-                <tr>
-                    <td>Vorname:</td>
-                    <td>{{ user.firstname }}</td>
-                </tr>
-                <tr>
-                    <td>Nachname:</td>
-                    <td>{{ user.lastname }}</td>
-                </tr>
-                {% if user.role_id == 3 %}
-                <tr>
-                    <td>Matrikelnummer:</td>
-                    <td>{{ user.matrikelnummer }}</td>
-                </tr>
-                <tr>
-                    <td>Universität:</td>
-                    <td>{{ user.university }}</td>
-                </tr>
-                <tr>
-                    <td>Inskription bis:</td>
-                    <td>{{ user.inskription_end }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td>Firma:</td>
-                    <td>{{ user.company_name }}</td>
-                </tr>
-                {% endif %}
-                <tr>
-                    <td>Adresse:</td>
-                    <td>{{ user.adresse }}</td>
-                </tr>
-                <tr>
-                    <td>PLZ:</td>
-                    <td>{{ user.plz }}</td>
-                </tr>
-                <tr>
-                    <td>Ort:</td>
-                    <td>{{ user.location }}</td>
-                </tr>
-                <tr>
-                    <td>E-Mail:</td>
-                    <td>{{ user.email }}</td>
-                </tr>
-                <tr>
-                    <td>Telefon:</td>
-                    <td>{{ user.phone }}</td>
-                </tr>
-            </table>
+            <h1>
+                Mein Profil
+                <!-- Bearbeiten -->
+                <button class="edit-btn" id="edit-btn" data-user-id="{{ user.user_id }}">✏️ Bearbeiten</button>
+            </h1>
+            <form id="profile-form">
+                <table class="info-table">
+                    <tr>
+                        <td>Vorname:</td>
+                        <td><span>{{ user.firstname }}</span></td>
+                    </tr>
+                    <tr>
+                        <td>Nachname:</td>
+                        <td><span>{{ user.lastname }}</span></td>
+                    </tr>
+                    {% if user.role_id == 2 %}
+                    <tr>
+                        <td>Firma:</td>
+                        <td><span>{{ user.company_name }}</span></td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td>Adresse:</td>
+                        <td>
+                            <span id="adresse">{{ user.adresse }}</span>
+                            <input type="text" name="adresse" value="{{ user.adresse }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>PLZ:</td>
+                        <td>
+                            <span id="plz">{{ user.plz }}</span>
+                            <input type="text" name="plz" value="{{ user.plz }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ort:</td>
+                        <td>
+                            <span id="location">{{ user.location }}</span>
+                            <input type="text" name="location" value="{{ user.location }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>E-Mail:</td>
+                        <td>
+                            <span id="email">{{ user.email }}</span>
+                            <input type="email" name="email" value="{{ user.email }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Telefon:</td>
+                        <td>
+                            <span id="phone">{{ user.phone }}</span>
+                            <input type="text" name="phone" value="{{ user.phone }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    {% if user.role_id == 3 %}
+                    <tr>
+                        <td>Verifiziert:</td>
+                        <td>{{ user.verification }}</td>
+                    </tr>
+                    <tr>
+                        <td>Verifizierungsdatum:</td>
+                        <td>{{ user.verification_date }}</td>
+                    </tr>
+                    <tr>
+                        <td>Matrikelnummer:</td>
+                        <td>{{ user.matrikelnummer }}</td>
+                    </tr>
+                    <tr>
+                        <td>Universität:</td>
+                        <td>{{ user.university }}</td>
+                    </tr>
+                    <tr>
+                        <td>Universitäts-Adresse:</td>
+                        <td>{{ user.university_address }}</td>
+                    </tr>
+                    <tr>
+                        <td>Inskription bis:</td>
+                        <td>{{ user.inskription_end }}</td>
+                    </tr>
+                    {% endif %}
+
+                </table>
+                <button type="submit" id="save-button" style="display: none;">Speichern</button>
+            </form>
         </div>
     </div>
 
     <script>
         const sidebar = document.getElementById('sidebar');
         const toggleSidebarButton = document.getElementById('toggle-sidebar');
+        const editButton = document.getElementById('edit-btn');
+        const saveButton = document.getElementById('save-button');
+        const spans = document.querySelectorAll('span');
+        const inputs = document.querySelectorAll('input');
 
         toggleSidebarButton.addEventListener('click', () => {
             sidebar.classList.toggle('open');
+        });
+
+        let isEditing = false;
+
+        editButton.addEventListener('click', () => {
+            if (!isEditing) {
+                spans.forEach(span => {
+                    const input = span.nextElementSibling;
+                    if (input) {
+                        span.style.display = 'none';
+                        input.style.display = 'block';
+                        input.removeAttribute('readonly');
+                    }
+                });
+                saveButton.style.display = 'block';
+                editButton.textContent = "❌ Abbrechen";
+            } else {
+                inputs.forEach(input => {
+                    const span = input.previousElementSibling;
+                    if (span) {
+                        input.style.display = 'none';
+                        input.setAttribute('readonly', true);
+                        span.style.display = 'inline';
+                    }
+                });
+                saveButton.style.display = 'none';
+                editButton.textContent = "✏️ Bearbeiten";
+            }
+            isEditing = !isEditing;
+        });
+
+        document.getElementById('profile-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const jsonData = {};
+            formData.forEach((value, key) => (jsonData[key] = value));
+
+            fetch('/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonData),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.success || data.error || 'Ein Fehler ist aufgetreten.');
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    alert('Ein unerwarteter Fehler ist aufgetreten.');
+                    console.error(error);
+                });
         });
     </script>
 </body>

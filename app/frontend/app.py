@@ -17,7 +17,7 @@ def home():
         # Berechtigungen definieren
         permissions = {
             'student': ['create-booking', 'room-management','user-details'],
-            'anbieter': ['anbietermgmt', 'user-details'],
+            'provider': ['anbietermgmt', 'user-details'],
             'admin': ['user-details','kundenmanagement']
         }
 
@@ -44,23 +44,54 @@ def login():
 @app.route('/anbietermgmt')
 def anbietermgmt():
     try:
-        # Daten von der API abrufen
-        response_rooms = requests.get('http://anbietermgmt/anbietermgmt')
-        response_summary = requests.get('http://anbietermgmt/room_summary')
+        user_id = session.get("user_id")
+        if not user_id:
+            return render_template('error.html', message="Benutzer ist nicht eingeloggt.")
 
-        # Prüfen, ob die API erfolgreich Daten zurückgegeben hat
-        rooms = response_rooms.json() if response_rooms.status_code == 200 else []
-        summary = response_summary.json() if response_summary.status_code == 200 else {
-            "available": 0,
-            "pending": 0,
-            "booked": 0
-        }
+        # Daten von der API abrufen
+        response_rooms = requests.get(f'http://anbietermgmt/anbietermgmt?user_id={user_id}')
+        response_summary = requests.get(f'http://anbietermgmt/room_summary?user_id={user_id}')
+
+        if response_rooms.status_code == 200:
+            rooms = response_rooms.json().get("rooms", [])
+        else:
+            app.logger.warning(f"Fehler beim Abrufen der Zimmerdaten: {response_rooms.status_code}")
+            rooms = []
+
+        if response_summary.status_code == 200:
+            summary = response_summary.json().get("summary", {})
+        else:
+            app.logger.warning(f"Fehler beim Abrufen der Zusammenfassung: {response_summary.status_code}")
+            summary = {
+                "available": 0,
+                "pending": 0,
+                "confirmed": 0,
+                "completed": 0,
+                "failed": 0
+            }
+
+        # Validierung der Room-Daten und Ergänzung fehlender Attribute
+        for room in rooms:
+            room['state_id'] = room.get('state_id', 1)  
+            room['state_name'] = room.get('state_name', "Available")  
+            room['zimmer_id'] = room.get('zimmer_id', None)
+            room['date'] = room.get('date', "Unbekannt")
+            room['firstname'] = room.get('firstname', "N/A")
+            room['lastname'] = room.get('lastname', "N/A")
+
+
+            # Sicherstellen, dass `state_id` numerisch ist
+            if not isinstance(room['state_id'], int):
+                room['state_id'] = 0
+
 
         # Weitergabe an das Template
         return render_template('room-management.html', rooms=rooms, summary=summary)
+
     except Exception as e:
         app.logger.error(f"Fehler beim Abrufen der Zimmerdaten: {e}")
         return render_template('error.html', message='Fehler beim Laden der Daten.')
+
 
 
 @app.route('/booked-management')
@@ -144,7 +175,7 @@ def create_booking():
 
 @app.route('/user-profile', methods=['GET'])
 def user_profile():
-    """Zeigt das Benutzerprofil basierend auf der user_id aus der Session."""
+    """Zeigt das Benutzerprofil basierend auf der user_id und Rolle."""
     debug_request(request)
     try:
         user_id = session.get('user_id')
@@ -155,39 +186,110 @@ def user_profile():
 
         conn = create_db_connection()
         with conn.cursor() as cur:
-            query = """
-                SELECT 
-                    user_id, "Firstname", "Lastname", "CompanyName", "Matrikelnummer", 
-                    "University", "Inskription_end", "Adresse", "Plz", "Location", 
-                    email, phone
-                FROM 
-                    tbl_user_details
-                WHERE 
-                    user_id = %s;
+            # Benutzerinformationen aus der Tabelle "user" abrufen
+            query_user = """
+                SELECT first_name, last_name, email, verification, verification_date 
+                FROM public."user"
+                WHERE user_id = %s;
             """
-            cur.execute(query, (user_id,))
-            row = cur.fetchone()
+            cur.execute(query_user, (user_id,))
+            user_row = cur.fetchone()
 
-            if not row:
+            if not user_row:
                 app.logger.warning(f"Keine Benutzerdetails für user_id {user_id} gefunden.")
                 return render_template('error.html', message='Benutzerdetails nicht gefunden.')
 
-            # Benutzerinformationen in ein Wörterbuch konvertieren
+            # Grundlegende Benutzerinformationen speichern
             user_data = {
-                "user_id": row[0],
-                "firstname": row[1],
-                "lastname": row[2],
-                "company_name": row[3],
-                "matrikelnummer": row[4],
-                "university": row[5],
-                "inskription_end": row[6],
-                "adresse": row[7],
-                "plz": row[8],
-                "location": row[9],
-                "email": row[10],
-                "phone": row[11],
-                "role_id": role_id  # Rolle in die Benutzerdaten einfügen
+                "firstname": user_row[0],
+                "lastname": user_row[1],
+                "email": user_row[2],
+                "verification": "Ja" if user_row[3] else "Nein",
+                "verification_date": user_row[4].strftime('%Y-%m-%d') if user_row[4] else "Nicht verfügbar",
+                "role_id": role_id
             }
+
+            # Adressinformationen aus der Tabelle "contact" abrufen
+            query_contact = """
+                SELECT address, postal_code, location, phone
+                FROM public.contact
+                WHERE contact_id = (
+                    SELECT contact_id
+                    FROM public.student
+                    WHERE user_id = %s
+                ) OR contact_id = (
+                    SELECT contact_id
+                    FROM public.accommodation
+                    WHERE provider_id = (
+                        SELECT provider_id
+                        FROM public."user"
+                        WHERE user_id = %s
+                    )
+                );
+            """
+            cur.execute(query_contact, (user_id, user_id))
+            contact_row = cur.fetchone()
+
+            if contact_row:
+                user_data.update({
+                    "adresse": contact_row[0],
+                    "plz": contact_row[1],
+                    "location": contact_row[2],
+                    "phone": contact_row[3]
+                })
+
+            # Zusätzliche Logik basierend auf der Rolle
+            if role_id == 3:  # Student
+                query_student = """
+                    SELECT student_number, university_id, enrollment_end
+                    FROM public.student
+                    WHERE user_id = %s;
+                """
+                cur.execute(query_student, (user_id,))
+                student_row = cur.fetchone()
+
+                if student_row:
+                    user_data.update({
+                        "matrikelnummer": student_row[0],
+                        "inskription_end": student_row[2].strftime('%Y-%m-%d') if student_row[2] else "Nicht verfügbar"
+                    })
+
+                    # Universitätsinformationen abrufen
+                    query_university = """
+                        SELECT university_name, (SELECT address FROM public.contact WHERE contact_id = public.university.contact_id) AS address
+                        FROM public.university
+                        WHERE university_id = %s;
+                    """
+                    cur.execute(query_university, (student_row[1],))
+                    university_row = cur.fetchone()
+
+                    if university_row:
+                        user_data.update({
+                            "university": university_row[0],
+                            "university_address": university_row[1]
+                        })
+
+            elif role_id == 2:  # Provider
+                query_provider = """
+                    SELECT company_name
+                    FROM public.accommodation
+                    WHERE provider_id = (
+                        SELECT provider_id
+                        FROM public."user"
+                        WHERE user_id = %s
+                    );
+                """
+                cur.execute(query_provider, (user_id,))
+                provider_row = cur.fetchone()
+
+                if provider_row:
+                    user_data.update({
+                        "company_name": provider_row[0]
+                    })
+
+            elif role_id == 1:  # Admin
+                # Admin benötigt keine zusätzlichen Daten
+                pass
 
         return render_template('user-profile.html', user=user_data)
     except Exception as e:
@@ -198,55 +300,92 @@ def user_profile():
             conn.close()
 
 
+
+
+
+
 @app.route('/update-profile', methods=['POST'])
 def update_profile():
     """Aktualisiert die bearbeitbaren Felder im Benutzerprofil."""
     try:
         user_id = session.get('user_id')
+        role_id = session.get('role_id')  # Rolle des Benutzers
         if not user_id:
-            app.logger.error("Keine user_id in der Session gefunden.")
             return jsonify({'error': 'Benutzer ist nicht eingeloggt.'}), 401
 
-        # Hole die aktualisierten Daten aus dem Formular
-        updated_data = {
-            "adresse": request.form.get('adresse'),
-            "plz": request.form.get('plz'),
-            "location": request.form.get('location'),
-            "email": request.form.get('email'),
-            "phone": request.form.get('phone')
-        }
+        # Hole die aktualisierten Daten aus der Anfrage
+        updated_data = request.json
+        adresse = updated_data.get('adresse')
+        plz = updated_data.get('plz')
+        location = updated_data.get('location')
+        email = updated_data.get('email')
+        phone = updated_data.get('phone')
 
-        # Verarbeite die Änderungen
         conn = create_db_connection()
+
+        # Rollenbasiertes Update
         with conn.cursor() as cur:
-            query = """
-                UPDATE tbl_user_details
-                SET 
-                    "Adresse" = %s,
-                    "Plz" = %s,
-                    "Location" = %s,
-                    email = %s,
-                    phone = %s
-                WHERE user_id = %s;
-            """
-            cur.execute(query, (
-                updated_data['adresse'], 
-                updated_data['plz'], 
-                updated_data['location'], 
-                updated_data['email'], 
-                updated_data['phone'], 
-                user_id
-            ))
+            if role_id == 2:  # Provider
+                query = """
+                    UPDATE public.contact
+                    SET address = %s,
+                        postal_code = %s,
+                        location = %s,
+                        phone = %s
+                    WHERE contact_id = (
+                        SELECT contact_id
+                        FROM public.accommodation
+                        WHERE provider_id = (
+                            SELECT provider_id
+                            FROM public."user"
+                            WHERE user_id = %s
+                        )
+                    );
+                """
+                cur.execute(query, (adresse, plz, location, phone, user_id))
+
+            elif role_id == 3:  # Student
+                query = """
+                    UPDATE public.contact
+                    SET address = %s,
+                        postal_code = %s,
+                        location = %s,
+                        phone = %s
+                    WHERE contact_id = (
+                        SELECT contact_id
+                        FROM public.student
+                        WHERE user_id = %s
+                    );
+                """
+                cur.execute(query, (adresse, plz, location, phone, user_id))
+
+            elif role_id == 1:  # Admin
+                query = """
+                    UPDATE public.contact
+                    SET address = %s,
+                        postal_code = %s,
+                        location = %s,
+                        phone = %s
+                    WHERE contact_id = (
+                        SELECT contact_id
+                        FROM public.contact
+                        WHERE contact_id = (
+                            SELECT contact_id
+                            FROM public."user"
+                            WHERE user_id = %s
+                        )
+                    );
+                """
+                cur.execute(query, (adresse, plz, location, phone, user_id))
+
             conn.commit()
 
-        app.logger.info(f"Benutzerdetails für user_id {user_id} erfolgreich aktualisiert.")
         return jsonify({'success': 'Profil erfolgreich aktualisiert.'}), 200
+
     except Exception as e:
-        app.logger.error(f"Fehler beim Aktualisieren des Profils: {e}")
-        return jsonify({'error': 'Fehler beim Aktualisieren des Profils.'}), 500
-    finally:
-        if 'conn' in locals():
-            conn.close()
+        return jsonify({'error': 'Fehler beim Aktualisieren des Profils.', 'details': str(e)}), 500
+
+
 
 @app.route('/user-details/<zimmer_id>', methods=['GET'])
 def user_details(zimmer_id):
@@ -255,33 +394,44 @@ def user_details(zimmer_id):
     try:
         conn = create_db_connection()
         with conn.cursor() as cur:
-            # Schritt 1: user_id anhand der zimmer_id aus tbl_buchung abrufen
+            # Schritt 1: user_id anhand der room_id (zimmer_id) aus der Tabelle "booking" abrufen
             query_user_id = """
-                SELECT user_id 
-                FROM tbl_buchung 
-                WHERE zimmer_id = %s;
+                SELECT b.user_id 
+                FROM public.booking b
+                WHERE b.room_id = %s;
             """
             cur.execute(query_user_id, (zimmer_id,))
             user_id_row = cur.fetchone()
             
             if not user_id_row:
-                app.logger.warning(f"Keine Buchung für zimmer_id {zimmer_id} gefunden.")
+                app.logger.warning(f"Keine Buchung für room_id {zimmer_id} gefunden.")
                 return render_template('error.html', message='Keine Buchung gefunden.')
 
             user_id = user_id_row[0]
 
-            # Schritt 2: Benutzerinformationen aus tbl_user_details und tbl_user abrufen
+            # Schritt 2: Benutzerinformationen aus der Tabelle "user" und "contact" abrufen
             query_user_details = """
                 SELECT 
-                    ud."Firstname", ud."Lastname", ud."Adresse", ud."Plz", 
-                    ud."Location", ud.email, ud.phone, u.verification, 
+                    u.first_name,
+                    u.last_name,
+                    c.address,
+                    c.postal_code,
+                    c.location,
+                    u.email,
+                    c.phone,
+                    u.verification,
                     u.verification_date
                 FROM 
-                    tbl_user_details ud
-                JOIN 
-                    tbl_user u ON ud.user_id = u.user_id
+                    public."user" u
+                LEFT JOIN 
+                    public.contact c ON c.contact_id = (
+                        SELECT contact_id
+                        FROM public.student s
+                        WHERE s.user_id = u.user_id
+                        LIMIT 1
+                    )
                 WHERE 
-                    ud.user_id = %s;
+                    u.user_id = %s;
             """
             cur.execute(query_user_details, (user_id,))
             user_row = cur.fetchone()
@@ -294,11 +444,11 @@ def user_details(zimmer_id):
             user_data = {
                 "firstname": user_row[0],
                 "lastname": user_row[1],
-                "adresse": user_row[2],
-                "plz": user_row[3],
-                "location": user_row[4],
+                "adresse": user_row[2] if user_row[2] else "Nicht verfügbar",
+                "plz": user_row[3] if user_row[3] else "Nicht verfügbar",
+                "location": user_row[4] if user_row[4] else "Nicht verfügbar",
                 "email": user_row[5],
-                "phone": user_row[6],
+                "phone": user_row[6] if user_row[6] else "Nicht verfügbar",
                 "verification": "Verifiziert" if user_row[7] else "Nicht verifiziert",
                 "verification_date": user_row[8].strftime('%Y-%m-%d') if user_row[8] else "Nicht verfügbar"
             }
@@ -310,6 +460,7 @@ def user_details(zimmer_id):
     finally:
         if 'conn' in locals():
             conn.close()
+
 
 @app.route('/kundenmanagement', methods=['GET'])
 def kundenmanagement():
