@@ -53,64 +53,74 @@ def geocode_address(address, postal_code, location):
 def search_providers():
     debug_request(request)
 
-    user_location = request.args.get('location', '').strip().lower()
-    radius = float(request.args.get('radius', 10))  # Standardradius 10 km
+    radius = float(request.args.get('radius', 10))  # Radius
     start_date = request.args.get('start_date', None)
     end_date = request.args.get('end_date', None)
 
     if not start_date or not end_date:
-        msg = "Start- und Enddatum sind erforderlich."
-        app.logger.error(msg)
-        return jsonify({'error': msg}), 400
+        return jsonify({'error': 'Start- und Enddatum sind erforderlich.'}), 400
 
-    # Fallback auf FH Burgenland, falls keine valide Stadt angegeben ist
-    center_location = cities.get(user_location, university_location)
+    center_location = cities.get(request.args.get('location', '').strip().lower(), university_location)
 
     results = []
     try:
         conn = create_db_connection()
         cursor = conn.cursor()
 
-        # SQL-Abfrage für Anbieter erweitern, um postal_code einzubeziehen
+        # SQL für Verfügbarkeit innerhalb der Zeitspanne
         cursor.execute("""
-            SELECT a.provider_id, a.company_name, c.address, c.postal_code, c.location, c.phone, 
-                   a.parking AS parking_available, a.parking_free AS parking_paid
-            FROM accommodation a
-            JOIN contact c ON a.contact_id = c.contact_id
-        """)
+            SELECT 
+                r.room_id,
+                a.provider_id,
+                a.company_name,
+                c.address,
+                c.postal_code,
+                c.location,
+                c.phone,
+                a.parking AS parking_available,
+                a.parking_free AS parking_paid,
+                r.date AS available_date
+            FROM 
+                public.room r
+            JOIN 
+                public.accommodation a ON r.provider_id = a.provider_id
+            JOIN 
+                public.contact c ON a.contact_id = c.contact_id
+            WHERE 
+                r.date BETWEEN %s AND %s
+            ORDER BY 
+                r.date;
+        """, (start_date, end_date))
 
         providers = cursor.fetchall()
 
         for provider in providers:
-            provider_id, name, address, postal_code, location, phone, parking_available, parking_paid = provider
+            room_id, provider_id, name, address, postal_code, location, phone, parking_available, parking_paid, available_date = provider
 
             # Geokodierung der Adresse
             lat, lon = geocode_address(address, postal_code, location)
             if lat is None or lon is None:
-                app.logger.warning(f"Überspringe Anbieter {name}: Keine Koordinaten für Adresse {address}, PLZ {postal_code}, Ort {location}")
                 continue
 
             # Distanz berechnen
             distance = geodesic(center_location, (lat, lon)).km
-            app.logger.debug(f"Berechnete Distanz für {name}: {distance} km")
-
             if distance <= radius:
                 results.append({
-                    "id": provider_id,
-                    "name": name,
-                    "address": f"{address}, {postal_code} {location}",
-                    "phone": phone,
-                    "location": (lat, lon),
-                    "parking": {
-                        "available": parking_available,
-                        "paid": parking_paid,
-                    },
-                    "distance": round(distance, 2),
-                })
+                "id": provider_id,
+                "name": name,
+                "address": f"{address}, {postal_code} {location}",
+                "phone": phone,
+                "location": (lat, lon),
+                "parking": {
+                    "available": parking_available,
+                    "paid": parking_paid,
+                },
+                "distance": round(distance, 2),
+                "available_date": available_date.strftime('%d-%m-%Y'),  # Verfügbarkeitsdatum
+                "room_id": room_id  # Die Room-ID für die Buchung
+            })
     except Exception as err:
-        msg = f"Fehler bei der Datenbankabfrage: {err}"
-        app.logger.error(msg)
-        return jsonify({'error': msg}), 500
+        return jsonify({'error': str(err)}), 500
     finally:
         if 'cursor' in locals():
             cursor.close()
@@ -118,6 +128,57 @@ def search_providers():
             conn.close()
 
     return jsonify(results)
+
+@app.route('/create-booking', methods=['POST'])
+def create_booking():
+    """
+    Fügt eine Buchung zur Datenbank hinzu.
+    """
+    try:
+        # Daten aus der Anfrage extrahieren
+        data = request.get_json()
+        app.logger.debug(f"Erhaltene Buchungsdaten: {data}")  # Debugging
+
+        user_id = data.get('user_id')
+        room_id = data.get('room_id')
+        provider_id = data.get('provider_id')
+        state_id = data.get('state_id', 2)  # Standard: "Pending"
+
+        if not all([user_id, room_id, provider_id]):
+            app.logger.error("Fehlende Buchungsdaten")
+            return jsonify({"error": "Fehlende Buchungsdaten"}), 400
+
+        app.logger.debug(f"Verarbeitete Daten: user_id={user_id}, room_id={room_id}, provider_id={provider_id}, state_id={state_id}")
+
+        # Nächste freie booking_id ermitteln
+        conn = create_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COALESCE(MAX(booking_id), 0) + 1 FROM public.booking;")
+        next_booking_id = cursor.fetchone()[0]
+
+        # Buchung in der Datenbank speichern
+        cursor.execute("""
+            INSERT INTO public.booking (booking_id, user_id, room_id, state_id)
+            VALUES (%s, %s, %s, %s)
+        """, (next_booking_id, user_id, room_id, state_id))
+        conn.commit()
+
+        app.logger.info(f"Buchung erfolgreich: booking_id={next_booking_id}, user_id={user_id}, room_id={room_id}, state_id={state_id}")
+        return jsonify({"success": f"Buchung erfolgreich erstellt mit ID {next_booking_id}"}), 200
+    except Exception as e:
+        if 'conn' in locals():
+            conn.rollback()
+        app.logger.error(f"Fehler beim Erstellen der Buchung: {e}")
+        return jsonify({"error": "Fehler beim Erstellen der Buchung"}), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+
+
+
 
 
 if __name__ == '__main__':

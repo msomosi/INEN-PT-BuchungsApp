@@ -70,45 +70,71 @@ def get_kunden():
 
 @app.route('/add-kunde', methods=['POST'])
 def add_kunde():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    company_name = request.form.get('company_name')
-    address = request.form.get('address')
-    postal_code = request.form.get('postal_code')
-    location = request.form.get('location')
-    phone = request.form.get('phone')
-
-    conn = create_db_connection()
-    cursor = conn.cursor()
-
+    """Speichert neue Kundendaten in der Datenbank."""
     try:
-        # Kontakt hinzufügen
+        # JSON-Daten aus der Anfrage abrufen
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        company_name = data.get('company_name')
+        address = data.get('address')
+        postal_code = data.get('postal_code')
+        location = data.get('location')
+        phone = data.get('phone')
+        parking_available = data.get('parking', False)  # Standardwert False
+        parking_free = data.get('parking_free', False)  # Standardwert False
+
+        # Validierung der Daten
+        if not all([username, password, first_name, last_name, company_name, address, postal_code, location, phone]):
+            return jsonify({"success": False, "error": "Ungültige Eingabewerte"}), 400
+
+        # Verbindung zur Datenbank herstellen
+        conn = create_db_connection()
+        cursor = conn.cursor()
+
+        # IDs berechnen
+        cursor.execute("SELECT COALESCE(MAX(contact_id), 0) + 1 FROM public.contact;")
+        next_contact_id = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COALESCE(MAX(provider_id), 0) + 1 FROM public.accommodation;")
+        next_provider_id = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COALESCE(MAX(user_id), 0) + 1 FROM public.user;")
+        next_user_id = cursor.fetchone()[0]
+
+        # Daten in die Tabellen einfügen
+        # 1. `contact`-Tabelle
         cursor.execute("""
-            INSERT INTO contact (address, postal_code, location, phone)
-            VALUES (%s, %s, %s, %s) RETURNING contact_id
-        """, (address, postal_code, location, phone))
+            INSERT INTO contact (contact_id, address, postal_code, location, phone)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (next_contact_id, address, postal_code, location, phone))
 
-
-        # Anbieter hinzufügen
+        # 2. `accommodation`-Tabelle
         cursor.execute("""
-            INSERT INTO accommodation (contact_id, company_name)
-            VALUES (%s, %s) RETURNING provider_id
-        """, (contact_id, company_name))
-        provider_id = cursor.fetchone()[0]
+            INSERT INTO accommodation (provider_id, contact_id, company_name, parking, parking_free)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (next_provider_id, next_contact_id, company_name, parking_available, parking_free))
 
-        # Benutzer hinzufügen
+        # 3. `user`-Tabelle
         cursor.execute("""
-            INSERT INTO "user" (role_id, provider_id, username, password, verification)
-            VALUES (2, %s, %s, %s, TRUE)
-        """, (provider_id, username, password))
+            INSERT INTO "user" (user_id, role_id, provider_id, first_name, last_name, username, password, verification)
+            VALUES (%s, 2, %s, %s, %s, %s, %s, TRUE)
+        """, (next_user_id, next_provider_id, first_name, last_name, username, password))
 
+        # Änderungen in der Datenbank speichern
         conn.commit()
-        return redirect('/kundenmanagement?status=success')
+        return jsonify({"success": True, "message": "Kunde erfolgreich hinzugefügt"}), 200
     except Exception as e:
-        conn.rollback()
-        return redirect(f'/kundenmanagement?status=error&message={e}')
+        # Bei Fehlern Transaktion zurückrollen
+        if 'conn' in locals():
+            conn.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        # Verbindung schließen
+        if 'conn' in locals():
+            conn.close()
 
 
 

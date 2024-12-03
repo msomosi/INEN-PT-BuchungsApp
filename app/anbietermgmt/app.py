@@ -20,6 +20,7 @@ def anbietermgmt():
         user_id = request.args.get("user_id")
         if not user_id:
             return jsonify({'error': 'Benutzer-ID fehlt.'}), 401
+        
 
         conn = create_db_connection()
         with conn.cursor() as cur:
@@ -57,7 +58,6 @@ def anbietermgmt():
             cur.execute(query_rooms, (user_id,))
             rows = cur.fetchall()
 
-            # Datenaufbereitung
             rooms = []
             for row in rows:
                 rooms.append({
@@ -141,7 +141,6 @@ def update_booking_status():
 
         conn = create_db_connection()
         with conn.cursor() as cur:
-            # Aktualisiere den Status
             query = """
                 UPDATE public.booking
                 SET state_id = %s
@@ -169,7 +168,6 @@ if __name__ == '__main__':
 def add_room():
     """Verarbeitet das Hinzufügen eines neuen Zimmers."""
     try:
-        # Hole die JSON-Daten aus der Anfrage
         data = request.json
         user_id = data.get("user_id")
         date = data.get("date")
@@ -179,13 +177,12 @@ def add_room():
         if not user_id or not date or not num_rooms:
             return jsonify({'error': 'Ungültige Eingabewerte: User-ID, Datum oder Anzahl der Zimmer fehlt.'}), 400
 
-        # Konvertiere num_rooms zu Integer
+        # Konvertier num_rooms zu Integer
         try:
             num_rooms = int(num_rooms)
         except ValueError:
             return jsonify({'error': 'Ungültige Anzahl von Zimmern, muss eine Zahl sein.'}), 400
 
-        # Verbindung zur Datenbank herstellen
         conn = create_db_connection()
         with conn.cursor() as cur:
             # Provider-ID anhand der User-ID abrufen
@@ -224,11 +221,6 @@ def add_room():
     finally:
         if 'conn' in locals():
             conn.close()
-
-
-
-
-
 
 
 if __name__ == '__main__':

@@ -33,13 +33,24 @@ def home():
     app.logger.warning("Benutzer ist nicht eingeloggt. Weiterleitung zur Login-Seite.")
     return render_template('login.html')
 
-
-
-
 @app.route('/login')
 def login():
     debug_request(request)
     return
+
+@app.route('/get-session', methods=['GET'])
+def get_session():
+    """
+    Gibt die aktuelle Session-Daten zurück, einschließlich user_id.
+    """
+    try:
+        if 'user_id' in session:
+            return jsonify({"user_id": session['user_id']}), 200
+        return jsonify({"error": "Nicht eingeloggt"}), 401
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der Session-Daten: {e}")
+        return jsonify({"error": "Ein Fehler ist aufgetreten"}), 500
+
 
 @app.route('/anbietermgmt')
 def anbietermgmt():
@@ -197,6 +208,54 @@ def create_booking():
         return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(err)), 500
 
     return render_template('bestaetigung.html', buchung=buchung)
+
+@app.route('/book-room', methods=['POST'])
+def book_room():
+    """
+    Führt die Buchung in der Datenbank aus.
+    """
+    try:
+        # Room- und Provider-Daten aus dem Request abrufen
+        room_id = request.form.get('room_id')
+        provider_id = request.form.get('provider_id')
+        user_id = session.get('user_id')  # User ID aus der Session holen
+
+        if not all([room_id, provider_id, user_id]):
+            return jsonify({"error": "Fehlende Parameter für die Buchung."}), 400
+
+        # Datenbankverbindung herstellen
+        conn = create_db_connection()
+        cursor = conn.cursor()
+
+        # Nächste freie booking_id bestimmen
+        cursor.execute("SELECT COALESCE(MAX(booking_id), 0) + 1 FROM public.booking;")
+        booking_id = cursor.fetchone()[0]
+
+        # Buchung in der Datenbank einfügen
+        cursor.execute("""
+            INSERT INTO public.booking (booking_id, user_id, room_id, state_id)
+            VALUES (%s, %s, %s, %s);
+        """, (booking_id, user_id, room_id, 2))  # state_id = 2 ("pending")
+
+        # Änderungen speichern
+        conn.commit()
+
+        # Debugging: Daten loggen
+        app.logger.info(f"Buchung erfolgreich: booking_id={booking_id}, user_id={user_id}, room_id={room_id}, state_id=2")
+
+        return jsonify({"success": f"Buchung erfolgreich angefragt mit ID {booking_id}."}), 200
+
+    except Exception as e:
+        if 'conn' in locals():
+            conn.rollback()  # Änderungen zurücksetzen, falls ein Fehler auftritt
+        app.logger.error(f"Fehler bei der Buchung: {e}")
+        return jsonify({"error": "Fehler bei der Buchung.", "details": str(e)}), 500
+
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 
 @app.route('/user-profile', methods=['GET'])
@@ -512,31 +571,52 @@ def kundenmanagement():
 
 @app.route('/add-kunde', methods=['POST'])
 def add_kunde():
-    """Sendet neue Kundendaten an die API."""
+    """Erfasst Kundendaten und sendet sie an den Backend-Service."""
     try:
+        # Formulardaten erfassen
+        username = request.form.get('username')
+        password = request.form.get('password')
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        company_name = request.form.get('company_name')
+        address = request.form.get('address')
+        postal_code = request.form.get('postal_code')
+        location = request.form.get('location')
+        phone = request.form.get('phone')
+        parking_available = request.form.get('parking') == "on"  # Checkbox: True/False
+
+        # Validierung der Eingabewerte
+        if not all([username, password, first_name, last_name, company_name, address, postal_code, location, phone]):
+            return redirect('/kundenmanagement?status=error&message=Ungültige Eingabewerte.')
+
+        # Daten für den Backend-Service vorbereiten
         data = {
-            "username": request.form['username'],
-            "password": request.form['password'],
-            "company_name": request.form['company_name'],
-            "adresse": request.form['adresse'],
-            "postal_code": request.form['postal_code'],  
-            "location": request.form['location'],
-            "phone": request.form['phone']
+            "username": username,
+            "password": password,
+            "first_name": first_name,
+            "last_name": last_name,
+            "company_name": company_name,
+            "address": address,
+            "postal_code": postal_code,
+            "location": location,
+            "phone": phone,
+            "parking": parking_available,  
+            "parking_free": False  # Standardwert für kostenlose Parkplätze
         }
 
-
-        # Sende die Daten als JSON und setze den Content-Type korrekt
+        # Anfrage an Backend-Service senden
         response = requests.post(
             'http://kundenmanagement/add-kunde',
-            json=data,  # Daten im JSON-Format
-            headers={"Content-Type": "application/json"}  # Sicherstellen des Content-Types
+            json=data,
+            headers={"Content-Type": "application/json"}
         )
         response.raise_for_status()
-        return redirect('/kundenmanagement')
+
+        # Erfolgreiche Weiterleitung
+        return redirect('/kundenmanagement?status=success')
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Fehler beim Hinzufügen eines Kunden: {e}")
-        return render_template('error.html', message='Fehler beim Hinzufügen des Kunden.')
-
+        return redirect(f'/kundenmanagement?status=error&message={e}')
 
 
 
