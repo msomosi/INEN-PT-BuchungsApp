@@ -1,15 +1,13 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from factory import create_app, create_db_connection, debug_request
 from flask import jsonify, request
 
 app = create_app("booked-management")
 
-# API zum Abrufen der Zimmerdaten
-from flask import session
 
 @app.route('/booked-rooms', methods=['GET'])
 def get_booked_rooms():
-    """API, um Buchungen ohne Anbieternamen abzurufen."""
+    """API, um Buchungen für einen Studenten abzurufen."""
     user_id = request.args.get('user_id', None)  # Hole die user_id aus der Anfrage
     if not user_id:
         app.logger.error("Keine user_id in der Anfrage gefunden.")
@@ -18,21 +16,23 @@ def get_booked_rooms():
     try:
         conn = create_db_connection()
         with conn.cursor() as cur:
+            # Buchungsdaten abfragen
             query = """
                 SELECT 
-                    b.buchung_id, 
-                    b.user_id AS buchender_user_id, 
-                    b.zimmer_id, 
-                    z.date, 
-                    z.state_id
+                    b.booking_id,
+                    b.room_id,
+                    r.date,
+                    bs.state_name
                 FROM 
-                    tbl_buchung b
+                    public.booking b
                 JOIN 
-                    tbl_zimmer z ON b.zimmer_id = z.zimmer_id
+                    public.room r ON b.room_id = r.room_id
+                LEFT JOIN 
+                    public.booking_state bs ON b.state_id = bs.state_id
                 WHERE 
                     b.user_id = %s
                 ORDER BY 
-                    z.date;
+                    r.date;
             """
             cur.execute(query, (user_id,))
             rows = cur.fetchall()
@@ -40,9 +40,9 @@ def get_booked_rooms():
             data = [
                 {
                     "buchung_id": row[0],
-                    "zimmer_id": row[2],
-                    "date": row[3],
-                    "state": "Booked" if row[4] == 1 else "Pending"
+                    "zimmer_id": row[1],
+                    "date": row[2].strftime('%Y-%m-%d') if row[2] else "Unbekannt",
+                    "state": row[3] or "Unbekannt"
                 }
                 for row in rows
             ]
@@ -50,11 +50,7 @@ def get_booked_rooms():
         return jsonify(data)
     except Exception as e:
         app.logger.error(f"Fehler bei der Abfrage: {e}")
-        return jsonify({'error': 'Datenbankabfrage fehlgeschlagen'}), 500
-
-
-
-
+        return jsonify({'error': 'Datenbankabfrage fehlgeschlagen', 'details': str(e)}), 500
 
 
 if __name__ == '__main__':

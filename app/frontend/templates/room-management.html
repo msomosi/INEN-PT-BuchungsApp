@@ -264,6 +264,22 @@
             background-color: red;
         }
 
+        .update-status-btn.pending {
+            background-color: orange; /* gleiche Farbe wie "pending" */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .update-status-btn.pending:hover {
+            background-color: darkorange; /* dunkleres Orange beim Hover */
+        }
+
+
 
     </style>
 </head>
@@ -316,15 +332,12 @@
                     <input type="number" id="num_rooms" name="num_rooms" min="1" value="1" required>
                 </div>
                 <div class="form-group">
-                    <label for="date_from">Datum von:</label>
-                    <input type="date" id="date_from" name="date_from" required>
+                    <label for="date">Verfügbarkeitsdatum:</label>
+                    <input type="date" id="date" name="date" required>
                 </div>
-                <div class="form-group">
-                    <label for="date_to">Datum bis:</label>
-                    <input type="date" id="date_to" name="date_to" required>
-                </div>
-                <button type="submit">Hinzufügen</button>
+                <button type="button" id="submit-add-room">Zimmer hinzufügen</button>
             </div>
+            
         </div>
         
         <!-- Room Table -->
@@ -357,8 +370,8 @@
                     <td>{{ room.firstname }} {{ room.lastname }}</td>
                     <td>
                         {% if room.state_name == 'pending' %}
-                        <button class="update-status-btn" data-booking-id="{{ room.booking_id }}" data-new-status-id="3">
-                            Auf "Bestätigt" setzen
+                        <button class="update-status-btn pending" data-booking-id="{{ room.booking_id }}" data-new-status-id="3">
+                           Buchung Bestätigen
                         </button>
                         {% else %}
                             -
@@ -376,7 +389,7 @@
         const toggleSidebarButton = document.getElementById('toggle-sidebar');
         const addRoomButton = document.getElementById('toggle-add-room');
         const addRoomForm = document.getElementById('add-room-form');
-
+        
         toggleSidebarButton.addEventListener('click', () => {
             sidebar.classList.toggle('open');
         });
@@ -416,6 +429,42 @@
             });
         });
     });
+
+        document.getElementById('submit-add-room').addEventListener('click', function (event) {
+        event.preventDefault();
+
+        const date = document.getElementById('date').value;
+        const numRooms = parseInt(document.getElementById('num_rooms').value, 10); // Sicherstellen, dass es ein Integer ist
+
+        if (!date || isNaN(numRooms)) {
+            alert('Bitte geben Sie ein gültiges Datum und eine gültige Zimmeranzahl ein.');
+            return;
+        }
+
+        fetch('/add-room', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ date: date, num_rooms: numRooms }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Zimmer erfolgreich hinzugefügt!');
+                    location.reload();
+                } else {
+                    alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Ein unerwarteter Fehler ist aufgetreten.');
+            });
+    });
+
+
+
     </script>
 </body>
 </html>

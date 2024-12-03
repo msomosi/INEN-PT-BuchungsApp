@@ -66,8 +66,8 @@ def anbietermgmt():
                     "state_name": row[2],
                     "state_id": row[3],
                     "booking_id": row[4],
-                    "firstname": row[5] or "N/A",
-                    "lastname": row[6] or "N/A",
+                    "firstname": row[5] or "-",
+                    "lastname": row[6] or "-",
                 })
 
             return jsonify({"rooms": rooms}), 200
@@ -165,48 +165,70 @@ if __name__ == '__main__':
 
 
 # API zum Hinzufügen von Zimmern
-@app.route('/add_room', methods=['POST'])
+@app.route('/add-room', methods=['POST'])
 def add_room():
-    debug_request(request)
-    user_id = "1"  # Angemeldeter Benutzer
-    if not user_id:
-        return jsonify({'error': 'Kein Benutzer angemeldet'}), 400
-
-    data = request.json
+    """Verarbeitet das Hinzufügen eines neuen Zimmers."""
     try:
-        num_rooms = int(data['num_rooms'])
-        date_from = datetime.strptime(data['date_from'], '%Y-%m-%d')
-        date_to = datetime.strptime(data['date_to'], '%Y-%m-%d')
-    except (ValueError, KeyError) as e:
-        return jsonify({'error': f'Ungültige Eingabewerte: {e}'}), 400
+        # Hole die JSON-Daten aus der Anfrage
+        data = request.json
+        user_id = data.get("user_id")
+        date = data.get("date")
+        num_rooms = data.get("num_rooms")  # Anzahl der Zimmer
 
-    if date_from > date_to:
-        return jsonify({'error': "'Von'-Datum liegt nach 'Bis'-Datum"}), 400
+        # Validierung der Eingabewerte
+        if not user_id or not date or not num_rooms:
+            return jsonify({'error': 'Ungültige Eingabewerte: User-ID, Datum oder Anzahl der Zimmer fehlt.'}), 400
 
-    conn_room = create_db_connection()
-    if not conn_room:
-        return jsonify({'error': 'Verbindung zur Datenbank fehlgeschlagen'}), 500
+        # Konvertiere num_rooms zu Integer
+        try:
+            num_rooms = int(num_rooms)
+        except ValueError:
+            return jsonify({'error': 'Ungültige Anzahl von Zimmern, muss eine Zahl sein.'}), 400
 
-    try:
-        with conn_room.cursor() as cur:
-            current_date = date_from
-            while current_date <= date_to:
-                for _ in range(num_rooms):
-                    query = """
-                        INSERT INTO tbl_zimmer (user_id, date)
-                        VALUES (%s, %s);
-                    """
-                    cur.execute(query, (user_id, current_date))
-                current_date += timedelta(days=1)
+        # Verbindung zur Datenbank herstellen
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            # Provider-ID anhand der User-ID abrufen
+            query_provider_id = """
+                SELECT provider_id
+                FROM public."user"
+                WHERE user_id = %s;
+            """
+            cur.execute(query_provider_id, (user_id,))
+            provider_row = cur.fetchone()
 
-            conn_room.commit()
+            if not provider_row:
+                return jsonify({'error': 'Kein Anbieter für diesen Benutzer gefunden.'}), 400
 
-        return jsonify({'success': 'Zimmer erfolgreich hinzugefügt'})
+            provider_id = provider_row[0]
+
+            query_next_room_id = """
+                SELECT COALESCE(MAX(room_id), 0) + 1 AS next_room_id
+                FROM public.room;
+            """
+            cur.execute(query_next_room_id)
+            next_room_id = cur.fetchone()[0]
+
+            # Einfügen des neuen Raums in die Tabelle
+            query_insert_room = """
+                INSERT INTO public.room (room_id, provider_id, date, state_id)
+                VALUES (%s, %s, %s, 1);
+            """
+            cur.execute(query_insert_room, (next_room_id, provider_id, date))
+            conn.commit()
+
+        return jsonify({'success': f'{num_rooms} Zimmer erfolgreich hinzugefügt.'}), 200
     except Exception as e:
-        app.logger.error(f"Fehler bei der Datenbankoperation: {e}")
-        return jsonify({'error': 'Fehler beim Einfügen der Zimmer'}), 500
+        app.logger.error(f"Fehler beim Hinzufügen der Zimmer: {e}")
+        return jsonify({'error': 'Fehler beim Hinzufügen der Zimmer.', 'details': str(e)}), 500
     finally:
-        conn_room.close()
+        if 'conn' in locals():
+            conn.close()
+
+
+
+
+
 
 
 if __name__ == '__main__':

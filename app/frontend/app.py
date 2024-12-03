@@ -92,6 +92,32 @@ def anbietermgmt():
         app.logger.error(f"Fehler beim Abrufen der Zimmerdaten: {e}")
         return render_template('error.html', message='Fehler beim Laden der Daten.')
 
+@app.route('/add-room', methods=['POST'])
+def add_room():
+    try:
+        # Hole die JSON-Daten aus der Anfrage
+        data = request.json
+        user_id = session.get("user_id")
+
+        if not user_id:
+            return jsonify({'error': 'Benutzer ist nicht eingeloggt.'}), 401
+
+        # Füge die User-ID zu den Daten hinzu
+        data['user_id'] = user_id
+
+        # Log die Daten, die gesendet werden
+        app.logger.info(f"Zimmer hinzufügen: Daten, die an das Backend gesendet werden: {data}")
+
+        # Anfrage an anbietermanagement.py weiterleiten
+        response = requests.post('http://anbietermgmt/add-room', json=data, timeout=5)
+
+        if response.status_code == 200:
+            return jsonify(response.json())  # Erfolgreiche Rückmeldung vom Backend
+        else:
+            return jsonify({'error': 'Fehler beim Hinzufügen des Raums.'}), response.status_code
+    except Exception as e:
+        app.logger.error(f"Fehler beim Hinzufügen eines Raums: {e}")
+        return jsonify({'error': 'Ein unerwarteter Fehler ist aufgetreten.', 'details': str(e)}), 500
 
 
 @app.route('/booked-management')
@@ -114,10 +140,10 @@ def booked_management():
             # Datumsteilung
             current_date = datetime.now().date()
             future_bookings = [
-                room for room in rooms if datetime.strptime(room['date'], "%a, %d %b %Y %H:%M:%S %Z").date() > current_date
+                room for room in rooms if datetime.strptime(room['date'], "%Y-%m-%d").date() > current_date
             ]
             past_bookings = [
-                room for room in rooms if datetime.strptime(room['date'], "%a, %d %b %Y %H:%M:%S %Z").date() <= current_date
+                room for room in rooms if datetime.strptime(room['date'], "%Y-%m-%d").date() <= current_date
             ]
         else:
             app.logger.error(f"Fehlerhafte API-Antwort: {response.status_code}")

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meine Buchungen</title>
     <style>
+        /* (Bestehende CSS bleibt unverändert) */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f9fc;
@@ -93,6 +94,26 @@
             color: #017cbb;
         }
 
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .button-container a {
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background-color: #017cbb;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-container a:hover {
+            background-color: #015a88;
+        }
+
         .table-container {
             margin: 20px auto;
             background-color: white;
@@ -154,6 +175,11 @@
     <!-- Main Content -->
     <div class="container">
         <h1>Meine Buchungsübersicht</h1>
+
+        <!-- Button Section -->
+        <div class="button-container">
+            <a href="/rent">🛏️ Jetzt Zimmer buchen</a>
+        </div>
 
         <!-- Zukünftige Buchungen -->
         <h2>Aktive Buchungen</h2>
