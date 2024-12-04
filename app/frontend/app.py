@@ -290,7 +290,7 @@ def user_profile():
                 "lastname": user_row[1],
                 "email": user_row[2],
                 "verification": "Ja" if user_row[3] else "Nein",
-                "verification_date": user_row[4].strftime('%Y-%m-%d') if user_row[4] else "Nicht verfügbar",
+                "verification_date": user_row[4].strftime('%d.%m.%Y') if user_row[4] else "Nicht verfügbar",
                 "role_id": role_id
             }
 
@@ -336,7 +336,7 @@ def user_profile():
                 if student_row:
                     user_data.update({
                         "matrikelnummer": student_row[0],
-                        "inskription_end": student_row[2].strftime('%Y-%m-%d') if student_row[2] else "Nicht verfügbar"
+                        "inskription_end": student_row[2].strftime('%d.%m.%Y') if student_row[2] else "Nicht verfügbar"
                     })
 
                     # Universitätsinformationen abrufen
@@ -410,27 +410,8 @@ def update_profile():
 
         # Rollenbasiertes Update
         with conn.cursor() as cur:
-            if role_id == 2:  # Provider
-                query = """
-                    UPDATE public.contact
-                    SET address = %s,
-                        postal_code = %s,
-                        location = %s,
-                        phone = %s
-                    WHERE contact_id = (
-                        SELECT contact_id
-                        FROM public.accommodation
-                        WHERE provider_id = (
-                            SELECT provider_id
-                            FROM public."user"
-                            WHERE user_id = %s
-                        )
-                    );
-                """
-                cur.execute(query, (adresse, plz, location, phone, user_id))
-
-            elif role_id == 3:  # Student
-                query = """
+            if role_id in [2, 3]:  # Provider oder Student
+                query_contact = """
                     UPDATE public.contact
                     SET address = %s,
                         postal_code = %s,
@@ -440,28 +421,25 @@ def update_profile():
                         SELECT contact_id
                         FROM public.student
                         WHERE user_id = %s
-                    );
-                """
-                cur.execute(query, (adresse, plz, location, phone, user_id))
-
-            elif role_id == 1:  # Admin
-                query = """
-                    UPDATE public.contact
-                    SET address = %s,
-                        postal_code = %s,
-                        location = %s,
-                        phone = %s
-                    WHERE contact_id = (
+                    ) OR contact_id = (
                         SELECT contact_id
-                        FROM public.contact
-                        WHERE contact_id = (
-                            SELECT contact_id
+                        FROM public.accommodation
+                        WHERE provider_id = (
+                            SELECT provider_id
                             FROM public."user"
                             WHERE user_id = %s
                         )
                     );
                 """
-                cur.execute(query, (adresse, plz, location, phone, user_id))
+                cur.execute(query_contact, (adresse, plz, location, phone, user_id, user_id))
+
+            if email:  # Aktualisiere E-Mail in der Benutzer-Tabelle
+                query_email = """
+                    UPDATE public."user"
+                    SET email = %s
+                    WHERE user_id = %s;
+                """
+                cur.execute(query_email, (email, user_id))
 
             conn.commit()
 
@@ -469,6 +447,10 @@ def update_profile():
 
     except Exception as e:
         return jsonify({'error': 'Fehler beim Aktualisieren des Profils.', 'details': str(e)}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
 
 
 
@@ -545,6 +527,82 @@ def user_details(zimmer_id):
     finally:
         if 'conn' in locals():
             conn.close()
+
+@app.route('/hotel-details/<int:zimmer_id>', methods=['GET'])
+def hotel_details(zimmer_id):
+    """
+    Gibt Hotelinformationen basierend auf der Zimmer-ID zurück.
+    """
+    app.logger.debug(f"Empfangene Zimmer-ID: {zimmer_id}")
+
+    try:
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            # Schritt 1: provider_id aus room-Tabelle abrufen
+            query_provider = """
+                SELECT provider_id
+                FROM public.room
+                WHERE room_id = %s;
+            """
+            cur.execute(query_provider, (zimmer_id,))
+            provider_row = cur.fetchone()
+
+            if not provider_row:
+                return jsonify({"error": "Zimmer-ID nicht gefunden."}), 404
+            
+            provider_id = provider_row[0]
+
+            # Schritt 2: Hotelinformationen aus accommodation abrufen
+            query_hotel = """
+                SELECT 
+                    a.company_name,
+                    c.address,
+                    c.postal_code,
+                    c.location,
+                    c.phone
+                FROM public.accommodation a
+                JOIN public.contact c ON a.contact_id = c.contact_id
+                WHERE a.provider_id = %s;
+            """
+            cur.execute(query_hotel, (provider_id,))
+            hotel_row = cur.fetchone()
+
+            if not hotel_row:
+                return jsonify({"error": "Hotelinformationen nicht gefunden."}), 404
+            
+            hotel_data = {
+                "company_name": hotel_row[0],
+                "address": hotel_row[1],
+                "postal_code": hotel_row[2],
+                "location": hotel_row[3],
+                "phone": hotel_row[4],
+            }
+
+            # Schritt 3: Zusätzliche Anbieterinformationen aus user-Tabelle abrufen
+            query_user = """
+                SELECT 
+                    email
+                FROM public."user"
+                WHERE provider_id = %s;
+            """
+            cur.execute(query_user, (provider_id,))
+            user_row = cur.fetchone()
+
+            if user_row:
+                hotel_data.update({
+                    "email": user_row[0]                    
+                })
+
+        # Render die hotel-details.html mit den Daten
+        return render_template('hotel-details.html', hotel=hotel_data)
+
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der Hotelinformationen: {e}")
+        return jsonify({"error": "Ein Fehler ist aufgetreten.", "details": str(e)}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
 
 
 @app.route('/kundenmanagement', methods=['GET'])
