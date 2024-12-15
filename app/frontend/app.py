@@ -1,7 +1,13 @@
+import os
+import re
+import pdfplumber
 import requests
 from factory import create_app, create_db_connection, debug_request
-from flask import redirect, render_template, request, session, jsonify
+from flask import redirect, render_template, request, session, jsonify, flash
 from datetime import datetime
+from werkzeug.utils import secure_filename
+import psycopg2
+
 
 app = create_app("frontend")
 
@@ -18,7 +24,7 @@ def home():
         permissions = {
             'student': ['create-booking', 'room-management','user-details'],
             'provider': ['anbietermgmt', 'user-details'],
-            'admin': ['user-details','kundenmanagement']
+            'admin': ['user-details','kundenmanagement', 'studentmgmt']
         }
 
         # Berechtigungen für den aktuellen Benutzer
@@ -257,6 +263,15 @@ def book_room():
         if 'conn' in locals():
             conn.close()
 
+#############################-USER PPROFILE #################################
+UPLOAD_FOLDER = '/app/uploads'
+ALLOWED_EXTENSIONS = {'pdf'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Datei-Upload erlauben
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.route('/user-profile', methods=['GET'])
 def user_profile():
@@ -354,6 +369,7 @@ def user_profile():
                             "university_address": university_row[1]
                         })
 
+
             elif role_id == 2:  # Provider
                 query_provider = """
                     SELECT company_name
@@ -383,9 +399,6 @@ def user_profile():
     finally:
         if 'conn' in locals():
             conn.close()
-
-
-
 
 
 
@@ -451,6 +464,174 @@ def update_profile():
         if 'conn' in locals():
             conn.close()
 
+# PDF-Daten auslesen
+def extract_data_from_pdf(file_path):
+    with pdfplumber.open(file_path) as pdf:
+        extracted_data = {
+            "name": None,
+            "birth_date": None,
+            "start_date": None,
+            "matriculation_number": None,
+            "university_name": None
+        }
+
+        for page in pdf.pages:
+            text_lines = page.extract_text().split('\n')  # Zeilenweise lesen
+            is_interesting_section = False  # Flag, ob der relevante Bereich erreicht wurde
+
+            for line in text_lines:
+                # Universitätsname aus der Überschrift
+                if not extracted_data["university_name"] and "Studienbestätigung" in line:
+                    university_match = re.search(r"Studienbestätigung\s(.+)", line)
+                    if university_match:
+                        extracted_data["university_name"] = university_match.group(1).strip()
+                        app.logger.debug(f"Gefundene Universität: {extracted_data['university_name']}")
+
+                # Interessante Zeilen beginnen nach "Personenkennzeichen Matrikelnummer"
+                if "Personenkennzeichen Matrikelnummer" in line:
+                    is_interesting_section = True
+                    continue  # Überspringe diese Zeile selbst
+
+                if is_interesting_section:
+                    # Suche nach Name und Matrikelnummer
+                    if not extracted_data["name"] or not extracted_data["matriculation_number"]:
+                        name_match = re.search(r"([A-ZÄÖÜ][a-zäöüß\-]+\s[A-ZÄÖÜ][a-zäöüß\-]+(?: BSc)?)", line)
+                        matriculation_number_match = re.search(r"2\d{9}", line)
+                        if name_match:
+                            extracted_data["name"] = name_match.group(1).strip()
+                            app.logger.debug(f"Gefundener Name: {extracted_data['name']}")
+                        if matriculation_number_match:
+                            extracted_data["matriculation_number"] = matriculation_number_match.group(0).strip()
+                            app.logger.debug(f"Gefundene Matrikelnummer: {extracted_data['matriculation_number']}")
+
+                    # Geburtsdatum suchen
+                    if not extracted_data["birth_date"]:
+                        birth_date_match = re.search(r"geboren am (\d{2}\.\d{2}\.\d{4})", line)
+                        if birth_date_match:
+                            extracted_data["birth_date"] = datetime.strptime(birth_date_match.group(1), '%d.%m.%Y').date()
+                            app.logger.debug(f"Gefundenes Geburtsdatum: {extracted_data['birth_date']}")
+
+                    # Startdatum suchen
+                    if not extracted_data["start_date"]:
+                        start_date_match = re.search(r"Beginn (\d{2}\.\d{2}\.\d{4})", line)
+                        if start_date_match:
+                            extracted_data["start_date"] = datetime.strptime(start_date_match.group(1), '%d.%m.%Y').date()
+                            app.logger.debug(f"Gefundenes Startdatum: {extracted_data['start_date']}")
+
+                # Abbruchbedingung: Sobald alle Felder gefunden sind
+                if all(extracted_data.values()):
+                    app.logger.debug("Alle Daten gefunden, Abbruch.")
+                    break
+
+            # Abbruch der Seitensuche, wenn alle Felder gefunden sind
+            if all(extracted_data.values()):
+                break
+
+        # Rückgabe des extrahierten Datensatzes
+        app.logger.debug(f"Final Extrahierte Daten: {extracted_data}")
+        return extracted_data
+
+
+# Datei-Upload-Endpunkt
+@app.route('/upload-pdf', methods=['POST'])
+def upload_pdf():
+    if 'file' not in request.files:
+        return jsonify({"error": "Keine Datei hochgeladen"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Keine Datei ausgewählt"}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        # Daten aus der PDF extrahieren
+        extracted_data = extract_data_from_pdf(file_path)
+        if not all([extracted_data["name"], extracted_data["birth_date"], extracted_data["matriculation_number"]]):
+            return jsonify({"error": "PDF-Daten konnten nicht vollständig extrahiert werden."}), 400
+
+        app.logger.debug(f"Extracted Data: {extracted_data}")
+
+        try:
+            conn = create_db_connection()
+            cursor = conn.cursor()
+            user_id = session.get('user_id')
+
+            app.logger.debug(f"Session user_id: {user_id}")
+            if not user_id:
+                return jsonify({"error": "Session user_id fehlt"}), 400
+
+            # Prüfen, ob ein Eintrag existiert
+            select_query = """
+                SELECT start_date, verified 
+                FROM uploaded_student_verification_tbl 
+                WHERE user_id = %s
+            """
+            cursor.execute(select_query, (user_id,))
+            existing_entry = cursor.fetchone()
+
+            if existing_entry:
+                existing_start_date, verified = existing_entry
+                app.logger.debug(f"Vorhandenes Startdatum: {existing_start_date}, Verifiziert: {verified}")
+
+                if extracted_data['start_date'] == existing_start_date:
+                    if not verified:
+                        return jsonify({"info": "Die Daten wurden bereits zur Verifizierung hochgeladen und sind noch in Prüfung."}), 200
+                    else:
+                        return jsonify({"info": "Die Daten sind bereits verifiziert und müssen nicht erneut hochgeladen werden."}), 200
+                elif extracted_data['start_date'] > existing_start_date:
+                    # Aktualisiere die Daten, falls das neue Datum aktueller ist
+                    update_query = """
+                        UPDATE uploaded_student_verification_tbl
+                        SET name = %s, birth_date = %s, start_date = %s, matriculation_number = %s, verified = %s
+                        WHERE user_id = %s
+                    """
+                    cursor.execute(update_query, (
+                        extracted_data['name'],
+                        extracted_data['birth_date'],
+                        extracted_data['start_date'],
+                        extracted_data['matriculation_number'],
+                        False,  # Zurücksetzen auf nicht verifiziert
+                        user_id,
+                    ))
+                    conn.commit()
+                    return jsonify({"success": "Daten wurden erfolgreich aktualisiert.", "data": extracted_data}), 200
+                else:
+                    return jsonify({"info": "Die vorhandenen Daten sind aktueller. Kein Update notwendig."}), 200
+            else:
+                # Neuer Eintrag
+                insert_query = """
+                    INSERT INTO uploaded_student_verification_tbl (user_id, name, birth_date, start_date, matriculation_number, verified)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_query, (
+                    user_id,
+                    extracted_data['name'],
+                    extracted_data['birth_date'],
+                    extracted_data['start_date'],
+                    extracted_data['matriculation_number'],
+                    False
+                ))
+                conn.commit()
+                return jsonify({"success": "Datei erfolgreich verarbeitet. Die Daten wurden nun zur Prüfung weitergeleitet..", "data": extracted_data}), 200
+
+        except Exception as e:
+            app.logger.error(f"Fehler beim Speichern in der Datenbank: {e}")
+            return jsonify({"error": f"Fehler beim Speichern in der Datenbank: {e}"}), 500
+        finally:
+            if 'conn' in locals():
+                conn.close()
+
+    else:
+        return jsonify({"error": "Ungültiger Dateityp"}), 400
+
+
+
+
+
+####################-USER DETAILS-#######################################
 
 
 
@@ -711,7 +892,25 @@ def delete_kunde(user_id):
         return render_template('error.html', message='Fehler beim Löschen des Kunden.')
 
 
-
+###### STUDENT MANAGEMENT ########
+@app.route('/studentmgmt', methods=['GET'])
+def studentmgmt():
+    """Rendert die Studentenmanagement-Seite für den Admin."""
+    try:
+        response = requests.get('http://kundenmanagement/student-verifications')
+        if response.status_code == 200:
+            data = response.json()
+            app.logger.info(f"Empfangene Verifizierungsdaten: {data}")  # Debugging
+            return render_template(
+                'student-management.html',
+                pending_students=data.get('pending_students', []),
+                verified_students=data.get('verified_students', [])
+            )
+        else:
+            return render_template('error.html', message="Fehler beim Abrufen der Studentenverifizierungen.")
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der Studentenverifizierungen: {e}")
+        return render_template('error.html', message="Ein Fehler ist aufgetreten.")
 
 
 if __name__ == '__main__':

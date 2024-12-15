@@ -92,23 +92,31 @@
             max-width: 1000px;
         }
 
-        .left-section {
-            flex: 1;
-            background-color: #e5f6fd;
+        .left-section, .right-section {
+            flex: 1; 
+            padding: 20px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            background-color: #e5f6fd; 
         }
 
         .left-section img {
             max-width: 100%;
             height: auto;
+            margin-bottom: 20px;
+        }
+
+        .left-section h1,
+        .left-section p,
+        .left-section form {
+            width: 100%; 
+            text-align: center;
         }
 
         .right-section {
-            flex: 2;
-            padding: 20px;
+            background-color: white;
         }
 
         h1 {
@@ -187,6 +195,18 @@
     <div class="container">
         <div class="left-section">
             <img src="{{ url_for('static', filename='profile_page.jpg') }}" alt="Profil Illustration">
+
+            {% if user.role_id == 3 %}
+            <div style="text-align: center; margin-top: 20px;">
+                <h1>Verify as Student</h1>
+                <p>Lade hier die Studienbestätigung deiner Hochschule hoch (.pdf):</p>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <input type="file" name="file" id="file" accept=".pdf" style="margin-bottom: 10px;">
+                    <button type="submit" class="edit-btn">Hochladen</button>
+                </form>
+            </div>
+            {% endif %}
+
         </div>
         <div class="right-section">
             <h1>
@@ -275,6 +295,7 @@
                 </table>
                 <button type="submit" id="save-button" style="display: none;">Speichern</button>
             </form>
+
         </div>
     </div>
 
@@ -319,31 +340,42 @@
             isEditing = !isEditing;
         });
 
-        document.getElementById('profile-form').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            const jsonData = {};
-            formData.forEach((value, key) => (jsonData[key] = value));
-
-            fetch('/update-profile', {
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault();  // Verhindert das Standardformularverhalten
+            
+            const formData = new FormData(this);
+            fetch('/upload-pdf', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(jsonData),
+                body: formData
             })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.success || data.error || 'Ein Fehler ist aufgetreten.');
-                    if (data.success) {
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    alert('Ein unerwarteter Fehler ist aufgetreten.');
-                    console.error(error);
-                });
+            .then(response => {
+                // Prüfen, ob die Antwort erfolgreich ist
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || "Ein unerwarteter Fehler ist aufgetreten.");
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Erfolgreiche Antwort behandeln
+                if (data.success) {
+                    alert("Erfolg: " + data.success);
+                } else if (data.info) {
+                    alert("Info: " + data.info);
+                } else if (data.error) {
+                    alert("Fehler: " + data.error);
+                } else {
+                    alert("Ein unerwarteter Fehler ist aufgetreten.");
+                }
+            })
+            .catch(error => {
+                // Fehlerfall abfangen
+                console.error("Fehler:", error);
+                alert(error.message || "Ein unerwarteter Fehler ist aufgetreten.");
+            });
         });
+
     </script>
 </body>
 </html>

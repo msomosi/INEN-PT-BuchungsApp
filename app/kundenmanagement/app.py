@@ -216,7 +216,206 @@ def delete_kunde(user_id):
     finally:
         conn.close()
 
+#############STUDENT MANAGEMENT##############################
 
+@app.route('/student-verifications', methods=['GET'])
+def get_student_verifications():
+    try:
+        conn = create_db_connection()
+        cursor = conn.cursor()
+
+        pending_query = """
+            SELECT usvt.user_id, usvt.name, usvt.birth_date, usvt.start_date, usvt.matriculation_number
+            FROM uploaded_student_verification_tbl usvt
+            WHERE usvt.verified = false
+        """
+        cursor.execute(pending_query)
+        pending_students = cursor.fetchall()
+
+        verified_query = """
+            SELECT usvt.user_id, usvt.name, usvt.birth_date, usvt.start_date, usvt.matriculation_number
+            FROM uploaded_student_verification_tbl usvt
+            WHERE usvt.verified = true
+        """
+        cursor.execute(verified_query)
+        verified_students = cursor.fetchall()
+
+        result = {
+            "pending_students": [
+                {
+                    "user_id": row[0],
+                    "uploaded_name": row[1],
+                    "uploaded_birth_date": row[2].strftime('%Y-%m-%d'),
+                    "uploaded_start_date": row[3].strftime('%Y-%m-%d'),
+                    "uploaded_matriculation_number": row[4]
+                }
+                for row in pending_students
+            ],
+            "verified_students": [
+                {
+                    "user_id": row[0],
+                    "uploaded_name": row[1],
+                    "uploaded_birth_date": row[2].strftime('%Y-%m-%d'),
+                    "uploaded_start_date": row[3].strftime('%Y-%m-%d'),
+                    "uploaded_matriculation_number": row[4]
+                }
+                for row in verified_students
+            ]
+        }
+
+        app.logger.info(f"Verifizierungsdaten: {result}")  # Debugging hinzufügen
+        return jsonify(result), 200
+
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der Studentenverifizierungen: {e}")
+        return jsonify({"error": "Fehler beim Laden der Verifizierungen"}), 500
+
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+
+
+
+@app.route('/verify-student/<int:user_id>', methods=['GET', 'POST'])
+def verify_student(user_id):
+    try:
+        conn = create_db_connection()
+        cursor = conn.cursor()
+
+        # Schritt 1: Daten aus uploaded_student_verification_tbl holen
+        cursor.execute("""
+            SELECT name, birth_date, start_date, matriculation_number, verified, created_at
+            FROM public.uploaded_student_verification_tbl
+            WHERE user_id = %s
+        """, (user_id,))
+        uploaded_data = cursor.fetchone()
+
+        if not uploaded_data:
+            return jsonify({"error": "Keine Verifizierungsdaten für diesen Benutzer gefunden"}), 404
+
+        # Schritt 2: Benutzerdaten aus "user"
+        cursor.execute("""
+            SELECT first_name, last_name, verification, verification_date
+            FROM public."user"
+            WHERE user_id = %s
+        """, (user_id,))
+        user_data = cursor.fetchone()
+
+        if not user_data:
+            return jsonify({"error": "Benutzerdaten konnten nicht gefunden werden"}), 404
+
+        # Schritt 3: Studentendaten und Kontaktdaten holen
+        cursor.execute("""
+            SELECT s.student_number, s.university_id, s.enrollment_end, c.address, c.postal_code, c.location, c.phone
+            FROM public.student s
+            JOIN public.contact c ON s.contact_id = c.contact_id
+            WHERE s.user_id = %s
+        """, (user_id,))
+        student_data = cursor.fetchone()
+
+        if not student_data:
+            return jsonify({"error": "Studentendaten konnten nicht gefunden werden"}), 404
+
+        # Schritt 4: Universitätsdaten holen
+        cursor.execute("""
+            SELECT u.university_name, uc.address, uc.postal_code, uc.location, uc.phone
+            FROM public.university u
+            JOIN public.contact uc ON u.contact_id = uc.contact_id
+            WHERE u.university_id = %s
+        """, (student_data[1],))
+        university_data = cursor.fetchone()
+
+        if not university_data:
+            return jsonify({"error": "Universitätsdaten konnten nicht gefunden werden"}), 404
+
+        # Ergebnis formatieren
+        result = {
+            "uploaded_verification": {
+                "name": uploaded_data[0],
+                "birth_date": uploaded_data[1],
+                "start_date": uploaded_data[2],
+                "matriculation_number": uploaded_data[3],
+                "verified": uploaded_data[4],
+                "created_at": uploaded_data[5]
+            },
+            "user_data": {
+                "first_name": user_data[0],
+                "last_name": user_data[1],
+                "verification_status": user_data[2],
+                "verification_date": user_data[3]
+            },
+            "student_data": {
+                "student_number": student_data[0],
+                "enrollment_end": student_data[2],
+                "address": student_data[3],
+                "postal_code": student_data[4],
+                "location": student_data[5],
+                "phone": student_data[6]
+            },
+            "university_data": {
+                "university_name": university_data[0],
+                "address": university_data[1],
+                "postal_code": university_data[2],
+                "location": university_data[3],
+                "phone": university_data[4]
+            }
+        }
+
+        # Wenn POST-Anfrage, Verifizierung durchführen
+        if request.method == 'POST':
+            # Verifizierung in der Tabelle "user" setzen
+            cursor.execute("""
+                UPDATE public."user"
+                SET verification = TRUE, verification_date = CURRENT_DATE
+                WHERE user_id = %s
+            """, (user_id,))
+
+            # Eintrag in uploaded_student_verification_tbl löschen
+            cursor.execute("""
+                DELETE FROM public.uploaded_student_verification_tbl
+                WHERE user_id = %s
+            """, (user_id,))
+
+            # Änderungen speichern
+            conn.commit()
+            return jsonify({"success": "Student erfolgreich verifiziert!"}), 200
+
+        # Bei GET-Anfrage, die Verifizierungsdaten zurückgeben
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+
+@app.route('/reject-student/<int:user_id>', methods=['POST'])
+def reject_student(user_id):
+    """
+    Löscht den Eintrag aus `uploaded_student_verification_tbl`, wenn ein Benutzer abgelehnt wird.
+    """
+    try:
+        conn = create_db_connection()
+        cursor = conn.cursor()
+
+        # Eintrag löschen
+        cursor.execute("""
+            DELETE FROM public.uploaded_student_verification_tbl
+            WHERE user_id = %s
+        """, (user_id,))
+
+        # Änderungen speichern
+        conn.commit()
+
+        return jsonify({"success": "Studentenverifizierung wurde abgelehnt und der Eintrag wurde entfernt."}), 200
+    except Exception as e:
+        return jsonify({"error": f"Fehler beim Ablehnen der Verifizierung: {str(e)}"}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
 
 if __name__ == '__main__':
