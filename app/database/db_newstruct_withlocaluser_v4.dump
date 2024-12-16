@@ -403,7 +403,7 @@ COPY public."user" (user_id, role_id, provider_id, verification, verification_da
 CREATE TABLE public.uploaded_student_verification_tbl (
     user_id INTEGER PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    birth_date DATE NOT NULL,
+    university_name VARCHAR(100) NOT NULL,
     start_date DATE NOT NULL,
     matriculation_number VARCHAR(50) NOT NULL,
     verified BOOLEAN DEFAULT false NOT NULL,

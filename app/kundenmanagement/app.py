@@ -225,16 +225,20 @@ def get_student_verifications():
         cursor = conn.cursor()
 
         pending_query = """
-            SELECT usvt.user_id, usvt.name, usvt.birth_date, usvt.start_date, usvt.matriculation_number
+            SELECT usvt.user_id, usvt.name, usvt.start_date, usvt.matriculation_number, usvt.university_name,
+                   u.first_name, u.last_name
             FROM uploaded_student_verification_tbl usvt
+            JOIN public."user" u ON usvt.user_id = u.user_id
             WHERE usvt.verified = false
         """
         cursor.execute(pending_query)
         pending_students = cursor.fetchall()
 
         verified_query = """
-            SELECT usvt.user_id, usvt.name, usvt.birth_date, usvt.start_date, usvt.matriculation_number
+            SELECT usvt.user_id, usvt.name, usvt.start_date, usvt.matriculation_number, usvt.university_name,
+                   u.first_name, u.last_name
             FROM uploaded_student_verification_tbl usvt
+            JOIN public."user" u ON usvt.user_id = u.user_id
             WHERE usvt.verified = true
         """
         cursor.execute(verified_query)
@@ -244,26 +248,27 @@ def get_student_verifications():
             "pending_students": [
                 {
                     "user_id": row[0],
+                    "system_name": f"{row[5]} {row[6]}",  # Vor- und Nachname aus Systemdaten
                     "uploaded_name": row[1],
-                    "uploaded_birth_date": row[2].strftime('%Y-%m-%d'),
-                    "uploaded_start_date": row[3].strftime('%Y-%m-%d'),
-                    "uploaded_matriculation_number": row[4]
+                    "university_name": row[4],
+                    "uploaded_start_date": row[2].strftime('%d.%m.%Y'),
+                    "uploaded_matriculation_number": row[3]
                 }
                 for row in pending_students
             ],
             "verified_students": [
                 {
                     "user_id": row[0],
+                    "system_name": f"{row[5]} {row[6]}",  # Vor- und Nachname aus Systemdaten
                     "uploaded_name": row[1],
-                    "uploaded_birth_date": row[2].strftime('%Y-%m-%d'),
-                    "uploaded_start_date": row[3].strftime('%Y-%m-%d'),
-                    "uploaded_matriculation_number": row[4]
+                    "university_name": row[4],
+                    "uploaded_start_date": row[2].strftime('%d.%m.%Y'),
+                    "uploaded_matriculation_number": row[3]
                 }
                 for row in verified_students
             ]
         }
 
-        app.logger.info(f"Verifizierungsdaten: {result}")  # Debugging hinzufügen
         return jsonify(result), 200
 
     except Exception as e:
@@ -277,6 +282,7 @@ def get_student_verifications():
 
 
 
+
 @app.route('/verify-student/<int:user_id>', methods=['GET', 'POST'])
 def verify_student(user_id):
     try:
@@ -285,11 +291,12 @@ def verify_student(user_id):
 
         # Schritt 1: Daten aus uploaded_student_verification_tbl holen
         cursor.execute("""
-            SELECT name, birth_date, start_date, matriculation_number, verified, created_at
+            SELECT name, university_name, start_date, matriculation_number, verified, created_at
             FROM public.uploaded_student_verification_tbl
             WHERE user_id = %s
         """, (user_id,))
         uploaded_data = cursor.fetchone()
+
 
         if not uploaded_data:
             return jsonify({"error": "Keine Verifizierungsdaten für diesen Benutzer gefunden"}), 404
@@ -332,12 +339,12 @@ def verify_student(user_id):
         # Ergebnis formatieren
         result = {
             "uploaded_verification": {
-                "name": uploaded_data[0],
-                "birth_date": uploaded_data[1],
-                "start_date": uploaded_data[2],
-                "matriculation_number": uploaded_data[3],
-                "verified": uploaded_data[4],
-                "created_at": uploaded_data[5]
+            "name": uploaded_data[0],
+            "university_name": uploaded_data[1],
+            "start_date": uploaded_data[2],
+            "matriculation_number": uploaded_data[3],
+            "verified": uploaded_data[4],
+            "created_at": uploaded_data[5]
             },
             "user_data": {
                 "first_name": user_data[0],
