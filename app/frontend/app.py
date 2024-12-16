@@ -903,6 +903,56 @@ def studentmgmt():
         app.logger.error(f"Fehler beim Abrufen der Studentenverifizierungen: {e}")
         return render_template('error.html', message="Ein Fehler ist aufgetreten.")
 
+############ FAQ #########################
+
+
+@app.route('/get-faq', methods=['GET'])
+def get_faq():
+    # Lade Berechtigungen aus der Session und stelle sicher, dass sie korrekt sind
+    user_permissions = session.get('permissions', [])
+    app.logger.debug(f"User permissions: {user_permissions}")
+
+    # Die Struktur der FAQs vorbereiten
+    faqs = {"Allgemein": [], "Studierende": [], "Anbieter": []}
+
+    try:
+        with open('FAQ.txt', 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            section = None
+
+            for line in lines:
+                line = line.strip()
+
+                # Abschnittswechsel basierend auf den Titeln
+                if line == "Allgemein:":
+                    section = "Allgemein"
+                    continue
+                elif line == "Für Studierende:":
+                    section = "Studierende"
+                    continue
+                elif line == "Für Anbieter:innen:":
+                    section = "Anbieter"
+                    continue
+
+                # Inhalte zu den entsprechenden Abschnitten hinzufügen
+                if section == "Allgemein":
+                    faqs["Allgemein"].append(line)
+                elif section == "Studierende" and 'create-booking' in user_permissions:
+                    faqs["Studierende"].append(line)
+                elif section == "Anbieter" and 'anbietermgmt' in user_permissions:
+                    faqs["Anbieter"].append(line)
+                elif 'studentmgmt' in user_permissions:
+                    faqs["Studierende"].append(line)
+                    faqs["Anbieter"].append(line)
+
+        # Gib die gefilterten FAQs als JSON zurück
+        return jsonify({"faqs": faqs})
+
+    except Exception as e:
+        app.logger.error(f"Error reading FAQ file: {e}")
+        return jsonify({"error": "Failed to load FAQs"}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=80)
