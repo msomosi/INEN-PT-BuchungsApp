@@ -133,11 +133,11 @@ def search_providers():
 def create_booking():
     """
     Fügt eine Buchung zur Datenbank hinzu.
+    Überprüft, ob der Benutzer bereits am selben Tag eine Buchung hat.
     """
     try:
-        # Daten aus der Anfrage extrahieren
         data = request.get_json()
-        app.logger.debug(f"Erhaltene Buchungsdaten: {data}")  # Debugging
+        app.logger.debug(f"Erhaltene Buchungsdaten: {data}")  
 
         user_id = data.get('user_id')
         room_id = data.get('room_id')
@@ -153,6 +153,36 @@ def create_booking():
         # Nächste freie booking_id ermitteln
         conn = create_db_connection()
         cursor = conn.cursor()
+
+        # Datum des Zimmers (room.date) abrufen
+        cursor.execute("""
+            SELECT date FROM public.room WHERE room_id = %s;
+        """, (room_id,))
+        room_date = cursor.fetchone()
+
+        if not room_date:
+            return jsonify({"error": "Zimmer-ID ungültig oder Zimmer nicht gefunden."}), 400
+
+        room_date = room_date[0]  # Extrahiere das Datum aus dem Resultat
+
+        # Überprüfen, ob der Benutzer bereits an diesem Tag eine Buchung hat
+        cursor.execute("""
+            SELECT b.booking_id
+            FROM public.booking b
+            INNER JOIN public.room r ON b.room_id = r.room_id
+            WHERE b.user_id = %s AND r.date = %s;
+        """, (user_id, room_date))
+        existing_booking = cursor.fetchone()
+
+        if existing_booking:
+            booking_id = existing_booking[0]
+            app.logger.error(f"Buchung exisstiert bereits an diesem Tag!")
+            return jsonify({
+                "error": f"Sie haben bereits eine Buchung am {room_date.strftime('%d-%m-%Y')} mit der Buchungs-ID {booking_id}."
+            }), 400
+
+        # Nächste freie booking_id ermitteln
+
         cursor.execute("SELECT COALESCE(MAX(booking_id), 0) + 1 FROM public.booking;")
         next_booking_id = cursor.fetchone()[0]
 

@@ -216,13 +216,28 @@
         <div class="logo">
             <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
         </div>
+
         <a href="/home">🏠 Startseite</a>
+
         {% if 'create-booking' in permissions %}
         <a href="{{ url_for('create_booking') }}">🛏️ Zimmer buchen</a>
         {% endif %}
-        {% if 'room-management' in permissions %}
-        <a href="/booked-management">📖 Buchungsübersicht</a>
+        {% if 'kundenmanagement' in permissions %}
+        <a href="{{ url_for('kundenmanagement') }}">👥 Kundenmanagement</a>
         {% endif %}
+        {% if 'studentmgmt' in permissions %}
+        <a href="/studentmgmt">🎓 Studentenmanagement</a>
+        {% endif %}    
+        {% if 'anbietermgmt' in permissions %}
+        <a href="/anbietermgmt">🛠️ Zimmer Management</a>
+        {% endif %}
+        {% if 'room-management' in permissions %}
+        <a href="/booked-management">📋 Buchungen verwalten</a>
+        {% endif %}
+        {% if 'user-details' in permissions %}
+        <a href="/user-profile">👤 Mein Profil</a>
+        {% endif %}
+        
         <a href="/logout">🚪 Abmelden</a>
     </div>
     

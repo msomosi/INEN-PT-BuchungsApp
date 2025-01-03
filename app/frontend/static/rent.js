@@ -146,11 +146,10 @@ function validateSearch() {
   const endDate = new Date(document.getElementById("end_date").value)
 
   if (startDate && endDate && endDate > startDate) {
-    const days = (endDate - startDate) / (1000 * 3600 * 24)
-    document.getElementById("days").value = days
+    /*const days = (endDate - startDate) / (1000 * 3600 * 24)
+    document.getElementById("days").value = days*/
     document.getElementById("search-btn").disabled = false
   } else {
-    document.getElementById("days").value = ""
     document.getElementById("search-btn").disabled = true
   }
 }

@@ -189,15 +189,13 @@ def create_booking():
     room = request.form['room']
     start_date = request.form['start_date']
     end_date = request.form['end_date']
-    days = request.form['days']
 
     # Erstellen des Buchungsobjekts
     buchung = {
         'user': session.get('email', 'guest'),
         'room': room,
         'start_date': start_date,
-        'end_date': end_date,
-        'days': days
+        'end_date': end_date
     }
 
     app.logger.info(f"Buchung erstellt: {buchung['user']}, Zimmer: {buchung['room']}")

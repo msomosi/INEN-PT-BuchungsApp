@@ -3,72 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Buchungsmanagement</title>
+    <title>Login | Roomify</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            background-color: #f4f9fc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            background-color: rgb(182, 175, 166);
         }
 
-        .container {
-            display: flex;
-            width: 80%;
-            max-width: 1200px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        .header-section {
+            position: relative;
+            text-align: center;
+            color: rgb(75, 74, 74);
+            background: url('{{ url_for("static", filename="Hotels.jpeg") }}') no-repeat center center/cover;
+            height: 700px;
+            padding-top: 50px;
+        }
+
+        .header-section h1 {
+            font-size: 60px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-section p {
+            font-size: 20px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .login-container {
+            position: absolute;
+            top: 250px; /* Höhe des Containers relativ zum Bild */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.7); 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             border-radius: 10px;
-            overflow: hidden;
-            background-color: white;
-        }
-
-        .left-section {
-            background-color: #e5f6fd;
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .left-section img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        .right-section {
-            flex: 1;
             padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            max-width: 400px;
+            text-align: center;
         }
 
-        .right-section img {
-            width: 200px;
-            margin-bottom: 20px;
+        .login-container img {
+            width: 100px;
+            margin-bottom: 10px;
         }
 
-        .right-section h2 {
-            font-size: 24px;
+        .login-container h2 {
+            color: #017cbb;
             margin-bottom: 20px;
-            color: #333;
         }
 
         .form-group {
-            width: 100%;
-            max-width: 400px;
             margin-bottom: 15px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
-            font-size: 14px;
+            padding: 12px 15px;
+            font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
@@ -79,32 +74,157 @@
             outline: none;
         }
 
-        .right-section button {
+        .login-container button {
             width: 100%;
-            max-width: 400px;
-            padding: 8px;
+            padding: 12px;
             font-size: 16px;
+            font-weight: bold;
             color: white;
             background-color: #017cbb;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
-        .right-section button:hover {
+        .login-container button:hover {
             background-color: #015a88;
         }
+
+        .main-section {
+            padding: 60px 20px;
+            margin-top: -50px;
+            background-color: #f9fafc;
+        }
+
+        .main-section h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: rgb(75, 74, 74);
+        }
+
+        .main-section p {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 40px;
+            color: rgb(75, 74, 74);
+        }
+
+        .features-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .feature-card {
+            background-color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 300px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .feature-card h3 {
+            color: #017cbb;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 16px;
+            color: rgb(75, 74, 74);
+        }
+
+        .new-section {
+            position: relative;
+            text-align: center;
+            background: url('{{ url_for("static", filename="island.jpg") }}') no-repeat center center/cover;
+            padding: 80px 20px;
+            color: white;
+        }
+
+        .new-section h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: rgb(75, 74, 74);
+        }
+
+        .new-section .feature-card {
+            background-color: rgba(255, 255, 255, 0.8);
+            color: rgb(75, 74, 74);
+            margin: 10px auto;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 300px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .testimonials-section {
+        padding: 60px 20px;
+        background-color: #f9fafc;
+        text-align: center;
+        margin-top: -50px;
+        }
+
+        .testimonials-section h2 {
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+
+        .testimonials-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .testimonial-card {
+            background-color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 200px;
+            transform: rotate(-5deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            transform: rotate(0deg) scale(1.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+
+        .testimonial-number {
+            font-size: 18px;            
+            margin-bottom: 10px;
+            color: #017cbb;
+        }
+
+        .testimonial-card p {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Left Section -->
-        <div class="left-section">
-            <img src="{{ url_for('static', filename='login_page.jpg') }}" alt="Booking Illustration">
-        </div>
+    <!-- Header Section with Background -->
+    <div class="header-section">
+        <h1>Roomify</h1>
+        <p>Finde Dein Zimmer</p>
+        <p>Entdecke die besten Unterkünfte in der Nähe deiner Uni!</p>
+        <p>Roomify macht es einfach, schnell und stressfrei. Lass das Abenteuer beginnen!</p>
         
-        <!-- Right Section -->
-        <div class="right-section">
+        <!-- Login Container -->
+        <div class="login-container">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
             <h2>Login</h2>
             <form id="login-form">
@@ -116,6 +236,72 @@
                 </div>
                 <button type="submit">Anmelden</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Main Section -->
+    <div class="main-section">
+        <h2>Warum Roomify?</h2>
+        <p>Wir bieten eine Plattform, die speziell für Studenten, Anbieter und Administratoren entwickelt wurde. Hier findest du alles, was du brauchst, um dein Zimmer zu buchen und zu verwalten!</p>
+
+        <!-- Features Section -->
+        <div class="features-container">
+            <div class="feature-card">
+                <h3>Einfache Suche</h3>
+                <p>Finde verfügbare Zimmer in deiner Nähe mit nur wenigen Klicks!</p>
+            </div>
+            <div class="feature-card">
+                <h3>Verwaltungstools</h3>
+                <p>Behalte alle deine Buchungen im Blick und verwalte sie einfach!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Section -->
+    <div class="new-section">
+        <h2>Funktionen, die begeistern</h2>
+        <div class="features-container">
+            <div class="feature-card">
+                <h3>Für Studenten</h3>
+                <p>Suche nach Zimmern basierend auf Verfügbarkeit und Entfernung zur Uni.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Für Anbieter</h3>
+                <p>Verwalte deine Unterkünfte und halte sie immer aktuell.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Für Admins</h3>
+                <p>Überwache Benutzerprofile und sorge für einen reibungslosen Ablauf.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials Section -->
+    <div class="testimonials-section">
+        <h2>Das sagen unsere Nutzer</h2>
+        <div class="testimonials-container">
+            <div class="testimonial-card">
+                <div class="testimonial-number">S.Musterfrau</div>
+                <p>„Einfach genial!“</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-number">M.Moritz</div>
+                <p>„Buchungszauber hat mein Leben verändert!“</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-number">M.Mustermann</div>
+                <p>„Nie wieder Stress beim Suchen!“</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-number">R.Müller</div>
+                <p>„Ich liebe es!“</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-number">A.Muser</div>
+                <p>„Ich habe mein Traumzimmer gefunden! Die Buchung war ein Kinderspiel!"</p>
+            </div>
+
+            
         </div>
     </div>
 
@@ -142,7 +328,6 @@
                 if (result.error) {
                     alert(`Login fehlgeschlagen: ${result.error}`);
                 } else {
-                    
                     window.location.href = result.redirect;
                 }
             } catch (error) {
