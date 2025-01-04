@@ -2,11 +2,14 @@ import os
 import re
 import pdfplumber
 import requests
+import smtplib
 from factory import create_app, create_db_connection, debug_request
 from flask import redirect, render_template, request, session, jsonify, flash
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import psycopg2
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 app = create_app("frontend")
@@ -200,6 +203,8 @@ def create_booking():
 
     app.logger.info(f"Buchung erstellt: {buchung['user']}, Zimmer: {buchung['room']}")
     app.logger.debug(buchung)
+
+    
 
     try:
         response_host = 'http://buchungsmanagement/' if request.host == 'localhost' else request.url_root
@@ -450,9 +455,21 @@ def update_profile():
                     SET email = %s
                     WHERE user_id = %s;
                 """
+                app.logger.debug(f"Executing query: {query_email} with params: email={email}, user_id={user_id}")
                 cur.execute(query_email, (email, user_id))
 
+                # Überprüfen, ob die Änderung wirklich gespeichert wurde
+                cur.execute("SELECT email FROM public.\"user\" WHERE user_id = %s;", (user_id,))
+                updated_email = cur.fetchone()
+                app.logger.debug(f"Updated email in DB: {updated_email}")
+
+                session['email'] = email
+                app.logger.debug(f"Session aktualisiert: {session}")
+
+
+
             conn.commit()
+            app.logger.info("Database changes committed successfully.")
 
         return jsonify({'success': 'Profil erfolgreich aktualisiert.'}), 200
 
@@ -949,6 +966,77 @@ def get_faq():
     except Exception as e:
         app.logger.error(f"Error reading FAQ file: {e}")
         return jsonify({"error": "Failed to load FAQs"}), 500
+
+### Sending EMAIL after booking #######
+
+@app.route('/send-booking-email', methods=['POST'])
+def send_booking_email():
+    """
+    Sendet eine Benachrichtigungs-E-Mail.
+    """
+    try:
+        app.logger.info("E-Mail-Sendefunktion aufgerufen.")
+        
+        # Buchungsinformationen abrufen
+        booking_id = request.form.get('booking_id')
+        booking_date = request.form.get('booking_date')
+        recipient_email = request.form.get('recipient_email')
+        is_user = request.form.get('is_user', False)
+
+        if not all([booking_id, booking_date, recipient_email]):
+            return jsonify({"error": "Buchungsdaten fehlen."}), 400
+
+        # Abhängig vom Empfänger unterschiedliche Inhalte erstellen
+        if is_user:  # E-Mail an den Bucher
+            subject = f"Buchungsanfrage eingegangen: {booking_id}"
+            body = f"""
+            Sehr geehrter Nutzer,
+
+            Ihre Buchungsanfrage wurde erfolgreich eingereicht.
+            Buchungs-ID: {booking_id}
+            Datum: {booking_date}
+
+            Sie erhalten in Kürze eine Rückmeldung von dem Anbieter.
+
+            Mit freundlichen Grüßen,
+            Ihr Roomify-Team
+            """
+        else:  # E-Mail an den Anbieter
+            subject = f"Buchungsbenachrichtigung: Buchungs-ID {booking_id}"
+            body = f"""
+            Sehr geehrter Anbieter,
+
+            Sie haben eine neue Buchungsanfrage erhalten.
+            Buchungs-ID: {booking_id}
+            Buchungsdatum: {booking_date}
+
+            Bitte loggen Sie sich in Ihr Anbieterportal ein, um weitere Details zur Buchung einzusehen.
+
+            Mit freundlichen Grüßen,
+            Ihr Roomify-Team
+            """
+
+        # E-Mail versenden
+        sender_email = "roomify.customerservice@gmail.com"
+        sender_password = "dsnhlmmkgnwuksfv"
+        
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = recipient_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+        
+        app.logger.info(f"E-Mail erfolgreich an {recipient_email} gesendet.")
+        return jsonify({"success": f"E-Mail erfolgreich an {recipient_email} gesendet."}), 200
+
+    except Exception as e:
+        app.logger.error(f"Fehler beim Senden der E-Mail: {e}")
+        return jsonify({"error": f"Fehler beim Senden der E-Mail: {e}"}), 500
 
 
 

@@ -7,6 +7,11 @@ from geopy.distance import geodesic  # Für Radius-Berechnung
 from factory import create_app, create_db_connection, debug_request
 from flask import jsonify, request
 
+import requests
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 app = create_app("zimmerverwaltung")
 
 # Geolocator initialisieren
@@ -132,12 +137,11 @@ def search_providers():
 @app.route('/create-booking', methods=['POST'])
 def create_booking():
     """
-    Fügt eine Buchung zur Datenbank hinzu.
-    Überprüft, ob der Benutzer bereits am selben Tag eine Buchung hat.
+    Fügt eine Buchung zur Datenbank hinzu und ruft die E-Mail-Sende-Logik auf.
     """
     try:
         data = request.get_json()
-        app.logger.debug(f"Erhaltene Buchungsdaten: {data}")  
+        app.logger.debug(f"Erhaltene Buchungsdaten: {data}")
 
         user_id = data.get('user_id')
         room_id = data.get('room_id')
@@ -150,7 +154,6 @@ def create_booking():
 
         app.logger.debug(f"Verarbeitete Daten: user_id={user_id}, room_id={room_id}, provider_id={provider_id}, state_id={state_id}")
 
-        # Nächste freie booking_id ermitteln
         conn = create_db_connection()
         cursor = conn.cursor()
 
@@ -163,7 +166,7 @@ def create_booking():
         if not room_date:
             return jsonify({"error": "Zimmer-ID ungültig oder Zimmer nicht gefunden."}), 400
 
-        room_date = room_date[0]  # Extrahiere das Datum aus dem Resultat
+        room_date = room_date[0]
 
         # Überprüfen, ob der Benutzer bereits an diesem Tag eine Buchung hat
         cursor.execute("""
@@ -176,25 +179,55 @@ def create_booking():
 
         if existing_booking:
             booking_id = existing_booking[0]
-            app.logger.error(f"Buchung exisstiert bereits an diesem Tag!")
+            app.logger.error(f"Buchung existiert bereits an diesem Tag!")
             return jsonify({
                 "error": f"Sie haben bereits eine Buchung am {room_date.strftime('%d-%m-%Y')} mit der Buchungs-ID {booking_id}."
             }), 400
 
         # Nächste freie booking_id ermitteln
-
         cursor.execute("SELECT COALESCE(MAX(booking_id), 0) + 1 FROM public.booking;")
         next_booking_id = cursor.fetchone()[0]
 
-        # Buchung in der Datenbank speichern
+        # Buchung speichern
         cursor.execute("""
             INSERT INTO public.booking (booking_id, user_id, room_id, state_id)
             VALUES (%s, %s, %s, %s)
         """, (next_booking_id, user_id, room_id, state_id))
         conn.commit()
 
-        app.logger.info(f"Buchung erfolgreich: booking_id={next_booking_id}, user_id={user_id}, room_id={room_id}, state_id={state_id}")
+        # **E-Mails senden**
+        # 1. An den Anbieter
+        response_provider_email = requests.post(
+            'http://frontend/send-booking-email',
+            data={
+                "booking_id": next_booking_id,
+                "booking_date": room_date.strftime('%d-%m-%Y'),
+                "recipient_email": "anbieter@muellmail.com"
+            }
+        )
+
+        # 2. An den Bucher
+        cursor.execute("""
+            SELECT email FROM public."user" WHERE user_id = %s;
+        """, (user_id,))
+        user_email = cursor.fetchone()[0]
+
+        response_user_email = requests.post(
+            'http://frontend/send-booking-email',
+            data={
+                "booking_id": next_booking_id,
+                "booking_date": room_date.strftime('%d-%m-%Y'),
+                "recipient_email": user_email,
+                "is_user": True
+            }
+        )
+
+        # Log-Ergebnisse der E-Mails
+        app.logger.info(f"Ergebnis Provider-E-Mail: {response_provider_email.json()}")
+        app.logger.info(f"Ergebnis User-E-Mail: {response_user_email.json()}")
+
         return jsonify({"success": f"Buchung erfolgreich erstellt mit ID {next_booking_id}"}), 200
+
     except Exception as e:
         if 'conn' in locals():
             conn.rollback()
@@ -205,6 +238,7 @@ def create_booking():
             cursor.close()
         if 'conn' in locals():
             conn.close()
+
 
 
 
