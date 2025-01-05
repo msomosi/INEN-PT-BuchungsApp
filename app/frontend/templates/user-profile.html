@@ -340,6 +340,56 @@
             isEditing = !isEditing;
         });
 
+        // Formular-Speichern
+        document.getElementById('profile-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Standard-Formularverhalten verhindern
+
+            // Formulardaten sammeln
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // AJAX-ähnliche Anfrage mit fetch
+            fetch('/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || "Ein Fehler ist aufgetreten.");
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Profil erfolgreich aktualisiert!');
+                    // Aktualisiere die Ansicht mit neuen Werten
+                    inputs.forEach(input => {
+                        const span = input.previousElementSibling;
+                        if (span) {
+                            span.textContent = input.value;
+                            input.style.display = 'none';
+                            span.style.display = 'inline';
+                        }
+                    });
+                    saveButton.style.display = 'none';
+                    editButton.textContent = "✏️ Bearbeiten";
+                    isEditing = false;
+                }
+            })
+            .catch(error => {
+                console.error('Fehler:', error);
+                alert(error.message || "Ein unerwarteter Fehler ist aufgetreten.");
+            });
+        });
+
         document.getElementById('uploadForm').addEventListener('submit', function (event) {
             event.preventDefault();  // Verhindert das Standardformularverhalten
             

@@ -2,6 +2,10 @@ from datetime import datetime, timedelta
 from factory import create_app, create_db_connection, debug_request
 from flask import jsonify, request
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 app = create_app("anbietermgmt")
 
 # API zum Abrufen der Zimmerdaten
@@ -17,6 +21,7 @@ app = create_app("anbietermgmt")
 @app.route('/anbietermgmt', methods=['GET'])
 def anbietermgmt():
     try:
+        remove_old_rooms() #alte Zimmer enfernen die auf available waren
         user_id = request.args.get("user_id")
         if not user_id:
             return jsonify({'error': 'Benutzer-ID fehlt.'}), 401
@@ -73,7 +78,7 @@ def anbietermgmt():
             return jsonify({"rooms": rooms}), 200
 
     except Exception as e:
-        app.logger.error(f"Fehler beim Abrufen der Zimmerdaten: {e}")
+        app.logger.error(f"Fehler beim Abrufen der Zimmerdaten in Anbietermanagement: {e}")
         return jsonify({'error': 'Fehler beim Laden der Zimmerdaten.', 'details': str(e)}), 500
 
 
@@ -125,41 +130,6 @@ def get_room_summary():
     except Exception as e:
         app.logger.error(f"Fehler bei der Abfrage: {e}")
         return jsonify({'error': 'Fehler beim Abrufen der Zimmerzusammenfassung', 'details': str(e)}), 500
-
-
-
-# API für Buchungsstatus-Aktualisierung
-@app.route('/update-booking-status', methods=['POST'])
-def update_booking_status():
-    """Aktualisiert den Buchungsstatus für ein Zimmer."""
-    try:
-        booking_id = request.json.get('booking_id')
-        new_status_id = request.json.get('status_id')
-
-        if not booking_id or not new_status_id:
-            return jsonify({'error': 'Buchungs-ID oder neuer Status fehlen'}), 400
-
-        conn = create_db_connection()
-        with conn.cursor() as cur:
-            query = """
-                UPDATE public.booking
-                SET state_id = %s
-                WHERE booking_id = %s;
-            """
-            cur.execute(query, (new_status_id, booking_id))
-            conn.commit()
-
-        return jsonify({'success': 'Buchungsstatus erfolgreich aktualisiert'}), 200
-    except Exception as e:
-        return jsonify({'error': 'Fehler beim Aktualisieren des Buchungsstatus', 'details': str(e)}), 500
-    finally:
-        if 'conn' in locals():
-            conn.close()
-
-
-if __name__ == '__main__':
-    app.run(debug=True, port=80)
-
 
 
 
@@ -221,6 +191,184 @@ def add_room():
     finally:
         if 'conn' in locals():
             conn.close()
+
+@app.route('/confirm-booking', methods=['POST'])
+def confirm_booking():
+    """Bestätigt eine Buchung und sendet eine E-Mail-Bestätigung an den Studenten."""
+    try:
+        booking_id = request.json.get('booking_id')
+        if not booking_id:
+            return jsonify({'error': 'Buchungs-ID fehlt'}), 400
+
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            # Benutzer-E-Mail anhand der Buchungs-ID abrufen
+            query = """
+                SELECT u.email
+                FROM public.booking b
+                JOIN public."user" u ON b.user_id = u.user_id
+                WHERE b.booking_id = %s;
+            """
+            cur.execute(query, (booking_id,))
+            user_row = cur.fetchone()
+
+            if not user_row:
+                return jsonify({'error': 'Benutzer-E-Mail nicht gefunden'}), 404
+
+            user_email = user_row[0]
+
+            # Buchungsstatus aktualisieren
+            update_query = """
+                UPDATE public.booking
+                SET state_id = 3  -- Status "confirmed"
+                WHERE booking_id = %s;
+            """
+            cur.execute(update_query, (booking_id,))
+            conn.commit()
+
+        # E-Mail senden
+        subject = "Buchungsbestätigung"
+        body = f"""
+        Sehr geehrte/r Student/in,
+
+        Ihre Buchung mit der ID {booking_id} wurde vom Anbieter bestätigt. Der Anbieter freut sich darauf, Sie willkommen zu heißen.
+
+        Mit freundlichen Grüßen,
+        Ihr Roomify-Team
+        """
+        send_email(user_email, subject, body)
+
+        return jsonify({'success': 'Buchung erfolgreich bestätigt und E-Mail gesendet.'}), 200
+
+    except Exception as e:
+        app.logger.error(f"Fehler beim Bestätigen der Buchung: {e}")
+        return jsonify({'error': 'Fehler beim Bestätigen der Buchung.', 'details': str(e)}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+
+
+@app.route('/reject-booking', methods=['POST'])
+def reject_booking():
+    """Lehnt eine Buchung ab und sendet eine E-Mail-Ablehnung an den Studenten."""
+    try:
+        booking_id = request.json.get('booking_id')
+        rejection_message = request.json.get('rejection_message', '')
+
+        if not booking_id:
+            return jsonify({'error': 'Buchungs-ID fehlt'}), 400
+
+        if not rejection_message:
+            rejection_message = "Ihre Buchung wurde vom Anbieter abgelehnt. Bitte kontaktieren Sie uns für weitere Informationen."
+
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            # Benutzer-E-Mail anhand der Buchungs-ID abrufen
+            query = """
+                SELECT u.email
+                FROM public.booking b
+                JOIN public."user" u ON b.user_id = u.user_id
+                WHERE b.booking_id = %s;
+            """
+            cur.execute(query, (booking_id,))
+            user_row = cur.fetchone()
+
+            if not user_row:
+                return jsonify({'error': 'Benutzer-E-Mail nicht gefunden'}), 404
+
+            user_email = user_row[0]
+
+            # Buchungsstatus zurücksetzen
+            update_query = """
+                UPDATE public.booking
+                SET state_id = 1  -- Status "available"
+                WHERE booking_id = %s;
+            """
+            cur.execute(update_query, (booking_id,))
+            conn.commit()
+
+        # E-Mail senden
+        subject = "Buchungsablehnung"
+        body = f"""
+        Sehr geehrte/r Student/in,
+
+        Leider wurde Ihre Buchung mit der ID {booking_id} abgelehnt.
+
+        Grund: {rejection_message}
+
+        Mit freundlichen Grüßen,
+        Ihr Roomify-Team
+        """
+        send_email(user_email, subject, body)
+
+        return jsonify({'success': 'Buchung erfolgreich abgelehnt und E-Mail gesendet.'}), 200
+
+    except Exception as e:
+        app.logger.error(f"Fehler beim Ablehnen der Buchung: {e}")
+        return jsonify({'error': 'Fehler beim Ablehnen der Buchung.', 'details': str(e)}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+
+
+def send_email(to_email, subject, body):
+    """Hilfsfunktion zum Senden von E-Mails."""
+    sender_email = "roomify.customerservice@gmail.com"
+    sender_password = "dsnhlmmkgnwuksfv"
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+
+@app.route('/remove-old-rooms', methods=['POST'])
+def remove_old_rooms():
+    """Markiert Buchungen als 'abgebrochen' und löscht alte verfügbare Zimmer."""
+    try:
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            # Schritt 1: Buchungen auf "abgebrochen" setzen
+            update_bookings_query = """
+            UPDATE public.room
+            SET state_id = 5 -- Status "failed"
+            WHERE room_id IN (
+                SELECT room_id
+                FROM public.room
+                WHERE state_id = 1 -- Status "available"
+                AND date < CURRENT_DATE
+            );
+            """
+            cur.execute(update_bookings_query)
+            
+            # Schritt 2: Zimmer löschen
+            """delete_rooms_query = """
+            """DELETE FROM public.room
+            WHERE state_id = 1 -- Status "available"
+            AND date < CURRENT_DATE;
+            """
+            """cur.execute(delete_rooms_query)"""
+            
+            # Änderungen speichern
+            conn.commit()
+
+        return jsonify({'success': 'Veraltete Zimmer und Buchungen erfolgreich bereinigt.'}), 200
+
+    except Exception as e:
+        app.logger.error(f"Fehler beim Bereinigen der Zimmerdaten: {e}")
+        return jsonify({'error': 'Fehler beim Bereinigen der Zimmerdaten.', 'details': str(e)}), 500
+
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
 
 
 if __name__ == '__main__':

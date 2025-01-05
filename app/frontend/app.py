@@ -67,6 +67,29 @@ def anbietermgmt():
         user_id = session.get("user_id")
         if not user_id:
             return render_template('error.html', message="Benutzer ist nicht eingeloggt.")
+        
+        app.logger.debug(f"Session-Daten: {session}")
+        
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            # Benutzerinformationen abfragen
+            query_user = """
+                SELECT first_name, last_name, email
+                FROM public."user"
+                WHERE user_id = %s;
+            """
+            cur.execute(query_user, (user_id,))
+            user_row = cur.fetchone()
+
+            if not user_row:
+                return render_template('error.html', message="Benutzerinformationen konnten nicht gefunden werden.")
+
+            # Benutzerinformationen als Wörterbuch speichern
+            user = {
+                "first_name": user_row[0],
+                "last_name": user_row[1],
+                "email": user_row[2],
+            }
 
         # Daten von der API abrufen
         response_rooms = requests.get(f'http://anbietermgmt/anbietermgmt?user_id={user_id}')
@@ -75,7 +98,7 @@ def anbietermgmt():
         if response_rooms.status_code == 200:
             rooms = response_rooms.json().get("rooms", [])
         else:
-            app.logger.warning(f"Fehler beim Abrufen der Zimmerdaten: {response_rooms.status_code}")
+            app.logger.warning(f"Fehler beim Abrufen der Zimmerdaten im Frontend: {response_rooms.status_code}")
             rooms = []
 
         if response_summary.status_code == 200:
@@ -92,25 +115,25 @@ def anbietermgmt():
 
         # Validierung der Room-Daten und Ergänzung fehlender Attribute
         for room in rooms:
-            room['state_id'] = room.get('state_id', 1)  
-            room['state_name'] = room.get('state_name', "Available")  
+            room['state_id'] = room.get('state_id', 1)
+            room['state_name'] = room.get('state_name', "Available")
             room['zimmer_id'] = room.get('zimmer_id', None)
             room['date'] = room.get('date', "Unbekannt")
             room['firstname'] = room.get('firstname', "N/A")
             room['lastname'] = room.get('lastname', "N/A")
 
-
             # Sicherstellen, dass `state_id` numerisch ist
             if not isinstance(room['state_id'], int):
                 room['state_id'] = 0
 
-
+        app.logger.info(f"Anbietermanagement Line 125: {user}")
         # Weitergabe an das Template
-        return render_template('room-management.html', rooms=rooms, summary=summary)
+        return render_template('room-management.html', rooms=rooms, summary=summary, user=user)
 
     except Exception as e:
-        app.logger.error(f"Fehler beim Abrufen der Zimmerdaten: {e}")
+        app.logger.error(f"Fehler beim Abrufen der Zimmerdaten im Frontend Line 128: {e}")
         return render_template('error.html', message='Fehler beim Laden der Daten.')
+
 
 @app.route('/add-room', methods=['POST'])
 def add_room():
@@ -422,11 +445,14 @@ def update_profile():
         email = updated_data.get('email')
         phone = updated_data.get('phone')
 
+        app.logger.debug(f"Updated data received: {updated_data}")
+
         conn = create_db_connection()
 
-        # Rollenbasiertes Update
         with conn.cursor() as cur:
-            if role_id in [2, 3]:  # Provider oder Student
+            # Rollenbasiertes Update
+            if role_id == 3:  # Student
+                # Update der Adressinformationen in der Tabelle `contact`
                 query_contact = """
                     UPDATE public.contact
                     SET address = %s,
@@ -437,7 +463,20 @@ def update_profile():
                         SELECT contact_id
                         FROM public.student
                         WHERE user_id = %s
-                    ) OR contact_id = (
+                    );
+                """
+                cur.execute(query_contact, (adresse, plz, location, phone, user_id))
+                app.logger.debug(f"Contact info updated for Student: user_id={user_id}")
+
+            elif role_id == 2:  # Provider
+                # Update der Adressinformationen in der Tabelle `contact`
+                query_contact = """
+                    UPDATE public.contact
+                    SET address = %s,
+                        postal_code = %s,
+                        location = %s,
+                        phone = %s
+                    WHERE contact_id = (
                         SELECT contact_id
                         FROM public.accommodation
                         WHERE provider_id = (
@@ -447,26 +486,27 @@ def update_profile():
                         )
                     );
                 """
-                cur.execute(query_contact, (adresse, plz, location, phone, user_id, user_id))
+                cur.execute(query_contact, (adresse, plz, location, phone, user_id))
+                app.logger.debug(f"Contact info updated for Provider: user_id={user_id}")
 
-            if email:  # Aktualisiere E-Mail in der Benutzer-Tabelle
+            # Update der E-Mail-Adresse in der Tabelle `user`
+            if email:
                 query_email = """
                     UPDATE public."user"
                     SET email = %s
                     WHERE user_id = %s;
                 """
-                app.logger.debug(f"Executing query: {query_email} with params: email={email}, user_id={user_id}")
                 cur.execute(query_email, (email, user_id))
+                app.logger.debug(f"Email updated for user_id={user_id}")
 
                 # Überprüfen, ob die Änderung wirklich gespeichert wurde
                 cur.execute("SELECT email FROM public.\"user\" WHERE user_id = %s;", (user_id,))
                 updated_email = cur.fetchone()
                 app.logger.debug(f"Updated email in DB: {updated_email}")
 
+                # Aktualisiere die Session mit der neuen E-Mail
                 session['email'] = email
                 app.logger.debug(f"Session aktualisiert: {session}")
-
-
 
             conn.commit()
             app.logger.info("Database changes committed successfully.")
@@ -474,10 +514,12 @@ def update_profile():
         return jsonify({'success': 'Profil erfolgreich aktualisiert.'}), 200
 
     except Exception as e:
+        app.logger.error(f"Error while updating profile: {e}")
         return jsonify({'error': 'Fehler beim Aktualisieren des Profils.', 'details': str(e)}), 500
     finally:
         if 'conn' in locals():
             conn.close()
+
 
 def extract_data_from_pdf(file_path):
     with pdfplumber.open(file_path) as pdf:
@@ -673,8 +715,7 @@ def user_details(zimmer_id):
                     c.location,
                     u.email,
                     c.phone,
-                    u.verification,
-                    u.verification_date
+                    u.verification
                 FROM 
                     public."user" u
                 LEFT JOIN 
@@ -704,7 +745,6 @@ def user_details(zimmer_id):
                 "email": user_row[5],
                 "phone": user_row[6] if user_row[6] else "Nicht verfügbar",
                 "verification": "Verifiziert" if user_row[7] else "Nicht verifiziert",
-                "verification_date": user_row[8].strftime('%Y-%m-%d') if user_row[8] else "Nicht verfügbar"
             }
 
         return render_template('user-details.html', user=user_data)

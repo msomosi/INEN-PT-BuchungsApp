@@ -264,7 +264,7 @@
             background-color: red;
         }
 
-        .update-status-btn.pending {
+        .confirm-booking-btn {
             background-color: orange; /* gleiche Farbe wie "pending" */
             color: white;
             border: none;
@@ -275,8 +275,23 @@
             transition: background-color 0.3s ease;
         }
 
-        .update-status-btn.pending:hover {
-            background-color: darkorange; /* dunkleres Orange beim Hover */
+        .confirm-booking-btn:hover {
+            background-color: darkorange; 
+        }
+        
+        .reject-booking-btn {
+            background-color: orange; 
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .reject-booking-btn:hover {
+            background-color: rgb(255, 0, 0); 
         }
 
 
@@ -370,9 +385,19 @@
                     <td>{{ room.firstname }} {{ room.lastname }}</td>
                     <td>
                         {% if room.state_name == 'pending' %}
-                        <button class="update-status-btn pending" data-booking-id="{{ room.booking_id }}" data-new-status-id="3">
-                           Buchung Bestätigen
+                        <button class="confirm-booking-btn" data-booking-id="{{ room.booking_id }}" data-user-email="{{ user.email }}">
+                            Buchung Bestätigen
                         </button>
+                        <!-- Button für Buchung ablehnen -->
+                        <button class="reject-booking-btn" data-booking-id="{{ room.booking_id }}" data-user-email="{{ user.email }}">
+                            Buchung Ablehnen
+                        </button>
+
+                        <!-- Eingabefeld für Ablehnungsnachricht (standardmäßig ausgeblendet) -->
+                        <div class="rejection-message-container" style="display: none;">
+                            <textarea class="rejection-message" placeholder="Optional: Grund für die Ablehnung"></textarea>
+                            <button class="send-rejection-btn">Ablehnung senden</button>
+                        </div>
                         {% else %}
                             -
                         {% endif %}
@@ -402,7 +427,7 @@
             }
         });
 
-        document.querySelectorAll('.update-status-btn').forEach(button => {
+        /*document.querySelectorAll('.update-status-btn').forEach(button => {
         button.addEventListener('click', () => {
             const bookingId = button.getAttribute('data-booking-id');
             const newStatusId = button.getAttribute('data-new-status-id');
@@ -428,7 +453,7 @@
                 alert('Ein unerwarteter Fehler ist aufgetreten.');
             });
         });
-    });
+    });*/
 
         document.getElementById('submit-add-room').addEventListener('click', function (event) {
         event.preventDefault();
@@ -462,6 +487,72 @@
                 alert('Ein unerwarteter Fehler ist aufgetreten.');
             });
     });
+
+        document.querySelectorAll('.confirm-booking-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const bookingId = button.getAttribute('data-booking-id');
+                const userEmail = button.getAttribute('data-user-email');
+
+                fetch('/confirm-booking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ booking_id: bookingId, user_email: userEmail })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Buchung erfolgreich bestätigt!');
+                        location.reload();
+                    } else {
+                        alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Ein unerwarteter Fehler ist aufgetreten.');
+                });
+            });
+        });
+
+        document.querySelectorAll('.reject-booking-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const container = button.nextElementSibling;
+                container.style.display = container.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+
+        document.querySelectorAll('.send-rejection-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const container = button.parentElement;
+                const bookingId = container.previousElementSibling.getAttribute('data-booking-id');
+                const userEmail = container.previousElementSibling.getAttribute('data-user-email');
+                const rejectionMessage = container.querySelector('.rejection-message').value;
+
+                fetch('/reject-booking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ booking_id: bookingId, user_email: userEmail, rejection_message: rejectionMessage })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Buchung erfolgreich abgelehnt!');
+                        location.reload();
+                    } else {
+                        alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Ein unerwarteter Fehler ist aufgetreten.');
+                });
+            });
+        });
+
 
 
 
