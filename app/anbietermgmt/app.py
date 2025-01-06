@@ -251,7 +251,7 @@ def confirm_booking():
 
 @app.route('/reject-booking', methods=['POST'])
 def reject_booking():
-    """Lehnt eine Buchung ab und sendet eine E-Mail-Ablehnung an den Studenten."""
+    """Lehnt eine Buchung ab, fügt die Ablehnung in die Tabelle 'cancelled_bookings' ein und löscht die Buchung."""
     try:
         booking_id = request.json.get('booking_id')
         rejection_message = request.json.get('rejection_message', '')
@@ -264,6 +264,32 @@ def reject_booking():
 
         conn = create_db_connection()
         with conn.cursor() as cur:
+            # Hole die Buchungsdetails, um sie in die Cancelled-Log-Tabelle einzufügen
+            query_booking_details = """
+                SELECT b.room_id, u.first_name, u.last_name, bs.state_name
+                FROM public.booking b
+                JOIN public."user" u ON b.user_id = u.user_id
+                JOIN public.booking_state bs ON b.state_id = bs.state_id
+                WHERE b.booking_id = %s;
+            """
+            cur.execute(query_booking_details, (booking_id,))
+            booking_details = cur.fetchone()
+
+            if not booking_details:
+                return jsonify({'error': 'Buchungsdetails nicht gefunden'}), 404
+
+            room_id, first_name, last_name, state_name = booking_details
+
+            # Ablehnungsgrund in die Cancelled-Bookings-Tabelle einfügen
+            insert_cancelled_booking_query = """
+                INSERT INTO public.cancelled_bookings (
+                    room_id, rejection_reason, student_first_name, student_last_name, booking_status
+                ) VALUES (%s, %s, %s, %s, %s);
+            """
+            cur.execute(insert_cancelled_booking_query, (
+                room_id, rejection_message, first_name, last_name, state_name
+            ))
+
             # Benutzer-E-Mail anhand der Buchungs-ID abrufen
             query = """
                 SELECT u.email
@@ -279,13 +305,21 @@ def reject_booking():
 
             user_email = user_row[0]
 
-            # Buchungsstatus zurücksetzen
-            update_query = """
-                UPDATE public.booking
-                SET state_id = 1  -- Status "available"
+            # Lösche die Buchung aus der Tabelle 'booking'
+            delete_booking_query = """
+                DELETE FROM public.booking
                 WHERE booking_id = %s;
             """
-            cur.execute(update_query, (booking_id,))
+            cur.execute(delete_booking_query, (booking_id,))
+
+            # Setze den Status des Zimmers auf "available"
+            update_room_query = """
+                UPDATE public.room
+                SET state_id = 1 -- Status "available"
+                WHERE room_id = %s;
+            """
+            cur.execute(update_room_query, (room_id,))
+
             conn.commit()
 
         # E-Mail senden
@@ -313,6 +347,8 @@ def reject_booking():
 
 
 
+
+
 def send_email(to_email, subject, body):
     """Hilfsfunktion zum Senden von E-Mails."""
     sender_email = "roomify.customerservice@gmail.com"
@@ -331,31 +367,37 @@ def send_email(to_email, subject, body):
 
 @app.route('/remove-old-rooms', methods=['POST'])
 def remove_old_rooms():
-    """Markiert Buchungen als 'abgebrochen' und löscht alte verfügbare Zimmer."""
+    """Bereinigt alte Buchungen und Zimmer basierend auf ihrem Alter."""
     try:
         conn = create_db_connection()
         with conn.cursor() as cur:
-            # Schritt 1: Buchungen auf "abgebrochen" setzen
-            update_bookings_query = """
-            UPDATE public.room
-            SET state_id = 5 -- Status "failed"
+            # Schritt 1: Lösche Buchungen älter als "Heute - 2 Tage"
+            delete_old_bookings_query = """
+            DELETE FROM public.booking
             WHERE room_id IN (
                 SELECT room_id
                 FROM public.room
-                WHERE state_id = 1 -- Status "available"
-                AND date < CURRENT_DATE
+                WHERE date < (CURRENT_DATE - INTERVAL '2 days')
             );
             """
-            cur.execute(update_bookings_query)
-            
-            # Schritt 2: Zimmer löschen
-            """delete_rooms_query = """
-            """DELETE FROM public.room
+            cur.execute(delete_old_bookings_query)
+
+            # Schritt 2: Markiere Zimmer, die zwischen "Heute - 2 Tage" und "Heute" liegen, als "failed"
+            update_failed_rooms_query = """
+            UPDATE public.room
+            SET state_id = 5 -- Status "failed"
             WHERE state_id = 1 -- Status "available"
             AND date < CURRENT_DATE;
             """
-            """cur.execute(delete_rooms_query)"""
-            
+            cur.execute(update_failed_rooms_query)
+
+            # Schritt 3: Lösche Zimmer, die älter sind als "Heute - 2 Tage"
+            delete_old_rooms_query = """
+            DELETE FROM public.room
+            WHERE date < (CURRENT_DATE - INTERVAL '2 days');
+            """
+            cur.execute(delete_old_rooms_query)
+
             # Änderungen speichern
             conn.commit()
 
@@ -368,6 +410,41 @@ def remove_old_rooms():
     finally:
         if 'conn' in locals():
             conn.close()
+
+@app.route('/cancelled-bookings', methods=['GET'])
+def get_cancelled_bookings():
+    """Gibt eine Liste der stornierten Buchungen zurück."""
+    try:
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            query = """
+            SELECT room_id, rejection_reason, student_first_name, student_last_name, booking_status, cancellation_date
+            FROM public.cancelled_bookings
+            ORDER BY cancellation_date DESC;
+            """
+            cur.execute(query)
+            rows = cur.fetchall()
+
+            cancelled_bookings = []
+            for row in rows:
+                cancelled_bookings.append({
+                    "room_id": row[0],
+                    "rejection_reason": row[1],
+                    "student_first_name": row[2],
+                    "student_last_name": row[3],
+                    "booking_status": row[4],
+                    "cancellation_date": row[5].strftime('%Y-%m-%d %H:%M:%S'),
+                })
+
+            return jsonify({"cancelled_bookings": cancelled_bookings}), 200
+
+    except Exception as e:
+        app.logger.error(f"Fehler beim Abrufen der stornierten Buchungen: {e}")
+        return jsonify({'error': 'Fehler beim Abrufen der stornierten Buchungen.', 'details': str(e)}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
 
 
 

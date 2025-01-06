@@ -9,9 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             height: 100vh;
-            background-image: url("{{ url_for('static', filename='home1.png') }}");
-            background-size: cover;
-            background-position: center;
+            background-color: #f4f9fc;
             display: flex;
             flex-direction: column;
         }
@@ -83,63 +81,56 @@
             background-color: #015a88;
         }
 
-        .overlay-content {
-            position: absolute;
-            top: 20%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.7); 
-            border-radius: 10px;
-            padding: 30px;
+        .container {
+            background-color: white;
+            padding: 50px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 90%;
             text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 100px;
+            margin: 20px auto;
+          
         }
 
-        .overlay-content img {
+        .container img {
             width: 150px;
             margin-bottom: 20px;
         }
 
-        .overlay-content h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            color: #017cbb;
-        }
-
-        .overlay-content p {
-            font-size: 1.2em;
-            color: #333;
-        }
-
-        .stats-section {
-            display: flex;
-            justify-content: space-around;
-            background-color: rgb(255, 255, 255,0.6);
-            padding: 50px 0;
-            text-align: center;
-            margin-top: 400px; /* Abstand unter dem Bild */
-            
-        }
-
-        .stat h2 {
-            font-size: 2.5em;
-            color: #017cbb;
-            margin-bottom: 10px;
-        }
-
-        .stat p {
-            font-size: 1.2em;
-            color: #333;
-            margin-left: 50px;
-        }
-
-        .faq-container {
-            background-color: #f4f9fc;
+        .ratings-container {
+            background-color: white;
             margin: 20px auto;
             padding: 30px;
             border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             max-width: 800px;
-            display: none;
+            width: 90%;
+            text-align: center;
+            
+        }
+
+
+        .ratings-container img {
+            width: 100px;
+            margin-bottom: 10px;
+        }
+
+        .ratings-container h2 {
+            color: #017cbb;
+            margin-bottom: 15px;
+        }
+
+        .faq-container {
+            background-color: white;
+            margin: 20px auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 90%;
+            display: none; /* Standardmäßig ausgeblendet */
         }
 
         .faq-container h2 {
@@ -153,30 +144,23 @@
             font-size: 16px;
         }
 
-        .faq-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #017cbb;
-            color: white;
-            border: none;
-            padding: 15px;
-            cursor: pointer;
-            border-radius: 5px;
-            animation: blink 2s infinite ease-in-out;
+        h1 {
+            color: #017cbb;
+        }
+
+        p {
+            margin: 10px 0;
             font-size: 16px;
         }
 
-        .faq-button .bold-text {
+        a {
+            text-decoration: none;
+            color: #017cbb;
             font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
         }
 
-        .faq-button .normal-text {
-            font-weight: normal;
-            display: block;
-            font-size: 14px;
+        a:hover {
+            text-decoration: underline;
         }
 
         @keyframes blink {
@@ -192,6 +176,33 @@
                 background-color: #017cbb;
                 box-shadow: 0 0 10px #017cbb;
             }
+        }
+
+        .faq-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 5px;           
+            animation: blink 2s infinite ease-in-out;
+            font-size: 16px;
+            width: auto;
+        }
+
+        .faq-button .bold-text {
+            font-weight: bold;
+            display: block; /* Macht den Text blockweise für saubere Darstellung */
+            margin-bottom: 5px; /* Abstand zum normalen Text */
+        }
+
+        .faq-button .normal-text {
+            font-weight: normal;
+            display: block;
+            font-size: 14px; /* Optional kleinere Schriftgröße */
         }
 
         .faq-button:hover {
@@ -232,65 +243,75 @@
     
     <button class="toggle-sidebar" id="toggle-sidebar">☰ Menü</button>
 
-    <div class="overlay-content">
+    <div class="container">
         <img src="https://hochschule-burgenland.at/typo3conf/ext/website_template/Resources/Public/Images/Logos/Bgld_FH_Logo_RGB.jpg" alt="Logo">
         <h1>Willkommen, {{ user }}!</h1>
         <p>Bitte wählen Sie eine Option aus dem Menü.</p>
     </div>
 
-    <div class="stats-section">
-        <div class="stat">
-            <h2>100+</h2>
-            <p>Zimmer verfügbar</p>
-        </div>
-        <div class="stat">
-            <h2>50+</h2>
-            <p>Anbieter registriert</p>
-        </div>
-        <div class="stat">
-            <h2>2000+</h2>
-            <p>Buchungen abgeschlossen</p>
-        </div>
+    <div class="ratings-container">
+        <img src="{{ url_for('static', filename='star.png') }}" alt="Star">
+        <h2>Your Ratings</h2>
     </div>
 
     <div class="faq-container" id="faq-container">
-        <h2>AGB</h2>
+        <h2>FAQs</h2>
         <div id="faq-content"></div>
     </div>
     <button class="faq-button" onclick="toggleFAQ()">
-        <span class="bold-text">AGB</span><br>
-        <span class="normal-text">Klicken, um zu lesen</span>
+        <span class="bold-text">Need help?</span><br>
+        <span class="normal-text">Click to check our FAQ</span>
     </button>
+    
+    
 
     <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggle-sidebar');
         const faqContainer = document.getElementById('faq-container');
-        const faqContent = document.getElementById('faq-content');
+
+        if (window.location.pathname === '/home') {
+            sidebar.classList.add('open'); // Sidebar standardmäßig öffnen im home
+        }
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
 
         function toggleFAQ() {
+            const faqContainer = document.getElementById('faq-container');
+            const faqContent = document.getElementById('faq-content');
+
             if (faqContainer.style.display === 'none' || !faqContainer.style.display) {
                 fetch('/get-faq')
                     .then(response => response.json())
                     .then(data => {
                         faqContent.innerHTML = ''; // Vorherigen Inhalt leeren
 
+                        // Allgemeine FAQs
                         if (data.faqs.Allgemein.length > 0) {
                             faqContent.innerHTML += `<h3>Allgemein</h3>`;
                             data.faqs.Allgemein.forEach(line => {
                                 faqContent.innerHTML += `<p>${line}</p>`;
                             });
                         }
+
+                        // Studierenden-FAQs, falls Berechtigung vorhanden
                         if (data.faqs.Studierende.length > 0) {
                             faqContent.innerHTML += `<h3>Für Studierende</h3>`;
                             data.faqs.Studierende.forEach(line => {
                                 faqContent.innerHTML += `<p>${line}</p>`;
                             });
                         }
+
+                        // Anbieter-FAQs, falls Berechtigung vorhanden
                         if (data.faqs.Anbieter.length > 0) {
                             faqContent.innerHTML += `<h3>Für Anbieter:innen</h3>`;
                             data.faqs.Anbieter.forEach(line => {
                                 faqContent.innerHTML += `<p>${line}</p>`;
                             });
                         }
+
                         faqContainer.style.display = 'block';
                     })
                     .catch(error => console.error('Error loading FAQs:', error));
@@ -298,6 +319,8 @@
                 faqContainer.style.display = 'none';
             }
         }
+
+
     </script>
 </body>
 </html>

@@ -276,7 +276,7 @@
         }
 
         .confirm-booking-btn:hover {
-            background-color: darkorange; 
+            background-color: green; 
         }
         
         .reject-booking-btn {
@@ -291,6 +291,20 @@
         }
 
         .reject-booking-btn:hover {
+            background-color: rgb(255, 0, 0); 
+        }
+
+        .reject-booking-btn-conf {
+            background-color: blue; 
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .reject-booking-btn-conf:hover {
             background-color: rgb(255, 0, 0); 
         }
 
@@ -401,11 +415,51 @@
                         {% else %}
                             -
                         {% endif %}
+
+                        {% if room.state_name == 'confirmed' %}
+                        <!-- Button für Buchung ablehnen -->
+                        <button class="reject-booking-btn-conf" data-booking-id="{{ room.booking_id }}" data-user-email="{{ user.email }}">
+                            Buchung Ablehnen
+                        </button>
+
+                        <!-- Eingabefeld für Ablehnungsnachricht (standardmäßig ausgeblendet) -->
+                        <div class="rejection-message-container" style="display: none;">
+                            <textarea class="rejection-message" placeholder="Optional: Grund für die Ablehnung"></textarea>
+                            <button class="send-rejection-btn">Ablehnung senden</button>
+                        </div>
+                        {% else %}
+                            -
+                        {% endif %}
+
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
+        <h2 style="text-align: center; color: #017cbb; margin-top: 50px;">Cancelled Bookings</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Zimmer-ID</th>
+                    <th>Student:in</th>
+                    <th>Stornierungsgrund</th>
+                    <th>Stornierungsdatum</th>
+                </tr>
+            </thead>
+            <tbody id="cancelled-bookings-table">
+                {% for booking in cancelled_bookings %}
+                <tr>
+                    <td>{{ booking.room_id }}</td>
+                    <td>{{ booking.student_first_name }} {{ booking.student_last_name }}</td>
+                    <td>{{ booking.rejection_reason }}</td>
+                    <td>{{ booking.cancellation_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
         
     </div>
 
@@ -426,34 +480,6 @@
                 addRoomForm.style.display = 'none';
             }
         });
-
-        /*document.querySelectorAll('.update-status-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const bookingId = button.getAttribute('data-booking-id');
-            const newStatusId = button.getAttribute('data-new-status-id');
-
-            fetch('/update-booking-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ booking_id: bookingId, status_id: newStatusId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Status erfolgreich aktualisiert!');
-                    location.reload(); // Aktualisiert die Seite
-                } else {
-                    alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                alert('Ein unerwarteter Fehler ist aufgetreten.');
-            });
-        });
-    });*/
 
         document.getElementById('submit-add-room').addEventListener('click', function (event) {
         event.preventDefault();
@@ -523,6 +549,13 @@
             });
         });
 
+        document.querySelectorAll('.reject-booking-btn-conf').forEach(button => {
+            button.addEventListener('click', () => {
+                const container = button.nextElementSibling;
+                container.style.display = container.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+
         document.querySelectorAll('.send-rejection-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const container = button.parentElement;
@@ -552,6 +585,26 @@
                 });
             });
         });
+
+        fetch('/cancelled-bookings')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('cancelled-bookings-table');
+            tableBody.innerHTML = '';
+
+            data.cancelled_bookings.forEach(booking => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${booking.room_id}</td>
+                    <td>${booking.student_first_name} ${booking.student_last_name}</td>
+                    <td>${booking.rejection_reason}</td>
+                    <td>${booking.cancellation_date}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => console.error('Fehler beim Laden der stornierten Buchungen:', error));
+
 
 
 
