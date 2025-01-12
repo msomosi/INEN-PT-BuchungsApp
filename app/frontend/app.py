@@ -1,4 +1,5 @@
 import os
+import random
 import re
 import pdfplumber
 import requests
@@ -11,6 +12,10 @@ import psycopg2
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import qrcode
+import pyotp
+import io
+import base64
 
 app = create_app("frontend")
 
@@ -1077,6 +1082,178 @@ def send_booking_email():
     except Exception as e:
         app.logger.error(f"Fehler beim Senden der E-Mail: {e}")
         return jsonify({"error": f"Fehler beim Senden der E-Mail: {e}"}), 500
+
+#######REGISTRIERUNGSPROZESS ###############
+
+def send_email(to_email, subject, body):
+    """Hilfsfunktion zum Senden von E-Mails."""
+    sender_email = "roomify.customerservice@gmail.com"
+    sender_password = "dsnhlmmkgnwuksfv"
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'GET':
+        # Wenn GET, dann die HTML-Seite für die Registrierung rendern
+        return render_template('register.html')
+
+    if request.method == 'POST':
+        # POST-Logik für die Registrierung
+        data = request.json
+        role = data.get('role')  # 'student' oder 'anbieter'
+        username = data.get('username')
+        password = data.get('password')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        email = data.get('email')
+
+        # Standardmäßig ist local_user = False
+        local_user = data.get('local_user', False)
+
+        try:
+            conn = create_db_connection()
+            with conn.cursor() as cur:
+                # Neue Benutzer-ID abrufen
+                cur.execute("SELECT COALESCE(MAX(user_id), 0) + 1 FROM public.\"user\"")
+                new_user_id = cur.fetchone()[0]
+
+                # TOTP-Secret für den Benutzer generieren
+                totp_secret = pyotp.random_base32()
+
+                # Benutzer in die Datenbank einfügen
+                cur.execute("""
+                    INSERT INTO public."user" 
+                    (user_id, role_id, username, password, first_name, last_name, email, local_user, verification, verification_date, oauth_token) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    new_user_id,
+                    3 if role == 'student' else 2,  # 3 = Student, 2 = Anbieter
+                    username,
+                    password,
+                    first_name,
+                    last_name,
+                    email,
+                    local_user,
+                    False,  # verification
+                    None,   # verification_date
+                    totp_secret
+                ))
+
+                conn.commit()
+            
+            # Registrierungsbestätigungsmail senden
+            subject = "Willkommen bei Roomify!"
+            body = f"""
+            Sehr geehrter {first_name} {last_name},
+
+            Vielen Dank für Ihre Registrierung bei Roomify! Wir freuen uns, Sie als {role} an Bord zu haben.
+
+            Ihr Benutzername: {username}
+
+            Bitte beachten Sie, dass Sie sich bei Ihrem Login mithilfe der Zwei-Faktor-Authentifizierung (2FA) verifizieren müssen.
+
+            Mit freundlichen Grüßen,
+            Ihr Roomify-Team
+            """
+            send_email(email, subject, body)
+
+            # Wenn local_user = True, überspringe 2FA
+            if local_user:
+                return jsonify({
+                    'message': 'Registrierung erfolgreich',
+                    'redirect': '/home'
+                })
+
+           # Session leeren, um nicht eingeloggt zu sein
+            session.clear()
+
+            # Weiterleitung zur Startseite
+            return jsonify({
+                'message': 'Registrierung erfolgreich',
+                'redirect': '/home'
+            })
+
+
+        except Exception as e:
+            app.logger.error(f"Fehler bei der Registrierung: {e}")
+            return jsonify({'error': 'Interner Serverfehler'}), 500
+        finally:
+            if 'conn' in locals():
+                conn.close()
+
+
+
+@app.route('/verify-2fa', methods=['GET', 'POST'])
+def verify_2fa():
+    user_id = session.get('user_id')  # Benutzer-ID aus der Session
+    if not user_id:
+        return redirect('/login')  # Benutzer nicht eingeloggt -> zurück zum Login
+
+    try:
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            # Abrufen des TOTP-Secrets (oauth_token) aus der Datenbank
+            cur.execute("""
+                SELECT oauth_token FROM public."user"
+                WHERE user_id = %s
+            """, (user_id,))
+            user = cur.fetchone()
+
+            if not user or not user[0]:
+                app.logger.error("Benutzer oder oauth_token nicht gefunden.")
+                return redirect('/login')  # Benutzer nicht gefunden oder kein Token
+
+            totp_secret = user[0]  # TOTP-Secret (oauth_token)
+            totp = pyotp.TOTP(totp_secret)
+
+            # POST: Benutzer gibt den 2FA-Code ein
+            if request.method == 'POST':
+                user_code = request.form.get('code')
+
+                # Überprüfen, ob der eingegebene Code korrekt ist
+                if totp.verify(user_code):
+                    session.pop('qr_code_url', None)  # QR-Code-URL aus Session löschen
+                    return redirect('/home')  # Login erfolgreich
+
+                return render_template('2fa.html', error="Falscher Code.", qr_code_url=session.get('qr_code_url'))
+
+            # GET: QR-Code einmalig generieren, falls nötig
+            if 'qr_code_url' not in session:
+                provisioning_uri = totp.provisioning_uri(
+                    name=session.get('email'),
+                    issuer_name="Roomify"
+                )
+                # QR-Code generieren und als Base64-URL speichern
+                qr_image = qrcode.make(provisioning_uri)
+                qr_buffer = io.BytesIO()
+                qr_image.save(qr_buffer, format="PNG")
+                qr_buffer.seek(0)
+                qr_code_base64 = base64.b64encode(qr_buffer.read()).decode('utf-8')
+                session['qr_code_url'] = f"data:image/png;base64,{qr_code_base64}"
+
+            # QR-Code anzeigen
+            return render_template('2fa.html', qr_code_url=session['qr_code_url'])
+
+    except Exception as e:
+        app.logger.error(f"Fehler bei der 2FA-Überprüfung: {e}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+
 
 
 

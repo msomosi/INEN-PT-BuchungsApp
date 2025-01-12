@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrierung | Roomify</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: rgb(182, 175, 166);
+        }
+
+        .header-section {
+            position: relative;
+            text-align: center;
+            color: rgb(75, 74, 74);
+            background: url('{{ url_for("static", filename="Hotels.jpeg") }}') no-repeat center center/cover;
+            height: 700px;
+            padding-top: 50px;
+        }
+
+        .header-section h1 {
+            font-size: 60px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-section p {
+            font-size: 20px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .register-container {
+            position: absolute;
+            top: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.7); 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .register-container img {
+            width: 100px;
+            margin-bottom: 10px;
+        }
+
+        .register-container h2 {
+            color: #017cbb;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #017cbb;
+            outline: none;
+        }
+
+        .terms-container {
+            text-align: left;
+            margin-top: 10px;
+            font-size: 14px;
+            color: rgb(75, 74, 74);
+        }
+
+        .terms-container input {
+            margin-right: 10px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .register-container button, .register-container a {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .register-container button {
+            background-color: #017cbb;
+        }
+
+        .register-container button:hover {
+            background-color: #015a88;
+        }
+
+        .register-container a {
+            background-color: #017cbb;
+        }
+
+        .register-container a:hover {
+            background-color: #015a88;
+        }
+
+        .qr-container {
+            margin-top: 20px;
+            display: none; /* QR-Code wird nur angezeigt, wenn erforderlich */
+        }
+
+        .qr-container img {
+            margin: 20px auto;
+            width: 400px;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-section">
+        <h1>Roomify</h1>
+        <p>Registriere Dich, um Teil von Roomify zu werden!</p>
+        <div class="register-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            <h2>Registrierung</h2>
+            <form id="register-form">
+                <!-- Auswahl Rolle -->
+                <div class="form-group">
+                    <label for="role">Ich bin:</label>
+                    <select id="role" name="role" required>
+                        <option value="">Bitte wählen...</option>
+                        <option value="student">Student</option>
+                        <option value="anbieter">Anbieter</option>
+                    </select>
+                </div>
+
+                <!-- Dynamische Felder -->
+                <div id="dynamic-fields" style="display: none;">
+                    <div class="form-group">
+                        <input type="text" id="username" name="username" placeholder="Benutzername" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" name="password" placeholder="Passwort" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="confirm-password" placeholder="Passwort bestätigen" required>
+                        <span class="error-message" id="password-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="first_name" name="first_name" placeholder="Vorname" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="last_name" name="last_name" placeholder="Nachname" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" name="email" placeholder="E-Mail" required>
+                    </div>
+                </div>
+
+                <!-- Nutzungsbedingungen Checkbox -->
+                <div class="terms-container">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms">Ich habe die Nutzungsbedingungen gelesen und akzeptiere sie.</label>
+                </div>
+
+                <!-- QR-Code anzeigen -->
+                <div class="qr-container" id="qr-container">
+                    <h3>2FA aktivieren</h3>
+                    <p>Scanne diesen QR-Code mit Deiner Authenticator-App:</p>
+                    <img src="{{ qr_code_url }}" alt="QR Code">
+                </div>
+
+                <!-- Buttons -->
+                <div class="button-container">
+                    <button type="submit" id="register-button">Weiter</button>
+                    <a href="/home">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Dynamische Felder anzeigen basierend auf der Auswahl
+        document.getElementById('role').addEventListener('change', function() {
+            const dynamicFields = document.getElementById('dynamic-fields');
+            if (this.value) {
+                dynamicFields.style.display = 'block';
+            } else {
+                dynamicFields.style.display = 'none';
+            }
+        });
+
+        // Passwortvalidierung
+        document.getElementById('confirm-password').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            const error = document.getElementById('password-error');
+
+            if (password !== confirmPassword) {
+                error.textContent = "Passwörter stimmen nicht überein.";
+            } else {
+                error.textContent = "";
+            }
+        });
+
+        // Formular-Submit-Handler
+        document.getElementById('register-form').addEventListener('submit', async function(event) {
+            const termsAccepted = document.getElementById('terms').checked;
+
+            if (!termsAccepted) {
+                alert("Bitte akzeptiere die Nutzungsbedingungen, um fortzufahren.");
+                event.preventDefault();
+                return;
+            }
+
+            event.preventDefault();
+
+            const role = document.getElementById('role').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const first_name = document.getElementById('first_name').value;
+            const last_name = document.getElementById('last_name').value;
+            const email = document.getElementById('email').value;
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role, username, password, first_name, last_name, email })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.redirect) {
+                window.location.href = result.redirect;  // Weiterleitung zur Startseite
+            }
+            } catch (error) {
+                console.error('Fehler bei der Registrierung:', error);
+                alert('Es gab ein Problem bei der Registrierung.');
+            }
+        });
+    </script>
+</body>
+</html>
