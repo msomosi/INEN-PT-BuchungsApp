@@ -154,6 +154,26 @@ def create_booking():
 
         app.logger.debug(f"Verarbeitete Daten: user_id={user_id}, room_id={room_id}, provider_id={provider_id}, state_id={state_id}")
 
+        # Überprüfen, ob der Benutzer verifiziert ist
+        conn = create_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT verification 
+            FROM public."user" 
+            WHERE user_id = %s;
+        """, (user_id,))
+        verification_status = cursor.fetchone()
+
+        if not verification_status or not verification_status[0]:  # Nicht verifiziert
+            app.logger.warning(f"Benutzer mit user_id={user_id} ist nicht verifiziert.")
+            return jsonify({
+                "error": "Bitte verifizieren Sie Ihr Profil, bevor Sie eine Buchung vornehmen können.",
+                "redirect": "/user-profile"
+            }), 403
+
+        app.logger.debug(f"Benutzer mit user_id={user_id} ist verifiziert.")
+
         conn = create_db_connection()
         cursor = conn.cursor()
 

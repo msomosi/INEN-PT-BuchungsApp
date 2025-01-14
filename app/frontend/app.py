@@ -19,6 +19,22 @@ import base64
 
 app = create_app("frontend")
 
+def send_email(to_email, subject, body):
+    """Hilfsfunktion zum Senden von E-Mails."""
+    sender_email = "roomify.customerservice@gmail.com"
+    sender_password = "dsnhlmmkgnwuksfv"
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+
 @app.route('/home')
 def home():
     debug_request(request)
@@ -220,31 +236,62 @@ def create_booking():
     room = request.form['room']
     start_date = request.form['start_date']
     end_date = request.form['end_date']
+    user_id = session.get('user_id')
 
-    # Erstellen des Buchungsobjekts
-    buchung = {
-        'user': session.get('email', 'guest'),
-        'room': room,
-        'start_date': start_date,
-        'end_date': end_date
-    }
-
-    app.logger.info(f"Buchung erstellt: {buchung['user']}, Zimmer: {buchung['room']}")
-    app.logger.debug(buchung)
-
-    
+    if not user_id:
+        return jsonify({"error": "Benutzer ist nicht eingeloggt."}), 401
 
     try:
+        # Datenbankverbindung herstellen
+        conn = create_db_connection()
+        cursor = conn.cursor()
+
+        # Verifizierungsstatus des Benutzers abrufen
+        cursor.execute("""
+            SELECT verification
+            FROM public."user"
+            WHERE user_id = %s;
+        """, (user_id,))
+        result = cursor.fetchone()
+
+        if not result:
+            return jsonify({"error": "Benutzer nicht gefunden."}), 404
+
+        verification_status = result[0]
+
+        if not verification_status == 't':
+            # Benutzer ist nicht verifiziert
+            return jsonify({
+                "error": "Bitte verifizieren Sie Ihr Profil, bevor Sie eine Buchung vornehmen können.",
+                "redirect": "/user-profile"
+            }), 403
+
+        # Buchungsdaten erstellen
+        buchung = {
+            'user': session.get('email', 'guest'),
+            'room': room,
+            'start_date': start_date,
+            'end_date': end_date
+        }
+
+        app.logger.info(f"Buchung erstellt: {buchung['user']}, Zimmer: {buchung['room']}")
+        app.logger.debug(buchung)
+
+        # Anfrage an das Backend senden
         response_host = 'http://buchungsmanagement/' if request.host == 'localhost' else request.url_root
-        app.logger.debug(response_host + 'booking')
         response = requests.post(response_host + 'booking', json=buchung)
-        app.logger.debug(response)
-        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx and 5xx)
+        response.raise_for_status()  # Fehler bei 4xx und 5xx auslösen
+
+        return render_template('bestaetigung.html', buchung=buchung)
+
     except Exception as err:
         app.logger.error(f"Fehler beim Speichern der Buchung: {err}")
         return render_template('error.html', message='Fehler beim Speichern der Buchung.', error=str(err)), 500
-
-    return render_template('bestaetigung.html', buchung=buchung)
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 @app.route('/book-room', methods=['POST'])
 def book_room():
@@ -581,7 +628,32 @@ def extract_data_from_pdf(file_path):
         return extracted_data
 
 
+def send_verification_email(user_email, extracted_data):
+    """
+    Sendet eine Bestätigungs-E-Mail nach dem Hochladen der PDF.
+    """
+    try:
+        subject = "Ihre Daten zur Verifizierung wurden hochgeladen"
+        body = f"""
+        Sehr geehrte Damen und Herren,
 
+        Ihre Inskriptionsbestätigung wurde erfolgreich hochgeladen und befindet sich nun in der Prüfung.
+
+        Ihre hochgeladenen Daten:
+        - Name: {extracted_data['name']}
+        - Matrikelnummer: {extracted_data['matriculation_number']}
+        - Universität: {extracted_data['university_name']}
+        - Startdatum: {extracted_data['start_date']}
+
+        Sie werden benachrichtigt, sobald die Prüfung abgeschlossen ist.
+
+        Mit freundlichen Grüßen,
+        Ihr Roomify-Team
+        """
+        send_email(user_email, subject, body)
+        app.logger.info(f"Verification E-Mail an {user_email} gesendet.")
+    except Exception as e:
+        app.logger.error(f"Fehler beim Senden der E-Mail: {e}")
 
 
 
@@ -614,6 +686,20 @@ def upload_pdf():
             app.logger.debug(f"Session user_id: {user_id}")
             if not user_id:
                 return jsonify({"error": "Session user_id fehlt"}), 400
+            
+            # Hole die E-Mail-Adresse des Benutzers aus der Datenbank
+            cursor.execute("""
+                SELECT email 
+                FROM public."user" 
+                WHERE user_id = %s
+            """, (user_id,))
+            user_email_row = cursor.fetchone()
+
+            if not user_email_row:
+                return jsonify({"error": "Benutzer-E-Mail nicht gefunden."}), 404
+
+            user_email = user_email_row[0]
+            app.logger.debug(f"Benutzer-E-Mail: {user_email}")
 
             # Prüfen, ob ein Eintrag existiert
             select_query = """
@@ -649,6 +735,7 @@ def upload_pdf():
                         user_id,
                     ))
                     conn.commit()
+                    send_verification_email(user_email, extracted_data)
                     return jsonify({"success": "Daten wurden erfolgreich aktualisiert.", "data": extracted_data}), 200
                 else:
                     return jsonify({"info": "Die vorhandenen Daten sind aktueller. Kein Update notwendig."}), 200
@@ -667,6 +754,7 @@ def upload_pdf():
                     False
                 ))
                 conn.commit()
+                send_verification_email(user_email, extracted_data)
                 return jsonify({"success": "Datei erfolgreich verarbeitet. Die Daten wurden nun zur Prüfung weitergeleitet.", "data": extracted_data}), 200
 
         except Exception as e:
@@ -825,7 +913,6 @@ def hotel_details(zimmer_id):
                     "email": user_row[0]                    
                 })
 
-        # Render die hotel-details.html mit den Daten
         return render_template('hotel-details.html', hotel=hotel_data)
 
     except Exception as e:
@@ -902,7 +989,6 @@ def add_kunde():
         )
         response.raise_for_status()
 
-        # Erfolgreiche Weiterleitung
         return redirect('/kundenmanagement?status=success')
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Fehler beim Hinzufügen eines Kunden: {e}")
@@ -918,7 +1004,7 @@ def edit_kunde(user_id):
             "username": request.form['username'],
             "company_name": request.form['company_name'],
             "adresse": request.form['adresse'],
-            "postal_code": request.form['postal_code'],  # Hinzufügen von postal_code
+            "postal_code": request.form['postal_code'],  
             "location": request.form['location'],
             "phone": request.form['phone']
         }
@@ -1085,24 +1171,6 @@ def send_booking_email():
 
 #######REGISTRIERUNGSPROZESS ###############
 
-def send_email(to_email, subject, body):
-    """Hilfsfunktion zum Senden von E-Mails."""
-    sender_email = "roomify.customerservice@gmail.com"
-    sender_password = "dsnhlmmkgnwuksfv"
-
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, to_email, msg.as_string())
-
-
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
@@ -1156,13 +1224,15 @@ def register():
             # Registrierungsbestätigungsmail senden
             subject = "Willkommen bei Roomify!"
             body = f"""
-            Sehr geehrter {first_name} {last_name},
+            Sehr geehrte, Sehr geehrter {first_name} {last_name},
 
             Vielen Dank für Ihre Registrierung bei Roomify! Wir freuen uns, Sie als {role} an Bord zu haben.
 
             Ihr Benutzername: {username}
 
             Bitte beachten Sie, dass Sie sich bei Ihrem Login mithilfe der Zwei-Faktor-Authentifizierung (2FA) verifizieren müssen.
+
+            Anschließend müssen Sie sich mit Hilfe Ihrer Inskriptionsbestätigung Ihrer Hochschule unter " Mein Profil " als Student verifizieren. 
 
             Mit freundlichen Grüßen,
             Ihr Roomify-Team

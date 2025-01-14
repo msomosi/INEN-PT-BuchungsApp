@@ -162,7 +162,11 @@ async function bookRoom() {
 
   console.log("Ausgewählter Anbieter:", selectedProvider); // Debugging
 
-  const userId = document.getElementById("user-id")?.value || 3; // Debug: Fallback-ID
+  const sessionResponse = await fetch('/get-session');
+  const sessionData = await sessionResponse.json();
+  const userId = sessionData.user_id;
+
+  //const userId = document.getElementById("user-id")?.value || 3; 
   const roomId = selectedProvider.room_id;
   const providerId = selectedProvider.id;
 
@@ -187,6 +191,10 @@ async function bookRoom() {
           const result = await response.json();
           console.log("Serverantwort:", result); // Debugging
           alert(result.success || "Buchung erfolgreich angefragt.");
+      } else if (response.status === 403) {
+        const error = await response.json();
+        alert(error.error || "Verifizierung erforderlich.");
+        window.location.href = error.redirect; // Weiterleitung zur Profilseite
       } else {
           const error = await response.json();
           console.error("Serverfehler:", error); // Debugging

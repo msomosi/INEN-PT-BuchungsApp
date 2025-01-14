@@ -1,4 +1,5 @@
 Allgemein:
+<b>ACHTUNG: Hierbei handelt es sich um ein fiktives Projekt im Rahmen des Studiums an der Hochschule Burgenland</b>
 <b>Welche Funktion hat die Buchungsplattform?</b>
 
 Das Ziel ist, Studierende und Zimmer-Anbieter:innen zu vernetzen.
