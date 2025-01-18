@@ -2,16 +2,142 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Benutzerdetails</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studenteninformationen</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f9fc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            width: 80%;
+            max-width: 1000px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: white;
+        }
+
+        .left-section {
+            background-color: #e5f6fd;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .left-section img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .right-section {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .right-section h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #017cbb;
+            text-align: center;
+        }
+
+        .info-table {
+            width: 100%;
+            border-spacing: 0 10px;
+        }
+
+        .info-table td {
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            width: 150px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .back-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .back-button a {
+            text-decoration: none;
+            color: white;
+            background-color: #017cbb;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .back-button a:hover {
+            background-color: #015a88;
+        }
+    </style>
 </head>
 <body>
-    <h1>Details zum Benutzer</h1>
-    <p><strong>Firstname:</strong> {{ user.Firstname }}</p>
-    <p><strong>Lastname:</strong> {{ user.Lastname }}</p>
-    <p><strong>E-Mail:</strong> {{ user.email }}</p>
-    <p><strong>Telefon:</strong> {{ user.phone }}</p>
-    <p><strong>Zimmer-ID:</strong> {{ user.zimmer_id }}</p>
-    <p><strong>Datum:</strong> {{ user.date }}</p>
-    <a href="#" onclick="window.close();">Fenster schließen</a>
+    <div class="container">
+        <!-- Left Section -->
+        <div class="left-section">
+            <img src="{{ url_for('static', filename='student_info.jpg') }}" alt="Student Illustration">
+        </div>
+        
+        <!-- Right Section -->
+        <div class="right-section">
+            <h1>Studenteninformationen</h1>
+            <table class="info-table">
+                <tr>
+                    <td>Vorname:</td>
+                    <td>{{ user.firstname }}</td>
+                </tr>
+                <tr>
+                    <td>Nachname:</td>
+                    <td>{{ user.lastname }}</td>
+                </tr>
+                <tr>
+                    <td>Adresse:</td>
+                    <td>{{ user.adresse }}</td>
+                </tr>
+                <tr>
+                    <td>PLZ:</td>
+                    <td>{{ user.plz }}</td>
+                </tr>
+                <tr>
+                    <td>Ort:</td>
+                    <td>{{ user.location }}</td>
+                </tr>
+                <tr>
+                    <td>E-Mail:</td>
+                    <td>{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <td>Telefon:</td>
+                    <td>{{ user.phone }}</td>
+                </tr>
+                <tr>
+                    <td>Verifiziert:</td>
+                    <td>{{ user.verification }}</td>
+                </tr>
+            </table>
+            <div class="back-button">
+                <a href="/anbietermgmt">Zurück</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

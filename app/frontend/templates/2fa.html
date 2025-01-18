@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA-Verifizierung | Roomify</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: rgb(182, 175, 166);
+        }
+
+        .header-section {
+            position: relative;
+            text-align: center;
+            color: rgb(75, 74, 74);
+            background: url('{{ url_for("static", filename="Hotels.jpeg") }}') no-repeat center center/cover;
+            height: 700px;
+            padding-top: 50px;
+        }
+
+        .header-section h1 {
+            font-size: 60px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-section p {
+            font-size: 20px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .verify-container {
+            position: absolute;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.7); 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .verify-container img {
+            width: 100px;
+            margin-bottom: 10px;
+        }
+
+        .verify-container h2 {
+            color: #017cbb;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: #017cbb;
+            outline: none;
+        }
+
+        .verify-container button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #017cbb;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .verify-container button:hover {
+            background-color: #015a88;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .qr-code-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .qr-code-container img {
+            max-width: 200px;
+            margin: 0 auto;
+        }
+
+        .instruction {
+            font-size: 14px;
+            color: rgb(75, 74, 74);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-section">
+        <h1>Roomify</h1>
+        <p>2-Faktor-Authentifizierung</p>
+        <div class="verify-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            <h2>Verifiziere Deinen Code</h2>
+
+            <div class="qr-code-container">
+                <h3>Google Authenticator QR-Code</h3>
+                <img src="{{ qr_code_url }}" alt="QR Code">
+                <p class="instruction">Scanne diesen QR-Code mit der Google Authenticator App.</p>
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <input type="text" id="code" name="code" placeholder="6-stelliger Code" required>
+                </div>
+
+                {% if error %}
+                <div class="error-message">{{ error }}</div>
+                {% endif %}
+
+                <button type="submit">Verifizieren</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Buchungen</title>
+    <style>
+        /* (Bestehende CSS bleibt unverändert) */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f9fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #017cbb;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            transform: translateX(-200px);
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+            box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar img {
+            width: 100px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a {
+            width: 90%;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            border-radius: 5px;
+            margin: 5px 10px;
+            transition: background 0.3s, transform 0.2s ease-in-out;
+            text-align: left;
+        }
+
+        .sidebar a:hover {
+            background-color: #015a88;
+            transform: translateX(5px);
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar:hover {
+            background-color: #015a88;
+        }
+
+        .container {
+            margin-left: 260px; /* To account for the sidebar */
+            width: 70%; /* Narrower width for centered layout */
+            margin-top: 30px;
+            margin-right: auto;
+            margin-left: auto; /* Center the content */
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #017cbb;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .button-container a {
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background-color: #017cbb;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-container a:hover {
+            background-color: #015a88;
+        }
+
+        .table-container {
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #e5f6fd;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
+        <a href="/home">🏠 Startseite</a>
+        {% if 'create-booking' in permissions %}
+        <a href="{{ url_for('create_booking') }}">🛏️ Zimmer buchen</a>
+        {% endif %}
+        {% if 'room-management' in permissions %}
+        <a href="/booked-management">📖 Buchungsübersicht</a>
+        {% endif %}
+        {% if 'user-details' in permissions %}
+        <a href="/user-profile">👤 Mein Profil</a>
+        {% endif %}
+        {% if 'anbietermgmt' in permissions %}
+        <a href="/anbietermgmt">🛠️ Zimmer Management</a>
+        {% endif %}
+        {% if 'bookingmgmt' in permissions %}
+        <a href="/bookingmgmt">📋 Buchungen verwalten</a>
+        {% endif %}
+        <a href="/logout">🚪 Abmelden</a>
+    </div>
+
+    <!-- Sidebar Toggle Button -->
+    <button class="toggle-sidebar" id="toggle-sidebar">☰ Menü</button>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1>Meine Buchungsübersicht</h1>
+
+        <!-- Button Section -->
+        <div class="button-container">
+            <a href="/rent">🛏️ Jetzt Zimmer buchen</a>
+        </div>
+
+        <!-- Zukünftige Buchungen -->
+        <h2>Aktive Buchungen</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Buchungs-ID</th>
+                        <th>Zimmer-ID</th>
+                        <th>Hotel</th>
+                        <th>Datum</th>
+                        <th>Status</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for room in future_bookings %}
+                        <tr>
+                            <td>{{ room.buchung_id }}</td>
+                            <td>{{ room.zimmer_id }}</td>
+                            <td>{{ room.hotel_name }}</td>
+                            <td>{{ room.date }}</td>
+                            <td>{{ room.state }}</td>
+                            <td>
+                                <button 
+                                    class="cancel-button" 
+                                    data-booking-id="{{ room.buchung_id }}"
+                                    data-room-id="{{ room.zimmer_id }}">
+                                    ❌ Stornieren
+                                </button>
+                                <button 
+                                    class="details-button" 
+                                    data-room-id="{{ room.zimmer_id }}">
+                                    🏨 Hotel-Details
+                                </button>
+                            </td>
+                                                        
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4">Keine zukünftigen Buchungen gefunden</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Vergangene/Abgeschlossene Buchungen -->
+        <h2>Abgeschlossene Buchungen</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Buchungs-ID</th>
+                        <th>Zimmer-ID</th>
+                        <th>Datum</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for room in past_bookings %}
+                        <tr>
+                            <td>{{ room.buchung_id }}</td>
+                            <td>{{ room.zimmer_id }}</td>
+                            <td>{{ room.date }}</td>
+                            <td>{{ room.state }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4">Keine abgeschlossenen Buchungen gefunden</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggle-sidebar');
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        document.querySelectorAll('.cancel-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const bookingId = button.getAttribute('data-booking-id');
+                const confirmation = confirm("Möchten Sie diese Buchung wirklich stornieren?");
+                if (!confirmation) return;
+
+                fetch('/cancel-booking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ booking_id: bookingId }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.success);
+                        location.reload(); // Seite aktualisieren, um Änderungen anzuzeigen
+                    } else if (data.error) {
+                        alert(data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+                    console.error(error);
+                });
+            });
+        });
+        document.querySelectorAll('.details-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const zimmerId = button.getAttribute('data-room-id');
+                console.log("Zimmer-ID:", zimmerId); // Debug-Ausgabe
+                if (zimmerId) {
+                    window.location.href = `/hotel-details/${zimmerId}`;
+                } else {
+                    alert('Fehler: Keine gültige Zimmer-ID gefunden.');
+                }
+            });
+        });
+
+
+
+    </script>
+</body>
+</html>
