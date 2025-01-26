@@ -23,69 +23,102 @@ app.logger.debug("Register oauth")
 
 @app.route('/authorize')
 def authorize():
-    debug_request(request)
-
     try:
         token = oauth.google.authorize_access_token()
-    except Exception as e:
-        app.logger.error(f'Fehler bei der Autorisierung: {e}')
+        user_info = token.get('userinfo')
+        
+        # Google-Token und Benutzerinformationen in der Session speichern
+        session['google_token'] = token
+        session['user'] = user_info['name']
+        session['email'] = user_info['email']
+
+        # Benutzerrolle aus der Session abrufen (z. B. Student oder Anbieter)
+        role = session.get('user_role', 'student')  # Standard: 'student'
+
+        # Daten in der Datenbank speichern
+        conn = create_db_connection()
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO public."user" (first_name, email, role_id)
+                VALUES (%s, %s, %s)
+                RETURNING user_id
+            """, (user_info['name'], user_info['email'], 3 if role == 'student' else 2))
+            user_id = cur.fetchone()[0]
+            session['user_id'] = user_id
+
+        conn.commit()
         return redirect('/home')
 
-    app.logger.debug(token)
+    except Exception as e:
+        app.logger.error(f"Fehler bei der Autorisierung: {e}")
+        return redirect('/login')
 
-    session['google_token'] = token
-    session['user'] = token.get('userinfo').get('name')
-    app.logger.debug(session['user'])
 
-    session['email'] = token.get('userinfo').get('email')
-    app.logger.debug(session['email'])
 
-    if user:
-        app.logger.info("Login: " + session.get('user') + " " + session.get('email'))
-    else:
-        user = User(email=email, name=name, oauth_provider='google', is_verified=True)
-        db.session.add(user)
-        db.session.commit()
-        app.logger.info(f"Neuer Benutzer hinzugefügt: {user.name} ({user.email})")
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
 
-    session['user_id'] = user.id
+    app.logger.debug(f"Login-Anfrage erhalten: username={username}, password={password}")
 
-    # Weiterleitung basierend auf dem user_type
-    if session['user_type'] == 'employee' or session['user_type'] == 'anbieter':
-        redirect_url = "/room-management"
-    else:
-        redirect_url = "/home"
+    if not username or not password:
+        app.logger.warning("Benutzername oder Passwort fehlt.")
+        return jsonify({'error': 'Benutzername und Passwort sind erforderlich'}), 400
 
-    return redirect(redirect_url)
+    try:
+        conn = create_db_connection()
+        cursor = conn.cursor()
 
-@app.route('/login/<user_type>')
-def login(user_type):
-    debug_request(request)
-    app.logger.debug("user_type: " + user_type)
+        # Prüfen, ob der Benutzer existiert und ob `local_user` gesetzt ist
+        cursor.execute("""
+            SELECT u.user_id, u.role_id, r.role_name, u.username, u.local_user, u.email
+            FROM "user" u
+            JOIN role r ON u.role_id = r.role_id
+            WHERE u.username = %s AND u.password = %s
+        """, (username, password))
 
-    # Dummy-Login für Tests
-    if user_type == 'dummy':
-        session.clear()
-        session['user_type'] = 'employee'
-        session['user'] = 'John Doe'
-        session['email'] = 'john@doe.com'
-        session['google_token'] = 'john@doe.com'
-        return redirect("/home")
+        user = cursor.fetchone()
 
-    # Anbieter-Login ohne OAuth
-    if user_type == 'anbieter':
-        session.clear()
-        session['user_type'] = 'anbieter'
-        session['user'] = 'Anbieter Test'
-        session['email'] = 'anbieter@test.com'
-        return redirect("/room-management")
+        if user:
+            session.clear()
+            session['user_id'] = user[0]  # Eindeutige Benutzer-ID
+            session['role_id'] = user[1]  # Rolle des Benutzers
+            session['user_type'] = user[2]  # Name der Rolle (z. B. "admin", "student", "anbieter")
+            session['user'] = user[3]  # Benutzername
+            local_user = user[4]  # `local_user`-Status
+            email = user[5]
 
-    # Speichern des user_type in der Session
-    session['user_type'] = user_type
+            app.logger.debug(f"Session-Daten nach Login: {session}")
 
-    # Google OAuth Weiterleitung
-    redirect_uri = url_for('authorize', _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
+            # Wenn local_user = true, überspringe 2FA
+            if local_user:
+                return jsonify({
+                    'message': user[3],
+                    'redirect': '/home'
+                })
+
+            # 2FA erforderlich: Benutzer zur 2FA-Route leiten
+            session['email'] = email
+            return jsonify({
+                'message': '2FA erforderlich',
+                'redirect': '/verify-2fa'
+            })
+        else:
+            app.logger.warning(f"Ungültige Login-Daten: username={username}")
+            return jsonify({'error': "Ungültige Anmeldedaten"}), 401
+    except Exception as err:
+        app.logger.error(f"Fehler beim Login: {err}")
+        return jsonify({'error': 'Interner Serverfehler'}), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+
+
 
 @app.route('/logout')
 def logout():
@@ -95,9 +128,9 @@ def logout():
         session.pop('google_token', None)
         session.pop('user_type', None)
         app.logger.info("Logout: " + session.pop('user') + " " + session.pop('email'))
-        session.clear()
+        
         app.logger.debug(session)
-
+    session.clear()
     return redirect("/home")
 
 @app.route('/user/<id>')
@@ -108,11 +141,13 @@ def user(id):
     try:
         with db.cursor() as cur:
             query = """
-                SELECT *
-                FROM tbl_user_details u
+                SELECT u.user_id, u.first_name, u.last_name, u.email, r.role_name
+                FROM "user" u
+                JOIN role r ON u.role_id = r.role_id
                 WHERE u.user_id = %s;
             """
-            cur.execute(query, (id))
+            cur.execute(query, (id,))
+
             user_details = cur.fetchone()
             if not user_details:
                 msg = f"User nicht gefunden: " + str(id)
@@ -136,6 +171,8 @@ def user(id):
         return jsonify({'error': msg}), 500
     finally:
         db.close()
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=80)

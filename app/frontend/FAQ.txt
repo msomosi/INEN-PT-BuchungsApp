@@ -1,0 +1,21 @@
+Allgemein:
+<b>ACHTUNG: Hierbei handelt es sich um ein fiktives Projekt im Rahmen des Studiums an der Hochschule Burgenland</b>
+<b>Welche Funktion hat die Buchungsplattform?</b>
+
+Das Ziel ist, Studierende und Zimmer-Anbieter:innen zu vernetzen.
+Die Plattform bietet die Möglichkeit ein Zimmer zu einem gewählten Zeitpunkt anzufordern.
+
+Für Studierende:
+<b>Welchen Standard haben die Zimmer?</b>
+
+Der Mindeststandard dem sich alle Anbieter verpflichtet haben, ist ein Einzelzimmer 24x7 zugänglich
+mit einem Bad und WC.
+
+<b>Ist eine Buchung über die Plattform verbindlich?</b>
+
+Nein, die Buchungsplattform dient zur Vermittlung, eine verbindliche Buchung und Vertrag entsteht zwischen der studierenden Person und dem Anbieter.
+
+Für Anbieter:innen:
+<b>Wie funktioniert das Anbieten eines Zimmers?</b>
+
+Sie können den Tag wählen und die Anzahl der Zimmer die zur Verfügung stehen.

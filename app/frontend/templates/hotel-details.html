@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Details</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f9fc;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 80%;
+            max-width: 1000px;
+            margin: auto;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background-color: white;
+            overflow: hidden;
+        }
+
+        .details-section {
+            display: flex;
+            padding: 20px;
+        }
+
+        .left-section {
+            background-color: #e5f6fd;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .left-section img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .right-section {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .right-section h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #017cbb;
+            text-align: center;
+        }
+
+        .info-table {
+            width: 100%;
+            border-spacing: 0 10px;
+        }
+
+        .info-table td {
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            width: 150px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .back-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .back-button a {
+            text-decoration: none;
+            color: white;
+            background-color: #017cbb;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .back-button a:hover {
+            background-color: #015a88;
+        }
+
+        .map-section {
+            height: 400px; 
+            width: 100%; 
+            margin-top: 20px; 
+            z-index: 1; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="details-section">
+            <div class="left-section">
+                <img src="{{ url_for('static', filename='hotel_info.jpg') }}" alt="Hotel Illustration">
+            </div>
+
+            <div class="right-section">
+                <h1>Hotel Informationen</h1>
+                <table class="info-table">
+                    <tr>
+                        <td>Hotelname:</td>
+                        <td>{{ hotel.company_name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Adresse:</td>
+                        <td>{{ hotel.address }}, {{ hotel.postal_code }} {{ hotel.location }}</td>
+                    </tr>
+                    <tr>
+                        <td>Telefon:</td>
+                        <td>{{ hotel.phone }}</td>
+                    </tr>
+                    <tr>
+                        <td>E-Mail:</td>
+                        <td>{{ hotel.email }}</td>
+                    </tr>
+                </table>
+                <div class="back-button">
+                    <a href="/booked-management">Zurück</a>
+                </div>
+            </div>
+        </div>
+        <!-- Map Section -->
+        <div id="map" class="map-section"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const hotelAddress = "{{ hotel.address }} {{ hotel.postal_code }} {{ hotel.location }}";
+            const map = L.map("map").setView([47.0, 10.0], 5); // Initial view
+
+            
+
+            L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            }).addTo(map);
+
+            console.log("Karte wird initialisiert...");
+            console.log("Hoteladresse:", hotelAddress);
+
+
+            async function geocodeAddress(address) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+                const data = await response.json();
+                console.log("Geocoding-Ergebnisse:", data); // Debugging
+                if (data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    map.setView([lat, lon], 15);
+                    L.marker([lat, lon]).addTo(map).bindPopup(`<b>${hotelAddress}</b>`).openPopup();
+                } else {
+                    alert("Adresse konnte nicht gefunden werden.");
+                }
+            } catch (error) {
+                console.error("Fehler bei der Geocodierung:", error);
+                alert("Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.");
+            }
+        }
+
+
+            geocodeAddress(hotelAddress);
+        });
+    </script>
+</body>
+</html>

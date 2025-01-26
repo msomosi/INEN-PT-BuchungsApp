@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studentenmanagement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            background-color: #f4f9fc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #017cbb;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            transform: translateX(-200px);
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+            box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar img {
+            width: 100px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a {
+            width: 90%;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            border-radius: 5px;
+            margin: 5px 10px;
+            transition: background 0.3s, transform 0.2s ease-in-out;
+            text-align: left;
+        }
+
+        .sidebar a:hover {
+            background-color: #015a88;
+            transform: translateX(5px);
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar:hover {
+            background-color: #015a88;
+        }
+
+        .content-container {
+            margin-left: 220px;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #017cbb;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #e5f6fd;
+        }
+
+        button {
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .verify-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .reject-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .comparison-container {
+            display: none;
+            margin: 20px auto;
+            width: 80%;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-column {
+            display: inline-block;
+            vertical-align: top;
+            width: 45%;
+            padding: 10px;
+        }
+
+        .comparison-column h3 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #017cbb;
+        }
+
+        .comparison-column p {
+            margin: 5px 0;
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .date-valid {
+        background-color: #d4edda;
+        color: #155724;
+        }
+
+        .date-invalid {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
+        <a href="/home">🏠 Startseite</a>
+        <a href="/studentmgmt">🎓 Studentenmanagement</a>
+        <a href="/booked-management">📖 Buchungsübersicht</a>
+        <a href="/user-profile">👤 Mein Profil</a>
+        <a href="/logout">🚪 Abmelden</a>
+    </div>
+
+    <button class="toggle-sidebar" id="toggle-sidebar">☰ Menü</button>
+
+    <div class="content-container">
+        <h1>Studentenmanagement</h1>
+        <h2>Ausstehende Verifizierungen</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>user_id</th>
+                    <th>Name (user_id)</th>
+                    <th>Name (Uploaded)</th>
+                    <th>Hochschule</th>
+                    <th>Semesterbeginn</th>
+                    <th>Matrikelnummer</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody id="pending-verifications"></tbody>
+        </table>
+
+        <div class="comparison-container" id="comparison-container">
+            <div class="comparison-column" id="uploaded-data">
+                <h3>Hochgeladene Daten</h3>
+                <p><strong>Name:</strong> <span id="uploaded-name"></span></p>
+                <p><strong>Matrikelnummer:</strong> <span id="uploaded-matriculation"></span></p>
+                <p><strong>Universität:</strong> <span id="uploaded-university"></span></p>
+                <p><strong>Semesterbeginn:</strong> <span id="uploaded-startdate"></span></p>
+            </div>
+            <div class="comparison-column" id="system-data">
+                <h3>Systemdaten</h3>
+                <p><strong>Name:</strong> <span id="system-name"></span></p>
+                <p><strong>Matrikelnummer:</strong> <span id="system-matriculation"></span></p>
+                <p><strong>Universität:</strong> <span id="system-university"></span></p>
+                <p><strong>Adresse:</strong> <span id="system-address"></span></p>
+            </div>
+            <div class="action-buttons">
+                <button class="verify-btn" onclick="confirmVerification()">Verifizieren</button>
+                <button class="reject-btn" onclick="hideComparison()">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggle-sidebar');
+        const comparisonContainer = document.getElementById('comparison-container');
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        let currentUserId = null;
+
+        function parseDate(dateString) {
+            // Prüfen, ob das Datum im Format "DD.MM.YYYY" ist
+            const dateParts = dateString.split('.');
+            if (dateParts.length === 3) {
+                // Konvertiere zu "YYYY-MM-DD"
+                return new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+            }
+
+            // Versuche direkt ein Datum zu erstellen (für ISO-Formate)
+            const parsedDate = new Date(dateString);
+            if (!isNaN(parsedDate)) {
+                return parsedDate;
+            }
+
+            // Wenn alle Stränge reißen: Werfe einen Fehler
+            console.error(`Ungültiges Datumsformat: ${dateString}`);
+            return null;
+        }
+
+        function highlightSemesterDate(dateString, cellElement) {
+            const semesterStartDate = parseDate(dateString);
+
+            if (!semesterStartDate) {
+                cellElement.textContent += " (Ungültiges Datum)";
+                cellElement.classList.add("date-invalid");
+                return;
+            }
+
+            const today = new Date();
+            const sevenMonthsAgo = new Date();
+            sevenMonthsAgo.setMonth(today.getMonth() - 7);
+
+            console.log(`Heute: ${today}`);
+            console.log(`7 Monate zurück: ${sevenMonthsAgo}`);
+            console.log(`Semesterbeginn: ${semesterStartDate}`);
+
+            if (semesterStartDate >= sevenMonthsAgo && semesterStartDate <= today) {
+                cellElement.classList.add("date-valid");
+            } else {
+                cellElement.classList.add("date-invalid");
+            }
+        }
+   
+        async function fetchVerifications() {
+            const response = await fetch('/student-verifications');
+            const data = await response.json();
+
+            const pendingTableBody = document.getElementById('pending-verifications');
+            pendingTableBody.innerHTML = '';
+
+            data.pending_students.forEach(student => {
+                const row = document.createElement('tr');
+
+                // user_id
+                const userIdCell = document.createElement('td');
+                userIdCell.textContent = student.user_id;
+                row.appendChild(userIdCell);
+
+                // Name (user_id)
+                const systemNameCell = document.createElement('td');
+                systemNameCell.textContent = student.system_name;
+                row.appendChild(systemNameCell);
+
+                // Name (Uploaded)
+                const uploadedNameCell = document.createElement('td');
+                uploadedNameCell.textContent = student.uploaded_name;
+                row.appendChild(uploadedNameCell);
+
+                // Hochschule
+                const universityCell = document.createElement('td');
+                universityCell.textContent = student.university_name;
+                row.appendChild(universityCell);
+
+                // Semesterbeginn
+                const semesterStartCell = document.createElement('td');
+                semesterStartCell.textContent = student.uploaded_start_date;
+                highlightSemesterDate(student.uploaded_start_date, semesterStartCell);
+                row.appendChild(semesterStartCell);
+
+                // Matrikelnummer
+                const matriculationCell = document.createElement('td');
+                matriculationCell.textContent = student.uploaded_matriculation_number;
+                row.appendChild(matriculationCell);
+
+                // Aktionen
+                const actionsCell = document.createElement('td');
+                actionsCell.innerHTML = `
+                    <button class="verify-btn" onclick="showStudentDetails(${student.user_id})">Details</button>
+                    <button class="reject-btn" onclick="rejectVerification(${student.user_id})">Ablehnen</button>
+                `;
+                row.appendChild(actionsCell);
+
+                // Füge die Zeile zur Tabelle hinzu
+                pendingTableBody.appendChild(row);
+            });
+        }
+
+
+        async function showStudentDetails(userId) {
+            currentUserId = userId;
+            const response = await fetch(`/verify-student/${userId}`);
+            const data = await response.json();
+
+            document.getElementById('uploaded-name').textContent = data.uploaded_verification.name;
+            document.getElementById('uploaded-matriculation').textContent = data.uploaded_verification.matriculation_number;
+            document.getElementById('uploaded-university').textContent = data.uploaded_verification.university_name;
+            document.getElementById('uploaded-startdate').textContent = data.uploaded_verification.start_date;
+            
+
+            document.getElementById('system-name').textContent = `${data.user_data.first_name} ${data.user_data.last_name}`;
+            document.getElementById('system-matriculation').textContent = data.student_data.student_number;
+            document.getElementById('system-university').textContent = data.university_data.university_name;
+            document.getElementById('system-address').textContent = `${data.student_data.address}, ${data.student_data.postal_code}, ${data.student_data.location}`;
+
+            comparisonContainer.style.display = 'block';
+        }
+
+        function hideComparison() {
+            comparisonContainer.style.display = 'none';
+        }
+
+        async function confirmVerification() {
+            const response = await fetch(`/verify-student/${currentUserId}`, { method: 'POST' });
+            const data = await response.json();
+            alert(data.success || data.error);
+            hideComparison();
+            fetchVerifications();
+        }
+
+        async function rejectVerification(userId) {
+            const response = await fetch(`/reject-student/${userId}`, { method: 'POST' });
+            const data = await response.json();
+            alert(data.success || data.error);
+            fetchVerifications();
+        }
+
+        fetchVerifications();
+    </script>
+</body>
+</html>

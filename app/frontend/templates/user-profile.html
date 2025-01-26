@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mein Profil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            background-color: #f4f9fc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #017cbb;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            transform: translateX(-200px);
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+            box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar img {
+            width: 100px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a {
+            width: 90%;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            border-radius: 5px;
+            margin: 5px 10px;
+            transition: background 0.3s, transform 0.2s ease-in-out;
+            text-align: left;
+        }
+
+        .sidebar a:hover {
+            background-color: #015a88;
+            transform: translateX(5px);
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar:hover {
+            background-color: #015a88;
+        }
+
+        .container {
+            display: flex;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 1000px;
+        }
+
+        .left-section, .right-section {
+            flex: 1; 
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #e5f6fd; 
+        }
+
+        .left-section img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .left-section h1,
+        .left-section p,
+        .left-section form {
+            width: 100%; 
+            text-align: center;
+        }
+
+        .right-section {
+            background-color: white;
+        }
+
+        h1 {
+            color: #017cbb;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .edit-btn {
+            background-color: #017cbb;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .edit-btn:hover {
+            background-color: #015a88;
+        }
+
+        .info-table {
+            width: 100%;
+            border-spacing: 0 10px;
+        }
+
+        .info-table td {
+            padding: 10px;
+        }
+
+        .info-table td:first-child {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .info-table input {
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .info-table input[readonly] {
+            background-color: #f4f4f4;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <img src="{{ url_for('static', filename='logo-removebg.png') }}" alt="Logo">
+        <a href="/home">🏠 Startseite</a>
+        {% if 'create-booking' in permissions %}
+        <a href="{{ url_for('create_booking') }}">🛏️ Zimmer buchen</a>
+        {% endif %}
+        {% if 'room-management' in permissions %}
+        <a href="/booked-management">📖 Buchungsübersicht</a>
+        {% endif %}
+        {% if 'user-details' in permissions %}
+        <a href="/user-profile">👤 Mein Profil</a>
+        {% endif %}
+        {% if 'anbietermgmt' in permissions %}
+        <a href="/anbietermgmt">🛠️ Zimmer Management</a>
+        {% endif %}
+        {% if 'bookingmgmt' in permissions %}
+        <a href="/bookingmgmt">📋 Buchungen verwalten</a>
+        {% endif %}
+        <a href="/logout">🚪 Abmelden</a>
+    </div>
+
+    <button class="toggle-sidebar" id="toggle-sidebar">☰ Menü</button>
+
+    <div class="container">
+        <div class="left-section">
+            <img src="{{ url_for('static', filename='profile_page.jpg') }}" alt="Profil Illustration">
+
+            {% if user.role_id == 3 %}
+            <div style="text-align: center; margin-top: 20px;">
+                <h1>Verify as Student</h1>
+                <p>Lade hier die Studienbestätigung deiner Hochschule hoch (.pdf):</p>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <input type="file" name="file" id="file" accept=".pdf" style="margin-bottom: 10px;">
+                    <button type="submit" class="edit-btn">Hochladen</button>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+        <div class="right-section">
+            <h1>
+                Mein Profil
+                <!-- Bearbeiten -->
+                <button class="edit-btn" id="edit-btn" data-user-id="{{ user.user_id }}">✏️ Bearbeiten</button>
+            </h1>
+            <form id="profile-form">
+                <table class="info-table">
+                    <tr>
+                        <td>Vorname:</td>
+                        <td><span>{{ user.firstname }}</span></td>
+                    </tr>
+                    <tr>
+                        <td>Nachname:</td>
+                        <td><span>{{ user.lastname }}</span></td>
+                    </tr>
+                    {% if user.role_id == 2 %}
+                    <tr>
+                        <td>Firma:</td>
+                        <td><span>{{ user.company_name }}</span></td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td>Adresse:</td>
+                        <td>
+                            <span id="adresse">{{ user.adresse }}</span>
+                            <input type="text" name="adresse" value="{{ user.adresse }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>PLZ:</td>
+                        <td>
+                            <span id="plz">{{ user.plz }}</span>
+                            <input type="text" name="plz" value="{{ user.plz }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ort:</td>
+                        <td>
+                            <span id="location">{{ user.location }}</span>
+                            <input type="text" name="location" value="{{ user.location }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>E-Mail:</td>
+                        <td>
+                            <span id="email">{{ user.email }}</span>
+                            <input type="email" name="email" value="{{ user.email }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Telefon:</td>
+                        <td>
+                            <span id="phone">{{ user.phone }}</span>
+                            <input type="text" name="phone" value="{{ user.phone }}" readonly style="display: none;">
+                        </td>
+                    </tr>
+                    {% if user.role_id == 3 %}
+                    <tr>
+                        <td>Verifiziert:</td>
+                        <td>{{ user.verification }}</td>
+                    </tr>
+                    <tr>
+                        <td>Verifizierungsdatum:</td>
+                        <td>{{ user.verification_date }}</td>
+                    </tr>
+                    <tr>
+                        <td>Matrikelnummer:</td>
+                        <td>{{ user.matrikelnummer }}</td>
+                    </tr>
+                    <tr>
+                        <td>Universität:</td>
+                        <td>{{ user.university }}</td>
+                    </tr>
+                    <tr>
+                        <td>Universitäts-Adresse:</td>
+                        <td>{{ user.university_address }}</td>
+                    </tr>
+                    <tr>
+                        <td>Inskription bis:</td>
+                        <td>{{ user.inskription_end }}</td>
+                    </tr>
+                    {% endif %}
+
+                </table>
+                <button type="submit" id="save-button" style="display: none;">Speichern</button>
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggle-sidebar');
+        const editButton = document.getElementById('edit-btn');
+        const saveButton = document.getElementById('save-button');
+        const spans = document.querySelectorAll('span');
+        const inputs = document.querySelectorAll('input');
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        let isEditing = false;
+
+        editButton.addEventListener('click', () => {
+            if (!isEditing) {
+                spans.forEach(span => {
+                    const input = span.nextElementSibling;
+                    if (input) {
+                        span.style.display = 'none';
+                        input.style.display = 'block';
+                        input.removeAttribute('readonly');
+                    }
+                });
+                saveButton.style.display = 'block';
+                editButton.textContent = "❌ Abbrechen";
+            } else {
+                inputs.forEach(input => {
+                    const span = input.previousElementSibling;
+                    if (span) {
+                        input.style.display = 'none';
+                        input.setAttribute('readonly', true);
+                        span.style.display = 'inline';
+                    }
+                });
+                saveButton.style.display = 'none';
+                editButton.textContent = "✏️ Bearbeiten";
+            }
+            isEditing = !isEditing;
+        });
+
+        // Formular-Speichern
+        document.getElementById('profile-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Standard-Formularverhalten verhindern
+
+            // Formulardaten sammeln
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // AJAX-ähnliche Anfrage mit fetch
+            fetch('/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || "Ein Fehler ist aufgetreten.");
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Profil erfolgreich aktualisiert!');
+                    // Aktualisiere die Ansicht mit neuen Werten
+                    inputs.forEach(input => {
+                        const span = input.previousElementSibling;
+                        if (span) {
+                            span.textContent = input.value;
+                            input.style.display = 'none';
+                            span.style.display = 'inline';
+                        }
+                    });
+                    saveButton.style.display = 'none';
+                    editButton.textContent = "✏️ Bearbeiten";
+                    isEditing = false;
+                }
+            })
+            .catch(error => {
+                console.error('Fehler:', error);
+                alert(error.message || "Ein unerwarteter Fehler ist aufgetreten.");
+            });
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault();  // Verhindert das Standardformularverhalten
+            
+            const formData = new FormData(this);
+            fetch('/upload-pdf', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // Prüfen, ob die Antwort erfolgreich ist
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || "Ein unerwarteter Fehler ist aufgetreten.");
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Erfolgreiche Antwort behandeln
+                if (data.success) {
+                    alert("Erfolg: " + data.success);
+                } else if (data.info) {
+                    alert("Info: " + data.info);
+                } else if (data.error) {
+                    alert("Fehler: " + data.error);
+                } else {
+                    alert("Ein unerwarteter Fehler ist aufgetreten.");
+                }
+            })
+            .catch(error => {
+                // Fehlerfall abfangen
+                console.error("Fehler:", error);
+                alert(error.message || "Ein unerwarteter Fehler ist aufgetreten.");
+            });
+        });
+
+    </script>
+</body>
+</html>
