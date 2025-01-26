@@ -1,0 +1,19 @@
+---
+applications:
+  booking-app-${namespace}:
+    namespace: argocd
+    project: default
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: booking-app-${namespace}
+    sources:
+      - repoURL: ${repository}
+        path: ${path}
+        targetRevision: ${revision}
+    syncPolicy:
+      automated:
+        prune: false
+        selfHeal: true
+      syncOptions:
+        - ApplyOutOfSyncOnly=true
+        - CreateNamespace=true

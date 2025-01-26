@@ -1,0 +1,13 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: argocd-gateway
+  namespace: argocd
+spec:
+  gatewayClassName: civo-merged
+  listeners:
+    - name: http
+      hostname: "argocd.${cluster_name}.${domain_name}"
+      protocol: HTTP
+      port: 80

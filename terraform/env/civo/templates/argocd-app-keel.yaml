@@ -1,0 +1,22 @@
+---
+applications:
+  keel:
+    namespace: argocd
+    project: infrastructure
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: keel
+    sources:
+      - repoURL: https://keel-hq.github.io/keel/
+        chart: keel
+        targetRevision: v1.0.4
+        helm:
+          values: |
+            ${values}
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
