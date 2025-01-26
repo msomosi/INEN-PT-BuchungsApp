@@ -7,7 +7,7 @@ output "argocd" {
   sensitive = true
 }
 
-output "argocd_admin_passwort" {
+output "argocd_admin_password" {
   value     = module.argocd.admin_password
   sensitive = true
 }
