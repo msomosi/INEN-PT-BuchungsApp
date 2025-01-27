@@ -1,20 +1,20 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: anbietermgmt
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: anbietermgmt
+        app.kubernetes.io/name : anbietermgmt
   template:
     metadata:
       labels:
-        app: anbietermgmt
+        app.kubernetes.io/name : anbietermgmt
     spec:
       containers:
       - name: anbietermgmt
-        image: apeni/anbietermgmt
+        image: anbietermgmt
         ports:
         - containerPort: 80
         env:
