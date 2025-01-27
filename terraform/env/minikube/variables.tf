@@ -22,7 +22,7 @@ variable "argocd_repository" {
 
 variable "argocd_revision" {
   type    = string
-  default = "mains"
+  default = "main"
 }
 
 variable "argocd_path" {
