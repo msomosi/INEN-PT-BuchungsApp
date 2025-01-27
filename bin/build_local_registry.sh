@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 || exit ; pwd -P )"
-declare -a modules=("buchungsmanagement" "frontend" "login" "zimmerverwaltung")
+declare -a modules=("booked-management" "frontend" "login" "zimmerverwaltung" "anbietermgmt")
 platform="linux/amd64"
 registry="localhost:32000/"
 
@@ -18,5 +18,6 @@ for module in "${modules[@]}"; do
     --platform "$platform" \
     --tag "$registry$imagename" \
     --push \
-    "${SCRIPTPATH}/../app/$module/"
+    -f "${SCRIPTPATH}/../app/build/Dockerfile" \
+    "${SCRIPTPATH}/../app/"
 done

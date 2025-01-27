@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anbietermgmt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anbietermgmt
+  template:
+    metadata:
+      labels:
+        app: anbietermgmt
+    spec:
+      containers:
+      - name: anbietermgmt
+        image: apeni/anbietermgmt
+        ports:
+        - containerPort: 80
+        env:
+        - name: SESSION_KEY
+          value: "12345678910111213141516"
+        - name: DB_HOSTNAME
+          value: "db"
+        - name: DB_SID
+          value: "citizix_db"
+        - name: DB_USERNAME
+          value: "citizix_user"
+        - name: DB_PASSWORD
+          value: "S3cret"

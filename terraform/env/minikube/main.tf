@@ -57,30 +57,3 @@ resource "kubernetes_config_map_v1_data" "metallb" {
     })
   }
 }
-
-resource "kubernetes_ingress_v1" "yakd_http" {
-  metadata {
-    name      = "yakd-http"
-    namespace = "yakd-dashboard"
-  }
-
-  spec {
-    ingress_class_name = "nginx"
-    rule {
-      host = "yakd.${var.cluster_name}.${data.netparse_url.cluster_ip.host}.nip.io"
-      http {
-        path {
-          path = "/"
-          backend {
-            service {
-              name = "yakd-dashboard"
-              port {
-                number = "80"
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
