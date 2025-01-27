@@ -7,7 +7,7 @@ variable "argocd_application" {
   })
   default = {
     repository = "localhost"
-    revision   = "mse_local_testing"
+    revision   = "main"
     path       = "."
   }
 }

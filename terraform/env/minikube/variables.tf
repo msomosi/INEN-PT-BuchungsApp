@@ -22,7 +22,7 @@ variable "argocd_repository" {
 
 variable "argocd_revision" {
   type    = string
-  default = "mse_local_testing"
+  default = "mains"
 }
 
 variable "argocd_path" {

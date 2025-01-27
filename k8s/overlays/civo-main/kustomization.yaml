@@ -13,19 +13,19 @@ resources:
 images:
   - name: booked-management
     newName: mseyer91/apeni-booked-management
-    newTag: mse_local_testing
+    newTag: main
   - name: frontend
     newName: mseyer91/apeni-frontend
-    newTag: mse_local_testing
+    newTag: main
   - name: kundenverwaltung
     newName: mseyer91/apeni-kundenverwaltung
-    newTag: mse_local_testing
+    newTag: main
   - name: login
     newName: mseyer91/apeni-login
-    newTag: mse_local_testing
+    newTag: main
   - name: zimmerverwaltung
     newName: mseyer91/apeni-zimmerverwaltung
-    newTag: mse_local_testing
+    newTag: main
   - name: anbeitermgmt
     newName: mseyer91/apeni-anbeitermgmt
-    newTag: mse_local_testing
+    newTag: main
