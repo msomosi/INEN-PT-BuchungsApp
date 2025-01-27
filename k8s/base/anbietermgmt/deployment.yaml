@@ -1,0 +1,30 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anbietermgmt
+spec:
+  selector:
+    matchLabels:
+        app.kubernetes.io/name : anbietermgmt
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name : anbietermgmt
+    spec:
+      containers:
+      - name: anbietermgmt
+        image: anbietermgmt
+        ports:
+        - containerPort: 80
+        env:
+        - name: SESSION_KEY
+          value: "12345678910111213141516"
+        - name: DB_HOSTNAME
+          value: "db"
+        - name: DB_SID
+          value: "citizix_db"
+        - name: DB_USERNAME
+          value: "citizix_user"
+        - name: DB_PASSWORD
+          value: "S3cret"
