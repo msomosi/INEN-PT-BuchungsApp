@@ -7,7 +7,7 @@ variable "argocd_application" {
   })
   default = {
     repository = "localhost"
-    revision   = "main"
+    revision   = "mse_local_testing"
     path       = "."
   }
 }
@@ -32,5 +32,5 @@ variable "domain_name" {
 variable "namespaces" {
   description = "Add this branches as namespaces/subdomains to cluster"
   type        = set(string)
-  default     = ["main", "mathias"]
+  default     = ["mse_local_testing", "mathias"]
 }
