@@ -11,18 +11,21 @@ resources:
   - ../civo
 
 images:
-  - name: buchungsmanagement
-    newName: mrangger/apeni-buchungsmanagement
-    newTag: latest
+  - name: booked-management
+    newName: mseyer91/apeni-booked-management
+    newTag: mse_local_testing
   - name: frontend
-    newName: mrangger/apeni-frontend
-    newTag: latest
+    newName: mseyer91/apeni-frontend
+    newTag: mse_local_testing
   - name: kundenverwaltung
-    newName: mrangger/apeni-kundenverwaltung
-    newTag: latest
+    newName: mseyer91/apeni-kundenverwaltung
+    newTag: mse_local_testing
   - name: login
-    newName: mrangger/apeni-login
-    newTag: latest
+    newName: mseyer91/apeni-login
+    newTag: mse_local_testing
   - name: zimmerverwaltung
-    newName: mrangger/apeni-zimmerverwaltung
-    newTag: latest
+    newName: mseyer91/apeni-zimmerverwaltung
+    newTag: mse_local_testing
+  - name: anbeitermgmt
+    newName: mseyer91/apeni-anbeitermgmt
+    newTag: mse_local_testing
