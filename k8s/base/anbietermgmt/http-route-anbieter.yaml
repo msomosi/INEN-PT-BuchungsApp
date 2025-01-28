@@ -12,7 +12,7 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /booking
+            value: /anbietermgmt
       backendRefs:
-        - name: booked-management
+        - name: anbietermgmt
           port: 80

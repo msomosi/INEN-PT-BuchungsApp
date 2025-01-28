@@ -11,6 +11,9 @@ resources:
   - ../civo
 
 images:
+  - name: anbietermgmt
+    newName: mseyer91/apeni-anbietermgmt
+    newTag: main
   - name: booked-management
     newName: mseyer91/apeni-booked-management
     newTag: main
@@ -25,7 +28,4 @@ images:
     newTag: main
   - name: zimmerverwaltung
     newName: mseyer91/apeni-zimmerverwaltung
-    newTag: main
-  - name: anbietermgmt
-    newName: mseyer91/apeni-anbietermgmt
     newTag: main
