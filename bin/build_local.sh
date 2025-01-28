@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 || exit ; pwd -P )"
-declare -a modules=("booked-management" "frontend" "login" "zimmerverwaltung" "anbietermgmt")
+declare -a modules=("buchungsmanagement" "frontend" "login" "zimmerverwaltung")
 
 for module in "${modules[@]}"; do
   imagename="apeni-${module}:latest"
@@ -9,6 +9,5 @@ for module in "${modules[@]}"; do
   docker buildx build \
     --tag "$imagename" \
     --load \
-    -f "${SCRIPTPATH}/../app/build/Dockerfile" \
-    "${SCRIPTPATH}/../app/"
+    "${SCRIPTPATH}/../app/$module/"
 done

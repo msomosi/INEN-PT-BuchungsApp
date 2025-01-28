@@ -2,7 +2,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: booked-management-booking-route
+  name: buchungsmanagement-booking-route
 spec:
   parentRefs:
     - name: booking-gateway
@@ -14,5 +14,5 @@ spec:
             type: PathPrefix
             value: /booking
       backendRefs:
-        - name: booked-management
+        - name: buchungsmanagement
           port: 80
