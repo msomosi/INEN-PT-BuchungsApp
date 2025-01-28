@@ -26,6 +26,6 @@ images:
   - name: zimmerverwaltung
     newName: mseyer91/apeni-zimmerverwaltung
     newTag: main
-  - name: anbeitermgmt
-    newName: mseyer91/apeni-anbeitermgmt
+  - name: anbietermgmt
+    newName: mseyer91/apeni-anbietermgmt
     newTag: main
