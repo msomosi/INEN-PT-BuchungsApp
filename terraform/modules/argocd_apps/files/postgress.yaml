@@ -1,7 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: db
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
+  namespace: db
 spec:
   serviceName: postgres
   replicas: 1
@@ -28,6 +34,7 @@ spec:
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data
+          subPath: postgres
         - name: init-scripts
           mountPath: /docker-entrypoint-initdb.d
       volumes:
@@ -47,6 +54,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-external
+  namespace: db
 spec:
   type: LoadBalancer
   ports:
@@ -59,7 +67,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-init-scripts
+  namespace: db
 data:
   init.sql: |
-    -- Your initialization SQL goes here
     CREATE EXTENSION IF NOT EXISTS postgis;
