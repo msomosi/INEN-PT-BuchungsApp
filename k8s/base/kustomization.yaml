@@ -9,3 +9,4 @@ resources:
   - frontend/
   - login/
   - zimmerverwaltung/
+  - kundenmanagement/

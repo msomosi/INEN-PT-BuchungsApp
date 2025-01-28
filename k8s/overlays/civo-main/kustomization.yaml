@@ -20,8 +20,8 @@ images:
   - name: frontend
     newName: mseyer91/apeni-frontend
     newTag: main
-  - name: kundenverwaltung
-    newName: mseyer91/apeni-kundenverwaltung
+  - name: kundenmanagement
+    newName: mseyer91/apeni-kundenmanagement
     newTag: main
   - name: login
     newName: mseyer91/apeni-login
