@@ -5,7 +5,7 @@ metadata:
   name: anbietermgmt
 spec:
   selector:
-    app: anbietermgmt
+    app.kubernetes.io/name: anbietermgmt
   ports:
   - protocol: TCP
       port: 80
