@@ -32,5 +32,5 @@ variable "domain_name" {
 variable "namespaces" {
   description = "Add this branches as namespaces/subdomains to cluster"
   type        = set(string)
-  default     = ["main", "mathias"]
+  default     = ["main", "mathias", "mse_local_testing"]
 }
