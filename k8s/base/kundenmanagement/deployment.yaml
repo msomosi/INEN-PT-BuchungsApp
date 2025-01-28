@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booked-management
+spec:
+  selector:
+    matchLabels:
+        app.kubernetes.io/name : booked-management
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name : booked-management
+    spec:
+      containers:
+      - name: booked-management
+        image: booked-management
+        ports:
+        - containerPort: 80
+        env:
+        - name: SESSION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: session-secret
+              key: SESSION_KEY
+        - name: S3_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: s3-config
+              key: S3_ENDPOINT
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-secret
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-secret
+              key: AWS_SECRET_ACCESS_KEY
