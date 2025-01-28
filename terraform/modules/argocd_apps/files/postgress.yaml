@@ -42,3 +42,24 @@ spec:
       resources:
         requests:
           storage: 10Gi
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-external
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: postgres
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+data:s
+  init.sql: |
+    -- Your initialization SQL goes here
+    CREATE EXTENSION IF NOT EXISTS postgis;
