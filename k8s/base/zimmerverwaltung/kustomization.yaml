@@ -10,6 +10,5 @@ labels:
 
 resources:
   - deployment.yaml
-  - http-route-hotels.yaml
   - http-route-room.yaml
   - service.yaml

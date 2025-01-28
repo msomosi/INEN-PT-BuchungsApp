@@ -17,4 +17,5 @@ resource "helm_release" "argocd_apps" {
   create_namespace = true
 
   values = [data.utils_deep_merge_yaml.argocd_values.output]
+
 }
