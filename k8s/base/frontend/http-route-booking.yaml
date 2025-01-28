@@ -10,14 +10,22 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /booked-management
-      backendRefs:
-        - name: frontend
-          port: 80
-    - matches:
+            value: /
         - path:
             type: PathPrefix
-            value: /book-room
+            value: /home
+        - path:
+            type: PathPrefix
+            value: /static
+        - path:
+            type: PathPrefix
+            value: /register
+        - path:
+            type: PathPrefix
+            value: /verify-2fa
+        - path:
+            type: PathPrefix
+            value: /get-session
       backendRefs:
         - name: frontend
           port: 80

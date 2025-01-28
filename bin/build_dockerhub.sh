@@ -1,23 +1,30 @@
 #!/usr/bin/env bash
 
-SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 || exit ; pwd -P )"
-declare -a modules=("booked-management" "frontend" "login" "zimmerverwaltung" "anbietermgmt")
+SCRIPTPATH="$(dirname "$(realpath "$0")")"
+declare -a modules=("anbietermgmt" "booked-management" "buchungsmanagement" "frontend" "kundenmanagement" "login" "zimmerverwaltung")
 platform="linux/amd64,linux/arm64"
 registry="mseyer91/"
 
-docker login --username mseyer91 --password "$DOCKERHUB_PASSWORD"
+if [[ -n "$DOCKERHUB_PASSWORD" ]]; then
+  echo "$DOCKERHUB_PASSWORD" | docker login --username mseyer91 --password-stdin || { echo "❌ Docker Login fehlgeschlagen!"; exit 1; }
+else
+  echo "⚠️  Kein Docker Passwort gefunden. Überspringe Login..."
+fi
+# Git Branch ermitteln (Falls fehlerhaft -> Default 'latest')
+git_branch_name="$(git symbolic-ref --short HEAD 2>/dev/null || echo 'latest')"
 
-git_branch_name="$(git symbolic-ref HEAD 2>/dev/null)" ||
-git_branch_name="(unnamed branch)"     # detached HEAD
-git_branch_name=${git_branch_name##refs/heads/}
-
+# Build & Push Loop
 for module in "${modules[@]}"; do
   imagename="apeni-${module}:${git_branch_name}"
-  echo "$imagename"
+  DOCKERFILE_PATH="${SCRIPTPATH}/../app/build/Dockerfile"
+  BUILD_CONTEXT="${SCRIPTPATH}/../app"
+  echo "🚀 Building and pushing: $imagename"
+
   docker buildx build \
     --platform "$platform" \
     --tag "$registry$imagename" \
     --push \
-    -f "${SCRIPTPATH}/../app/build/Dockerfile" \
-    "${SCRIPTPATH}/../app/"
+    -f "$DOCKERFILE_PATH" \
+    --build-arg module=$module \
+    "$BUILD_CONTEXT"
 done

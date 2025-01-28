@@ -10,7 +10,13 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /room
+            value: /zimmerverwaltung
+        - path:
+            type: PathPrefix
+            value: /search-providers
+        - path:
+            type: PathPrefix
+            value: /create-booking
       backendRefs:
         - name: zimmerverwaltung
           port: 80
