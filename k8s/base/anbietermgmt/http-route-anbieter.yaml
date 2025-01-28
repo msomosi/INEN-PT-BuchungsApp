@@ -13,6 +13,21 @@ spec:
         - path:
             type: PathPrefix
             value: /anbietermgmt
+        - path:
+            type: PathPrefix
+            value: /room_summary
+        - path:
+            type: PathPrefix
+            value: /add-room
+        - path:
+            type: PathPrefix
+            value: /confirm-booking
+        - path:
+            type: PathPrefix
+            value: /reject-booking
+        - path:
+            type: PathPrefix
+            value: /cancelled-bookings
       backendRefs:
         - name: anbietermgmt
           port: 80

@@ -13,6 +13,24 @@ spec:
         - path:
             type: PathPrefix
             value: /kundenmanagement
+        - path:
+            type: PathPrefix
+            value: /add-kunde
+        - path:
+            type: PathPrefix
+            value: /edit-kunde
+        - path:
+            type: PathPrefix
+            value: /delete-kunde
+        - path:
+            type: PathPrefix
+            value: /student-verifications
+        - path:
+            type: PathPrefix
+            value: /verify-student
+        - path:
+            type: PathPrefix
+            value: /reject-student
       backendRefs:
         - name: kundenmanagement
           port: 80
