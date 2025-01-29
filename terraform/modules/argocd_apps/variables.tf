@@ -18,5 +18,5 @@ variable "repo_url" {
 variable "target_revision" {
   description = "Git branch/tag to use"
   type        = string
-  default     = "main"
+  default     = "mse_local_testing"
 }
