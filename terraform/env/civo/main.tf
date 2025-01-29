@@ -102,3 +102,10 @@ resource "kubernetes_manifest" "app_gateway" {
 
   depends_on = [module.argocd_apps]
 }
+
+module "postgres" {
+  source = "../../modules/postgres"
+  namespace = var.namespaces[0]  # Or specific namespace
+  sql_dump_path = "${path.module}/init.sql"
+  depends_on = [module.cluster_civo]
+}
