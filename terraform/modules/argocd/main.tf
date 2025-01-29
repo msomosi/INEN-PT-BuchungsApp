@@ -45,3 +45,33 @@ resource "helm_release" "argocd" {
 
   values = [data.utils_deep_merge_yaml.argocd_values.output]
 }
+
+
+resource "kubernetes_manifest" "postgres_application" {
+  manifest = {
+    apiVersion = "argoproj.io/v1alpha1"
+    kind       = "Application"
+    metadata = {
+      name      = "postgres"
+      namespace = "argocd"
+    }
+    spec = {
+      project = "default"
+      source = {
+        repoURL        = var.repo_url
+        targetRevision = var.target_revision
+        path          = "terraform/modules/argocd_apps/files"
+      }
+      destination = {
+        server    = "https://kubernetes.default.svc"
+        namespace = "default"
+      }
+      syncPolicy = {
+        automated = {
+          prune    = true
+          selfHeal = true
+        }
+      }
+    }
+  }
+}

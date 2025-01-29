@@ -40,3 +40,14 @@ variable "namespace" {
   description = "Namespace for acrgo-cd"
   default     = "argocd"
 }
+variable "repo_url" {
+  description = "Git repository URL containing the application manifests"
+  type        = string
+  default     = "https://github.com/msomosi/INEN-PT-BuchungsApp.git"
+}
+
+variable "target_revision" {
+  description = "Git branch/tag to use"
+  type        = string
+  default     = "mse_local_testing"
+}
