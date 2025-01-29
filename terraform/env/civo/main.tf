@@ -105,7 +105,10 @@ resource "kubernetes_manifest" "app_gateway" {
 
 module "postgres" {
   source = "../../modules/postgres"
-  namespace = var.namespaces[0]  # Or specific namespace
-  sql_dump_path = "${path.module}/init.sql"
+  
+  # These variables are now optional due to defaults
+  namespace = "default"      # Optional, will use "default" if not specified
+  sql_dump_path = "../../modules/postgres/init.sql"
+  
   depends_on = [module.cluster_civo]
 }
