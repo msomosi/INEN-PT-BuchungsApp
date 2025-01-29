@@ -2,7 +2,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: frontend-home-route
+  name: frontend-booking-routes
 spec:
   parentRefs:
     - name: booking-gateway
@@ -11,6 +11,18 @@ spec:
         - path:
             type: PathPrefix
             value: /home
+        - path:
+            type: PathPrefix
+            value: /static
+        - path:
+            type: PathPrefix 
+            value: /register
+        - path:
+            type: PathPrefix
+            value: /verify-2fa
+        - path:
+            type: PathPrefix
+            value: /get-session
       backendRefs:
         - name: frontend
           port: 80
