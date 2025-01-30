@@ -20,6 +20,9 @@ spec:
         - path:
             type: PathPrefix
             value: /get-session
+        - path:
+            type: PathPrefix
+            value: /verify-2fa
       backendRefs:
         - name: frontend
           port: 80
