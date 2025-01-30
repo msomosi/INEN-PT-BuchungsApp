@@ -10,5 +10,7 @@ labels:
 
 resources:
   - deployment.yaml
-  - http-route-home.yaml
+  - http-route-home_1.yaml
+  - http-route-home_2.yaml
+  - http-route-home_3.yaml
   - service.yaml
