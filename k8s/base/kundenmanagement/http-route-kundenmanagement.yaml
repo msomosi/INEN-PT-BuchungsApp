@@ -1,4 +1,3 @@
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -6,8 +5,7 @@ metadata:
 spec:
   parentRefs:
     - name: booking-app-gateway
-#  hostnames:
-#    - "foo.example.com"
+      namespace: booking-app-main
   rules:
     - matches:
         - path:
@@ -17,20 +15,20 @@ spec:
             type: PathPrefix
             value: /add-kunde
         - path:
-            type: PathPrefix
-            value: /edit-kunde
+            type: RegularExpression
+            value: "^/edit-kunde/\\d+$"
         - path:
-            type: PathPrefix
-            value: /delete-kunde
+            type: RegularExpression
+            value: "^/delete-kunde/\\d+$"
         - path:
             type: PathPrefix
             value: /student-verifications
         - path:
-            type: PathPrefix
-            value: /verify-student
+            type: RegularExpression
+            value: "^/verify-student/\\d+$"
         - path:
-            type: PathPrefix
-            value: /reject-student
+            type: RegularExpression
+            value: "^/reject-student/\\d+$"
       backendRefs:
         - name: kundenmanagement
           port: 80

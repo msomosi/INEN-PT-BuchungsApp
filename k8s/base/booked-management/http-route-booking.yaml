@@ -1,13 +1,11 @@
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: booked-management-booking-route
+  name: booked-management-route
 spec:
   parentRefs:
     - name: booking-app-gateway
-#  hostnames:
-#    - "foo.example.com"
+      namespace: booking-app-main
   rules:
     - matches:
         - path:
