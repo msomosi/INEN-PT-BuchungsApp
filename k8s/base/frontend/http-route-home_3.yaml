@@ -23,6 +23,9 @@ spec:
         - path:
             type: RegularExpression
             value: "^/user-details/\\d+$"
+        - path:
+            type: PathPrefix
+            value: /static
       backendRefs:
         - name: frontend
           port: 80
