@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: frontend
 spec:
+  replicas = 3
   selector:
     matchLabels:
         app.kubernetes.io/name : frontend
@@ -15,6 +16,13 @@ spec:
       containers:
       - name: frontend
         image: frontend
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
         ports:
         - containerPort: 80
         env:

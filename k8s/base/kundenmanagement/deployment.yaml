@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: kundenmanagement
 spec:
+  replicas = 3
   selector:
     matchLabels:
         app.kubernetes.io/name : kundenmanagement
@@ -14,7 +15,14 @@ spec:
     spec:
       containers:
       - name: kundenmanagement
-        image: kundenmanagement
+        image: kundenmanagement      
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
         ports:
         - containerPort: 80
         env:

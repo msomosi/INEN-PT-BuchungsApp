@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: login
 spec:
+  replicas = 3
   selector:
     matchLabels:
       app.kubernetes.io/name : login
@@ -15,6 +16,13 @@ spec:
       containers:
       - name: login
         image: login
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
         env:
         - name: SESSION_KEY
           valueFrom:

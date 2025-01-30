@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: anbietermgmt
 spec:
+  replicas = 3
   selector:
     matchLabels:
         app.kubernetes.io/name : anbietermgmt
@@ -15,6 +16,13 @@ spec:
       containers:
       - name: anbietermgmt
         image: anbietermgmt
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
         ports:
         - containerPort: 80
         env:
