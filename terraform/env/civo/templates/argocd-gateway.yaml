@@ -11,3 +11,12 @@ spec:
       hostname: "argocd.${cluster_name}.${domain_name}"
       protocol: HTTP
       port: 80
+    - name: https
+      hostname: "${namespace}.${cluster_name}.${domain_name}"
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: cluster-wildcard-tls  # Reference your wildcard certificate secret
+            namespace: cert-manager     # Namespace where the secret is stored
