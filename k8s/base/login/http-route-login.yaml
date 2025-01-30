@@ -17,6 +17,9 @@ spec:
         - path:
             type: PathPrefix
             value: /authorize
+        - path:
+            type: PathPrefix
+            value: /verify-2fa
       backendRefs:
         - name: login
           port: 80
