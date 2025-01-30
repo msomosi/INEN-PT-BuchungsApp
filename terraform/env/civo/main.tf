@@ -116,7 +116,7 @@ resource "kubernetes_manifest" "app_gateway" {
   manifest = yamldecode(templatefile("templates/gateway-booking-app.yaml", {
     namespace    = replace(each.value, "/[^a-zA-Z0-9-\\.]/", "-")
     cluster_name = var.cluster_name,
-    domain_name  = var.domain_name,
+    domain_name  = var.domain_name
   }))
 
   depends_on = [module.argocd_apps]

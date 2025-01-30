@@ -23,6 +23,9 @@ spec:
         - path:
             type: PathPrefix
             value: /verify-2fa
+          - path:
+            type: PathPrefix
+            value: /booked-management
       backendRefs:
         - name: frontend
           port: 80

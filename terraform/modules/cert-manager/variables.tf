@@ -1,4 +1,15 @@
+variable "namespace" {
+  type = string
+}
+
 variable "cluster_name" {
-  description = "Name of the Kubernetes cluster"
-  type        = string
+  type = string
+}
+
+variable "domain_name" {
+  type = string
+}
+
+variable "email" {
+  type = string
 }
