@@ -5,7 +5,8 @@ metadata:
   name: frontend-booking-routes
 spec:
   parentRefs:
-    - name: booking-gateway
+  - name: booking-app-gateway
+    namespace: booking-app-main
   rules:
     - matches:
         - path:

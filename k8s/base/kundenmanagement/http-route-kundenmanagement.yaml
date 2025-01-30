@@ -5,7 +5,8 @@ metadata:
   name: kundenmanagement-route
 spec:
   parentRefs:
-    - name: booking-app-gateway
+  - name: booking-app-gateway
+    namespace: booking-app-main
 #  hostnames:
 #    - "foo.example.com"
   rules:
