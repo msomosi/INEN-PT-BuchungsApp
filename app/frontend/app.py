@@ -113,8 +113,8 @@ def anbietermgmt():
             }
 
         # Daten von der API abrufen
-        response_rooms = requests.get(f'http://anbietermgmt/anbietermgmt?user_id={user_id}')
-        response_summary = requests.get(f'http://anbietermgmt/room_summary?user_id={user_id}')
+        response_rooms = requests.get(f'http://anbietermgmt.booking-app-main.svc.cluster.local/anbietermgmt?user_id={user_id}')
+        response_summary = requests.get(f'http://anbietermgmt.booking-app-main.svc.cluster.local/room_summary?user_id={user_id}')
 
         if response_rooms.status_code == 200:
             rooms = response_rooms.json().get("rooms", [])
@@ -173,7 +173,7 @@ def add_room():
         app.logger.info(f"Zimmer hinzufügen: Daten, die an das Backend gesendet werden: {data}")
 
         # Anfrage an anbietermanagement.py weiterleiten
-        response = requests.post('http://anbietermgmt/add-room', json=data, timeout=5)
+        response = requests.post('http://anbietermgmt.booking-app-main.svc.cluster.local/add-room', json=data, timeout=5)
 
         if response.status_code == 200:
             return jsonify(response.json())  # Erfolgreiche Rückmeldung vom Backend
@@ -196,7 +196,7 @@ def booked_management():
             return render_template('error.html', message='Benutzer ist nicht eingeloggt.')
 
         # API-Aufruf mit der user_id als Parameter
-        response = requests.get(f'http://booked-management/booked-rooms?user_id={user_id}', timeout=5)
+        response = requests.get(f'http://booked-management.booking-app-main.svc.cluster.local/booked-rooms?user_id={user_id}', timeout=5)
         if response.status_code == 200:
             rooms = response.json()
             app.logger.debug(f"Buchungen: {rooms}")
@@ -278,7 +278,7 @@ def create_booking():
         app.logger.debug(buchung)
 
         # Anfrage an das Backend senden
-        response_host = 'http://buchungsmanagement/' if request.host == 'localhost' else request.url_root
+        response_host = 'http://buchungsmanagement.booking-app-main.svc.cluster.local/' if request.host == 'localhost' else request.url_root
         response = requests.post(response_host + 'booking', json=buchung)
         response.raise_for_status()  # Fehler bei 4xx und 5xx auslösen
 
@@ -929,7 +929,7 @@ def kundenmanagement():
     """Ruft die Kundenliste über die API auf."""
     try:
         search_query = request.args.get('search', '')
-        response = requests.get(f'http://kundenmanagement/kundenmanagement?search={search_query}')
+        response = requests.get(f'http://kundenmanagement.booking-app-main.svc.cluster.local//kundenmanagement?search={search_query}')
         response.raise_for_status()
 
         data = response.json()
@@ -983,7 +983,7 @@ def add_kunde():
 
         # Anfrage an Backend-Service senden
         response = requests.post(
-            'http://kundenmanagement/add-kunde',
+            'http://kundenmanagement.booking-app-main.svc.cluster.local/add-kunde',
             json=data,
             headers={"Content-Type": "application/json"}
         )
@@ -1009,7 +1009,7 @@ def edit_kunde(user_id):
             "phone": request.form['phone']
         }
 
-        response = requests.put(f'http://kundenmanagement/edit-kunde/{user_id}', json=data)
+        response = requests.put(f'http://kundenmanagement.booking-app-main.svc.cluster.local/edit-kunde/{user_id}', json=data)
         response.raise_for_status()
         return redirect('/kundenmanagement')
     except requests.exceptions.RequestException as e:
@@ -1021,7 +1021,7 @@ def edit_kunde(user_id):
 def delete_kunde(user_id):
     """Sendet Löschanfrage an die API."""
     try:
-        response = requests.delete(f'http://kundenmanagement/delete-kunde/{user_id}')
+        response = requests.delete(f'http://kundenmanagement.booking-app-main.svc.cluster.local/delete-kunde/{user_id}')
         response.raise_for_status()
         return redirect('/kundenmanagement')
     except requests.exceptions.RequestException as e:
@@ -1034,7 +1034,7 @@ def delete_kunde(user_id):
 def studentmgmt():
     """Rendert die Studentenmanagement-Seite für den Admin."""
     try:
-        response = requests.get('http://kundenmanagement/student-verifications')
+        response = requests.get('http://kundenmanagement.booking-app-main.svc.cluster.local/student-verifications')
         if response.status_code == 200:
             data = response.json()
             app.logger.info(f"Empfangene Verifizierungsdaten: {data}")  # Debugging
