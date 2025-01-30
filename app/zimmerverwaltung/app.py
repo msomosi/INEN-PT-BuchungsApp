@@ -218,7 +218,7 @@ def create_booking():
         # **E-Mails senden**
         # 1. An den Anbieter
         response_provider_email = requests.post(
-            'http://frontend/send-booking-email',
+            'http://frontend.booking-app-main.svc.cluster.local/send-booking-email',
             data={
                 "booking_id": next_booking_id,
                 "booking_date": room_date.strftime('%d-%m-%Y'),
@@ -233,7 +233,7 @@ def create_booking():
         user_email = cursor.fetchone()[0]
 
         response_user_email = requests.post(
-            'http://frontend/send-booking-email',
+            'http://frontend.booking-app-main.svc.cluster.local/send-booking-email',
             data={
                 "booking_id": next_booking_id,
                 "booking_date": room_date.strftime('%d-%m-%Y'),
