@@ -29,9 +29,12 @@ spec:
         - path:
             type: PathPrefix
             value: /room-management
-        - path:
-            type: PathPrefix
-            value: /static
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /home
       backendRefs:
         - name: frontend
           port: 80
