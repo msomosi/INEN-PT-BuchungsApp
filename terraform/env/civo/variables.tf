@@ -32,7 +32,7 @@ variable "domain_name" {
 variable "namespaces" {
   description = "Add this branches as namespaces/subdomains to cluster"
   type        = set(string)
-  default     = ["main", "mathias", "mse_local_testing"]
+  default     = ["main", "mathias", "updaterouting"]
 }
 variable "postgres_password" {
   type      = string

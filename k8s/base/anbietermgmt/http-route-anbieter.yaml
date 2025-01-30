@@ -4,25 +4,22 @@ metadata:
   name: anbietermgmt-route
 spec:
   parentRefs:
-  - name: booking-app-gateway
-    namespace: booking-app-main
+    - name: booking-app-gateway
+      namespace: booking-app-main
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: /anbietermgmt
-        - path:
-            type: PathPrefix
             value: /room_summary
-        - path:
-            type: PathPrefix
-            value: /add-room
         - path:
             type: PathPrefix
             value: /confirm-booking
         - path:
             type: PathPrefix
             value: /reject-booking
+        - path:
+            type: PathPrefix
+            value: /remove-old-rooms
         - path:
             type: PathPrefix
             value: /cancelled-bookings
