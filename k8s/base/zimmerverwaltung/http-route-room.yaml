@@ -5,7 +5,7 @@ metadata:
   name: zimmerverwaltung-room-route
 spec:
   parentRefs:
-    - name: booking-gateway
+    - name: booking-app-gateway
   rules:
     - matches:
         - path:

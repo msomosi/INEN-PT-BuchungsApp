@@ -1,3 +1,8 @@
+resource "kubernetes_namespace" "mcce-dev" {
+  metadata {
+    name = "mcce-dev"
+  }
+}
 module "cluster_civo" {
   source = "../../modules/cluster_civo"
 
@@ -28,6 +33,20 @@ data "utils_deep_merge_yaml" "argocd_apps" {
   )
 
   depends_on = [module.argocd]
+}
+
+# Add this after your ArgoCD module
+module "postgresql" {
+  source = "../../modules/postgres"
+
+  namespace       = "mcce-dev"
+  postgres_password = var.postgres_password
+
+  depends_on = [
+    module.cluster_civo,
+    module.argocd,
+    kubernetes_namespace.mcce-dev
+  ]
 }
 
 module "argocd_apps" {

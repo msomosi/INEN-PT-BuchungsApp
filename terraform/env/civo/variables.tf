@@ -34,3 +34,7 @@ variable "namespaces" {
   type        = set(string)
   default     = ["main", "mathias", "mse_local_testing"]
 }
+variable "postgres_password" {
+  type      = string
+  sensitive = true
+}
