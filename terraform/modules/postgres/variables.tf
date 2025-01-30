@@ -1,11 +1,10 @@
 variable "namespace" {
-  type = string
-  description = "Kubernetes namespace for PostgreSQL"
-  default = "default"  # Or your preferred default namespace
+  type    = string
+  default = "mcce-dev"
 }
 
-variable "sql_dump_path" {
-  type = string
-  description = "Path to SQL dump file"
-  default = "init.sql"
+variable "postgres_password" {
+  type      = string
+  sensitive = true
+  default   = "password123"
 }

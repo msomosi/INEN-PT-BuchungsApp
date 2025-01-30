@@ -5,7 +5,7 @@ metadata:
   name: booked-management-booking-route
 spec:
   parentRefs:
-    - name: booking-gateway
+    - name: booking-app-gateway
 #  hostnames:
 #    - "foo.example.com"
   rules:

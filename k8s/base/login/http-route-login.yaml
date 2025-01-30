@@ -5,7 +5,7 @@ metadata:
   name: login-login-route
 spec:
   parentRefs:
-    - name: booking-gateway
+    - name: booking-app-gateway
   rules:
     - matches:
         - path:

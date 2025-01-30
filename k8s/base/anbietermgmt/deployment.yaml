@@ -21,10 +21,10 @@ spec:
         - name: SESSION_KEY
           value: "12345678910111213141516"
         - name: DB_HOSTNAME
-          value: "db"
+          value: "booking-postgres-postgresql.mcce-dev.svc.cluster.local"
         - name: DB_SID
-          value: "citizix_db"
+          value: "booking_db"
         - name: DB_USERNAME
-          value: "citizix_user"
+          value: "postgres"  # Plain text
         - name: DB_PASSWORD
-          value: "S3cret"
+          value: "password123"  # Plain text

@@ -23,3 +23,11 @@ spec:
             secretKeyRef:
               name: session-secret
               key: SESSION_KEY
+        - name: DB_HOSTNAME
+          value: "booking-postgres-postgresql.mcce-dev.svc.cluster.local"
+        - name: DB_SID
+          value: "booking_db"
+        - name: DB_USERNAME
+          value: "postgres"  # Plain text
+        - name: DB_PASSWORD
+          value: "password123"  # Plain text

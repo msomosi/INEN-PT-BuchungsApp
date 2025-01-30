@@ -1,143 +1,92 @@
-resource "kubernetes_persistent_volume_claim" "postgres_pvc" {
+resource "kubernetes_config_map" "postgres_initdb" {
   metadata {
-    name = "postgres-pvc"
+    name      = "postgres-initdb"
+    namespace = var.namespace
   }
-  spec {
-    access_modes = ["ReadWriteOnce"]
-    resources {
-      requests = {
-        storage = "10Gi"
-      }
-    }
-    storage_class_name = "civo-volume"
-  }
-}
 
-resource "kubernetes_config_map" "postgres_config" {
-  metadata {
-    name = "postgres-config"
-  }
   data = {
-    POSTGRES_DB   = "citizix_db"
-    POSTGRES_USER = "citizix_user"
+    "init.sql" = file("${path.module}/db_dump.sql")  # Keep SQL file in module directory
   }
 }
 
-resource "kubernetes_secret" "postgres_secret" {
-  metadata {
-    name = "postgres-secret"
-  }
-  data = {
-    POSTGRES_PASSWORD = base64encode("S3cret")
-  }
-  type = "Opaque"
-}
+resource "helm_release" "postgresql" {
+  name       = "booking-postgres"
+  repository = "oci://registry-1.docker.io/bitnamicharts"
+  chart      = "postgresql"
+  version    = "16.4.4"
+  namespace  = var.namespace
 
-resource "kubernetes_config_map" "postgres_init" {
-  metadata {
-    name = "postgres-init-sql"
+  set {
+    name  = "global.postgresql.auth.postgresPassword"
+    value = var.postgres_password
   }
-  data = {
-    "init.sql" = file("${path.module}/init.sql") # Path to your SQL dump
-  }
-}
 
-resource "kubernetes_stateful_set" "postgres" {
-  metadata {
-    name = "postgres"
+  set {
+    name  = "primary.persistence.size"
+    value = "10Gi"
   }
-  spec {
-    service_name = "postgres"
-    replicas     = 1
-    selector {
-      match_labels = {
-        app = "postgres"
-      }
-    }
-    template {
-      metadata {
-        labels = {
-          app = "postgres"
-        }
-      }
-      spec {
-        init_container {
-          name    = "init-db"
-          image   = "postgres:14"
-          command = ["sh", "-c", "cp /docker-entrypoint-initdb.d/* /init-scripts/"]
-          volume_mount {
-            name       = "init-scripts"
-            mount_path = "/init-scripts"
-          }
-          volume_mount {
-            name       = "sql-dump"
-            mount_path = "/docker-entrypoint-initdb.d"
-          }
-        }
-        container {
-          name  = "postgres"
-          image = "postgis/postgis:14-3.3"
-          env_from {
-            config_map_ref {
-              name = kubernetes_config_map.postgres_config.metadata[0].name
-            }
-          }
-          env_from {
-            secret_ref {
-              name = kubernetes_secret.postgres_secret.metadata[0].name
-            }
-          }
-          port {
-            container_port = 5432
-          }
-          volume_mount {
-            name       = "postgres-storage"
-            mount_path = "/var/lib/postgresql/data"
-          }
-          volume_mount {
-            name       = "init-scripts"
-            mount_path = "/docker-entrypoint-initdb.d"
-          }
-        }
-        volume {
-          name = "init-scripts"
-          empty_dir {}
-        }
-        volume {
-          name = "sql-dump"
-          config_map {
-            name = kubernetes_config_map.postgres_init.metadata[0].name
-          }
-        }
-      }
-    }
-    volume_claim_template {
-      metadata {
-        name = "postgres-storage"
-      }
-      spec {
-        access_modes = ["ReadWriteOnce"]
-        resources {
-          requests = {
-            storage = "10Gi"
-          }
-        }
-        storage_class_name = "civo-volume"
-      }
-    }
+
+  set {
+    name  = "global.storageClass"
+    value = "civo-volume"
+  }
+
+  set {
+    name  = "primary.initdb.scriptsConfigMap"
+    value = kubernetes_config_map.postgres_initdb.metadata[0].name
+  }
+
+  set {
+    name  = "global.postgresql.auth.database"
+    value = "booking_db"
   }
 }
+# In your PostgreSQL module or root main.tf
+resource "helm_release" "pgadmin" {
+  name       = "booking"
+  repository = "https://helm.runix.net"  # Official pgAdmin Helm chart
+  chart      = "pgadmin4"
+  namespace  = var.namespace  # mcce-dev
 
-resource "kubernetes_service" "postgres" {
-  metadata {
-    name = "postgres"
+  set {
+    name  = "env.email"
+    value = "admin@example.com"  # pgAdmin login email
   }
-  spec {
-    selector = {
-      app = "postgres"
-    }
-    port {
-      port = 5432
-    }
+
+  set {
+    name  = "env.password"
+    value = "AdminPassword123!"  # Change this!
   }
+
+  set {
+    name  = "service.type"
+    value = "LoadBalancer"
+  }
+
+  # Pre-configure PostgreSQL connection
+  set {
+    name  = "serverDefinitions.servers.1.Name"
+    value = "Booking DB"
+  }
+
+  set {
+    name  = "serverDefinitions.servers.1.Host"
+    value = "booking-postgres-postgresql.mcce-dev.svc.cluster.local"
+  }
+
+  set {
+    name  = "serverDefinitions.servers.1.Port"
+    value = "5432"
+  }
+
+  set {
+    name  = "serverDefinitions.servers.1.Username"
+    value = "postgres"
+  }
+
+  set {
+    name  = "serverDefinitions.servers.1.Password"
+    value = var.postgres_password  # Reference your PostgreSQL password
+  }
+  depends_on = [helm_release.postgresql]
 }
