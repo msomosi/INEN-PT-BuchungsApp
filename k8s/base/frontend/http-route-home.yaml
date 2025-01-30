@@ -19,7 +19,7 @@ spec:
             value: /register
         - path:
             type: PathPrefix
-            value: /verify-2fa
+            value: /authorize
         - path:
             type: PathPrefix
             value: /get-session

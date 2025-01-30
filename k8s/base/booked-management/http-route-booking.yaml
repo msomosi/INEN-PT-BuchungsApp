@@ -15,9 +15,6 @@ spec:
             value: /booked-rooms
         - path:
             type: PathPrefix
-            value: /booked-management
-        - path:
-            type: PathPrefix
             value: /cancel-booking
       backendRefs:
         - name: booked-management
