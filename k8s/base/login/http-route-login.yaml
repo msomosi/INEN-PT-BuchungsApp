@@ -14,6 +14,9 @@ spec:
         - path:
             type: PathPrefix
             value: /logout
+        - path:
+            type: PathPrefix
+            value: /authorize
       backendRefs:
         - name: login
           port: 80

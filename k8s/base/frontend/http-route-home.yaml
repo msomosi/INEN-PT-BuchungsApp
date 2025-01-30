@@ -19,10 +19,10 @@ spec:
             value: /register
         - path:
             type: PathPrefix
-            value: /authorize
+            value: /get-session
         - path:
             type: PathPrefix
-            value: /get-session
+            value: /verify-2fa
       backendRefs:
         - name: frontend
           port: 80

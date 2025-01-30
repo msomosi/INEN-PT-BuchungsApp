@@ -16,6 +16,9 @@ spec:
         - path:
             type: PathPrefix
             value: /cancel-booking
+        - path:
+            type: PathPrefix
+            value: /booked-management
       backendRefs:
         - name: booked-management
           port: 80
