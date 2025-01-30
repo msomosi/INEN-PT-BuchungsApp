@@ -13,9 +13,6 @@ spec:
             value: /login
         - path:
             type: PathPrefix
-            value: /authorize
-        - path:
-            type: PathPrefix
             value: /logout
       backendRefs:
         - name: login
