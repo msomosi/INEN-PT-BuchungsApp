@@ -21,7 +21,7 @@ variable "argocd_namespace" {
 variable "cluster_name" {
   type      = string
   sensitive = false
-  default   = "mcce-dev"
+  default   = "mcce"
 }
 
 variable "domain_name" {
@@ -32,7 +32,7 @@ variable "domain_name" {
 variable "namespaces" {
   description = "Add this branches as namespaces/subdomains to cluster"
   type        = set(string)
-  default     = ["main", "mathias", "updaterouting"]
+  default     = ["main", "dev", "staging"]
 }
 variable "postgres_password" {
   type      = string
